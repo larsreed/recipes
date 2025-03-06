@@ -27,6 +27,3 @@ CREATE TABLE source (
 );
 
 ALTER TABLE recipe ADD CONSTRAINT fk_source FOREIGN KEY (source_id) REFERENCES source(id);
-
-INSERT INTO recipe (people, name, instructions) VALUES (4,'Pancakes', 'Mix ingredients and cook on a griddle.');
-SELECT * from recipe;
