@@ -6,6 +6,7 @@ CREATE TABLE recipe (
     instructions TEXT NOT NULL,
     source_id BIGINT
 );
+ALTER TABLE recipe ADD COLUMN served TEXT NULL;
 
 CREATE TABLE Ingredient (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,

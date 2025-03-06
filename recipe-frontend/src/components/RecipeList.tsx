@@ -16,6 +16,7 @@ interface Recipe {
     ingredients: Ingredient[];
     instructions: string;
     people: number;
+    served?: string;
     source?: Source;
 }
 
@@ -61,6 +62,7 @@ function RecipeList() {
                         </ul>
                         <p>Instructions: {recipe.instructions}</p>
                         <p>People: {recipe.people}</p>
+                        {recipe.served && <p>Served: {recipe.served}</p>}
                         {recipe.source && (
                             <div>
                                 <p>Source: {recipe.source.name} by {recipe.source.authors}</p>

@@ -11,13 +11,15 @@ data class Recipe(
     @OneToMany(cascade = [CascadeType.ALL], fetch = FetchType.LAZY)
     @JoinColumn(name = "recipe_id")
     var ingredients: List<Ingredient> = mutableListOf(),
-    var instructions: String,
     var people: Int,
+    @Column(columnDefinition = "TEXT")
+    var instructions: String,
+    var served: String? = null,
     @Transient
     val sourceId: Long = 0
 ) {
     @ManyToOne @JoinColumn(name = "source_id")
     var source: Source? = null
 
-    constructor() : this(0, "", mutableListOf(), "", 0, 0)
+    constructor() : this(0, "", mutableListOf(), 0, "", null, 0)
 }

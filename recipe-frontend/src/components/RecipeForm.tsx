@@ -21,6 +21,7 @@ function RecipeForm({ onRecipeCreated }: RecipeFormProps) {
     const [name, setName] = useState('');
     const [instructions, setInstructions] = useState('');
     const [people, setPeople] = useState(0);
+    const [served, setServed] = useState('');
     const [sourceId, setSourceId] = useState<number | null>(null);
     const [sources, setSources] = useState<Source[]>([]);
     const [ingredients, setIngredients] = useState<Ingredient[]>([{ name: '' }]);
@@ -75,7 +76,7 @@ function RecipeForm({ onRecipeCreated }: RecipeFormProps) {
             setErrors(newErrors);
             return;
         }
-        const newRecipe = { name, instructions, people, ingredients, sourceId };
+        const newRecipe = { name, instructions, people, served, ingredients, sourceId };
         console.log('New recipe:', newRecipe);
         const apiUrl = 'http://localhost:8080/api/recipes';
         try {
@@ -84,6 +85,7 @@ function RecipeForm({ onRecipeCreated }: RecipeFormProps) {
             setName('');
             setInstructions('');
             setPeople(0);
+            setServed('');
             setSourceId(null);
             setIngredients([{ name: '' }]);
             setErrors({});
@@ -112,6 +114,10 @@ function RecipeForm({ onRecipeCreated }: RecipeFormProps) {
                 <label>People:</label>
                 <input type="number" value={people} onChange={(e) => setPeople(parseInt(e.target.value))} />
                 {errors.people && <p className="error">{errors.people}</p>}
+            </div>
+            <div>
+                <label>Served:</label>
+                <textarea value={served} onChange={(e) => setServed(e.target.value)} />
             </div>
             <div>
                 <label>Source:</label>
