@@ -7,6 +7,7 @@ CREATE TABLE recipe (
     source_id BIGINT
 );
 ALTER TABLE recipe ADD COLUMN served TEXT NULL;
+ALTER TABLE recipe ADD COLUMN page_ref VARCHAR(64) NULL;
 
 
 CREATE TABLE Ingredient (

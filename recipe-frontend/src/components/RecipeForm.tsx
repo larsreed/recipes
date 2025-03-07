@@ -31,6 +31,7 @@ function RecipeForm({ onRecipeCreated }: RecipeFormProps) {
     const [served, setServed] = useState('');
     const [sourceId, setSourceId] = useState<number | null>(null);
     const [sources, setSources] = useState<Source[]>([]);
+    const [pageRef, setPageRef] = useState('');
     const [ingredients, setIngredients] = useState<Ingredient[]>([{ name: '' }]);
     const [attachments, setAttachments] = useState<Attachment[]>([]);
 
@@ -105,7 +106,7 @@ function RecipeForm({ onRecipeCreated }: RecipeFormProps) {
             setErrors(newErrors);
             return;
         }
-        const newRecipe = { name, instructions, people, served, ingredients, attachments, sourceId };
+        const newRecipe = { name, instructions, people, served, ingredients, attachments, sourceId, pageRef };
         console.log('New recipe:', newRecipe);
         const apiUrl = 'http://localhost:8080/api/recipes';
         try {
@@ -116,6 +117,7 @@ function RecipeForm({ onRecipeCreated }: RecipeFormProps) {
             setPeople(0);
             setServed('');
             setSourceId(null);
+            setPageRef('');
             setIngredients([{ name: '' }]);
             setAttachments([]);
             setErrors({});
@@ -151,7 +153,8 @@ function RecipeForm({ onRecipeCreated }: RecipeFormProps) {
             </div>
             <div>
                 <label>Source:</label>
-                <select value={sourceId ?? ''} onChange={(e) => setSourceId(e.target.value ? parseInt(e.target.value) : null)}>
+                <select value={sourceId ?? ''}
+                        onChange={(e) => setSourceId(e.target.value ? parseInt(e.target.value) : null)}>
                     <option value="">Select a source</option>
                     {sources.map((source) => (
                         <option key={source.id} value={source.id}>
@@ -159,6 +162,10 @@ function RecipeForm({ onRecipeCreated }: RecipeFormProps) {
                         </option>
                     ))}
                 </select>
+            </div>
+            <div>
+                <label>Page Reference:</label>
+                <input type="text" value={pageRef} onChange={(e) => setPageRef(e.target.value)}/>
             </div>
             <div>
                 <label>Ingredients:</label>

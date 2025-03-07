@@ -19,10 +19,11 @@ data class Recipe(
     @JoinColumn(name = "attachment_id")
     var attachments: List<Attachment> = mutableListOf(),
     @Transient
-    val sourceId: Long = 0
+    val sourceId: Long = 0,
+    var pageRef: String? = null
 ) {
     @ManyToOne @JoinColumn(name = "source_id")
     var source: Source? = null
 
-    constructor() : this(0, "", mutableListOf(), 0, "", null, mutableListOf(), 0)
+    constructor() : this(0, "", mutableListOf(), 0, "", null, mutableListOf(), 0, null)
 }

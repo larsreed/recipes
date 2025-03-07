@@ -26,6 +26,7 @@ interface Recipe {
     served?: string;
     attachments: Attachment[];
     source?: Source;
+    pageRef?: string;
 }
 
 interface Source {
@@ -82,7 +83,7 @@ function RecipeList() {
                         </ul>
                         {recipe.source && (
                             <div>
-                                <p>Source: {recipe.source.name} by {recipe.source.authors}</p>
+                                <p>Source: {recipe.source.name} by {recipe.source.authors}{recipe.pageRef && <span> p. {recipe.pageRef}</span>}</p>
                                 <p>Source Attachments:</p>
                                 <ul>
                                     {recipe.source.attachments.map(attachment => (
