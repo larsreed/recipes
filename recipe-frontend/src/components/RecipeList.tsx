@@ -10,6 +10,13 @@ interface Ingredient {
     measure?: string;
 }
 
+interface Attachment {
+    id: number;
+    fileName: string;
+    fileType: string;
+    data: string; // Base64 encoded
+}
+
 interface Recipe {
     id: number;
     name: string;
@@ -17,6 +24,7 @@ interface Recipe {
     instructions: string;
     people: number;
     served?: string;
+    attachments: Attachment[];
     source?: Source;
 }
 
@@ -24,6 +32,7 @@ interface Source {
     id: number;
     name: string;
     authors: string;
+    attachments: Attachment[];
 }
 
 function RecipeList() {
@@ -63,9 +72,25 @@ function RecipeList() {
                         <p>Instructions: {recipe.instructions}</p>
                         <p>People: {recipe.people}</p>
                         {recipe.served && <p>Served: {recipe.served}</p>}
+                        <p>Attachments:</p>
+                        <ul>
+                            {recipe.attachments.map(attachment => (
+                                <li key={attachment.id}>
+                                    <a href={attachment.data} download={attachment.fileName}>{attachment.fileName}</a>
+                                </li>
+                            ))}
+                        </ul>
                         {recipe.source && (
                             <div>
                                 <p>Source: {recipe.source.name} by {recipe.source.authors}</p>
+                                <p>Source Attachments:</p>
+                                <ul>
+                                    {recipe.source.attachments.map(attachment => (
+                                        <li key={attachment.id}>
+                                            <a href={attachment.data} download={attachment.fileName}>{attachment.fileName}</a>
+                                        </li>
+                                    ))}
+                                </ul>
                             </div>
                         )}
                     </li>
