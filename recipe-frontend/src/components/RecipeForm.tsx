@@ -24,6 +24,11 @@ interface Attachment {
     data: string; // Base64 encoded
 }
 
+const measureOptions = [
+    '', 'ts', 'tsp', 'tbsp', 'ss', 'ml', 'cl', 'dl', 'l', 'mg', 'g', 'kg', 'stk', 'pcs', 'kopper', 'cups'
+];
+
+
 function RecipeForm({ onRecipeCreated }: RecipeFormProps) {
     const [name, setName] = useState('');
     const [instructions, setInstructions] = useState('');
@@ -58,7 +63,6 @@ function RecipeForm({ onRecipeCreated }: RecipeFormProps) {
         ingredients.forEach((ingredient, index) => {
             if (!ingredient.name) newErrors[`ingredient-${index}-name`] = 'Ingredient name is required';
             if (ingredient.amount !== undefined && ingredient.amount < 0) newErrors[`ingredient-${index}-amount`] = 'Amount must be non-negative';
-            if (ingredient.measure && ingredient.measure.length > 10) newErrors[`ingredient-${index}-measure`] = 'Measure must be 10 characters or less';
         });
         return newErrors;
     };
@@ -178,12 +182,14 @@ function RecipeForm({ onRecipeCreated }: RecipeFormProps) {
                             onChange={(e) => handleIngredientChange(index, 'amount', parseFloat(e.target.value))}
                         />
                         {errors[`ingredient-${index}-amount`] && <p className="error">{errors[`ingredient-${index}-amount`]}</p>}
-                        <input
-                            type="text"
-                            placeholder="Measure"
+                        <select
                             value={ingredient.measure ?? ''}
                             onChange={(e) => handleIngredientChange(index, 'measure', e.target.value)}
-                        />
+                        >
+                            {measureOptions.map(option => (
+                                <option key={option} value={option}>{option}</option>
+                            ))}
+                        </select>
                         {errors[`ingredient-${index}-measure`] && <p className="error">{errors[`ingredient-${index}-measure`]}</p>}
                         <input
                             type="text"
