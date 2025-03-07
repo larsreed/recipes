@@ -31,6 +31,8 @@ class RecipeService(
         existingRecipe.instructions = recipe.instructions
         existingRecipe.people = recipe.people
         existingRecipe.pageRef = recipe.pageRef
+        existingRecipe.rating = recipe.rating
+        existingRecipe.notes = recipe.notes
         existingRecipe.source = sourceRepository.findById(recipe.sourceId)
             .orElseThrow { RuntimeException("Source not found") }
         return recipeRepository.save(existingRecipe)

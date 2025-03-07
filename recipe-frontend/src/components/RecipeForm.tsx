@@ -28,7 +28,6 @@ const measureOptions = [
     '', 'ts', 'tsp', 'tbsp', 'ss', 'ml', 'cl', 'dl', 'l', 'mg', 'g', 'kg', 'stk', 'pcs', 'kopper', 'cups'
 ];
 
-
 function RecipeForm({ onRecipeCreated }: RecipeFormProps) {
     const [name, setName] = useState('');
     const [instructions, setInstructions] = useState('');
@@ -37,6 +36,8 @@ function RecipeForm({ onRecipeCreated }: RecipeFormProps) {
     const [sourceId, setSourceId] = useState<number | null>(null);
     const [sources, setSources] = useState<Source[]>([]);
     const [pageRef, setPageRef] = useState('');
+    const [rating, setRating] = useState<number | null>(null); // New field
+    const [notes, setNotes] = useState(''); // New field
     const [ingredients, setIngredients] = useState<Ingredient[]>([{ name: '' }]);
     const [attachments, setAttachments] = useState<Attachment[]>([]);
 
@@ -110,7 +111,7 @@ function RecipeForm({ onRecipeCreated }: RecipeFormProps) {
             setErrors(newErrors);
             return;
         }
-        const newRecipe = { name, instructions, people, served, ingredients, attachments, sourceId, pageRef };
+        const newRecipe = { name, instructions, people, served, ingredients, attachments, sourceId, pageRef, rating, notes };
         console.log('New recipe:', newRecipe);
         const apiUrl = 'http://localhost:8080/api/recipes';
         try {
@@ -122,6 +123,8 @@ function RecipeForm({ onRecipeCreated }: RecipeFormProps) {
             setServed('');
             setSourceId(null);
             setPageRef('');
+            setRating(null); // Reset new field
+            setNotes(''); // Reset new field
             setIngredients([{ name: '' }]);
             setAttachments([]);
             setErrors({});
@@ -170,6 +173,14 @@ function RecipeForm({ onRecipeCreated }: RecipeFormProps) {
             <div>
                 <label>Page Reference:</label>
                 <input type="text" value={pageRef} onChange={(e) => setPageRef(e.target.value)}/>
+            </div>
+            <div>
+                <label>Rating:</label>
+                <input type="number" min="1" max="6" value={rating ?? ''} onChange={(e) => setRating(parseInt(e.target.value))} />
+            </div>
+            <div>
+                <label>Notes:</label>
+                <textarea value={notes} onChange={(e) => setNotes(e.target.value)} />
             </div>
             <div>
                 <label>Ingredients:</label>

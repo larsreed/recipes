@@ -27,6 +27,8 @@ interface Recipe {
     attachments: Attachment[];
     source?: Source;
     pageRef?: string;
+    rating?: number; // New field
+    notes?: string; // New field
 }
 
 interface Source {
@@ -73,6 +75,8 @@ function RecipeList() {
                         <p>Instructions: {recipe.instructions}</p>
                         <p>People: {recipe.people}</p>
                         {recipe.served && <p>Served: {recipe.served}</p>}
+                        {recipe.rating && <p>Rating: {recipe.rating} stars</p>} {/* New field */}
+                        {recipe.notes && <p>Notes: {recipe.notes}</p>} {/* New field */}
                         <p>Attachments:</p>
                         <ul>
                             {recipe.attachments.map(attachment => (
