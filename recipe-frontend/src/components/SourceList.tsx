@@ -2,18 +2,10 @@ import { useState, useEffect } from 'react';
 import axios from 'axios';
 import SourceForm from './SourceForm.tsx';
 
-interface Attachment {
-    id: number;
-    fileName: string;
-    fileType: string;
-    data: string; // Base64 encoded
-}
-
 interface Source {
     id: number;
     name: string;
     authors: string;
-    attachments: Attachment[];
 }
 
 function SourceList() {
@@ -35,22 +27,24 @@ function SourceList() {
     return (
         <div>
             <h2>Source List</h2>
-            <ul>
+            <table>
+                <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Name</th>
+                    <th>Authors</th>
+                </tr>
+                </thead>
+                <tbody>
                 {sources.map(source => (
-                    <li key={source.id}>
-                        <h3>{source.id}. {source.name}</h3>
-                        <p>Authors: {source.authors}</p>
-                        <p>Attachments:</p>
-                        <ul>
-                            {source.attachments.map(attachment => (
-                                <li key={attachment.id}>
-                                    <a href={attachment.data} download={attachment.fileName}>{attachment.fileName}</a>
-                                </li>
-                            ))}
-                        </ul>
-                    </li>
+                    <tr key={source.id}>
+                        <td>{source.id}</td>
+                        <td>{source.name}</td>
+                        <td>{source.authors}</td>
+                    </tr>
                 ))}
-            </ul>
+                </tbody>
+            </table>
             <hr/>
             <SourceForm onSourceCreated={fetchSources}/>
         </div>
