@@ -23,4 +23,7 @@ class RecipeController(private val recipeService: RecipeService) {
 
     @DeleteMapping("/{id}")
     fun deleteRecipe(@PathVariable id: Long) = recipeService.deleteRecipe(id)
+
+    @PutMapping("/nullify-source/{sourceId}")
+    fun nullifySourceInRecipes(@PathVariable sourceId: Long) = recipeService.nullifySourceInRecipes(sourceId)
 }

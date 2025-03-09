@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
-import RecipeForm from './RecipeForm.tsx';
+import RecipeForm from './RecipeForm';
 
 interface Recipe {
     id: number;
@@ -33,6 +33,16 @@ function RecipeList() {
         fetchRecipes();
     }, []);
 
+    const deleteRecipe = (id: number) => {
+        if (window.confirm('Are you sure you want to delete this recipe?')) {
+            axios.delete(`http://localhost:8080/api/recipes/${id}`)
+                .then(() => {
+                    setRecipes(recipes.filter(recipe => recipe.id !== id));
+                })
+                .catch(error => console.error('Error deleting recipe:', error));
+        }
+    };
+
     return (
         <div>
             <h2>Recipe List</h2>
@@ -45,6 +55,7 @@ function RecipeList() {
                     <th>Source</th>
                     <th>Page Reference</th>
                     <th>Rating</th>
+                    <th>Actions</th>
                 </tr>
                 </thead>
                 <tbody>
@@ -56,6 +67,9 @@ function RecipeList() {
                         <td>{recipe.source ? recipe.source.name : ''}</td>
                         <td>{recipe.pageRef}</td>
                         <td>{recipe.rating}</td>
+                        <td>
+                            <button onClick={() => deleteRecipe(recipe.id)}>DELETE</button>
+                        </td>
                     </tr>
                 ))}
                 </tbody>

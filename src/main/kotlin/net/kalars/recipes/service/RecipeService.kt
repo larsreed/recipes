@@ -39,4 +39,10 @@ class RecipeService(
     }
 
     fun deleteRecipe(id: Long) = recipeRepository.deleteById(id)
+
+    fun nullifySourceInRecipes(sourceId: Long) {
+        val recipes = recipeRepository.findBySource_Id(sourceId)
+        recipes.forEach { it.source = null }
+        recipeRepository.saveAll(recipes)
+    }
 }
