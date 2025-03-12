@@ -35,3 +35,4 @@ bin/
 
 # Misc
 gradle/wrapper/gradle-wrapper.jar
+/data/recipesdb.trace.db
