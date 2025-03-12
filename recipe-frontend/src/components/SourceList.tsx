@@ -10,6 +10,7 @@ interface Source {
 
 function SourceList() {
     const [sources, setSources] = useState<Source[]>([]);
+    const [editingSource, setEditingSource] = useState<Source | null>(null);
 
     const fetchSources = () => {
         axios.get('http://localhost:8080/api/sources')
@@ -26,14 +27,32 @@ function SourceList() {
     const deleteSource = async (id: number) => {
         if (window.confirm('Are you sure you want to delete this source?')) {
             try {
-                // Nullify references in recipes
                 await axios.put(`http://localhost:8080/api/recipes/nullify-source/${id}`);
-                // Delete the source
                 await axios.delete(`http://localhost:8080/api/sources/${id}`);
                 setSources(sources.filter(source => source.id !== id));
             } catch (error) {
                 console.error('Error deleting source:', error);
             }
+        }
+    };
+
+    const editSource = (source: Source) => {
+        setEditingSource(source);
+    };
+
+    const handleSourceCreated = () => {
+        setEditingSource(null);
+        fetchSources();
+    };
+
+
+    const saveSource = async (source: Source) => {
+        try {
+            await axios.put(`http://localhost:8080/api/sources/${source.id}`, source);
+            setEditingSource(null);
+            fetchSources();
+        } catch (error) {
+            console.error('Error saving source:', error);
         }
     };
 
@@ -46,7 +65,7 @@ function SourceList() {
                     <th>ID</th>
                     <th>Name</th>
                     <th>Authors</th>
-                    <th>Actions</th>
+                    <th/>
                 </tr>
                 </thead>
                 <tbody>
@@ -56,6 +75,7 @@ function SourceList() {
                         <td>{source.name}</td>
                         <td>{source.authors}</td>
                         <td>
+                            <button onClick={() => editSource(source)}>EDIT</button>
                             <button onClick={() => deleteSource(source.id)}>DELETE</button>
                         </td>
                     </tr>
@@ -63,7 +83,20 @@ function SourceList() {
                 </tbody>
             </table>
             <hr/>
-            <SourceForm onSourceCreated={fetchSources}/>
+            {editingSource ? (
+                <SourceForm
+                    source={editingSource}
+                    onSave={saveSource}
+                    onCancel={() => setEditingSource(null)}
+                    onSourceCreated={handleSourceCreated}
+                />
+            ) : (
+                <SourceForm
+                    onSave={(source) => saveSource(source)}
+                    onCancel={() => setEditingSource(null)}
+                    onSourceCreated={handleSourceCreated}
+                />
+            )}
         </div>
     );
 }
