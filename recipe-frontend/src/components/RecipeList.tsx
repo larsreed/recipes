@@ -55,7 +55,7 @@ function RecipeList() {
                     <th>Source</th>
                     <th>Page Reference</th>
                     <th>Rating</th>
-                    <th>Actions</th>
+                    <th/>
                 </tr>
                 </thead>
                 <tbody>

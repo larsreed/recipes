@@ -123,8 +123,8 @@ function RecipeForm({ onRecipeCreated }: RecipeFormProps) {
             setServed('');
             setSourceId(null);
             setPageRef('');
-            setRating(null); // Reset new field
-            setNotes(''); // Reset new field
+            setRating(null);
+            setNotes('');
             setIngredients([{ name: '' }]);
             setAttachments([]);
             setErrors({});

@@ -15,7 +15,7 @@ class RecipeService(
     fun getAllRecipes(): List<Recipe> = recipeRepository.findAll()
 
     fun createRecipe(recipe: Recipe): Recipe {
-        if (recipe.sourceId != null && recipe.sourceId != 0L) {
+        if (recipe.sourceId != 0L) {
             val source: Source = sourceRepository.findById(recipe.sourceId)
                 .orElseThrow { RuntimeException("Source not found") }
             recipe.source = source
