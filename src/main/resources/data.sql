@@ -4,12 +4,12 @@ CREATE TABLE recipe (
     name VARCHAR(128) NOT NULL,
     people INT NOT NULL,
     instructions TEXT NOT NULL,
-    source_id BIGINT
+    source_id BIGINT,
+    served TEXT NULL,
+    page_ref VARCHAR(64) NULL,
+    rating INT NULL,
+    notes TEXT NULL
 );
-ALTER TABLE recipe ADD COLUMN served TEXT NULL;
-ALTER TABLE recipe ADD COLUMN page_ref VARCHAR(64) NULL;
-ALTER TABLE recipe ADD COLUMN rating INT NULL;
-ALTER TABLE recipe ADD COLUMN notes TEXT NULL;
 
 CREATE TABLE Ingredient (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,

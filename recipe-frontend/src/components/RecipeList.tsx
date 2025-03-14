@@ -19,6 +19,7 @@ interface Source {
 
 function RecipeList() {
     const [recipes, setRecipes] = useState<Recipe[]>([]);
+    const [editingRecipe, setEditingRecipe] = useState<Recipe | null>(null);
 
     const fetchRecipes = () => {
         axios.get('http://localhost:8080/api/recipes')
@@ -41,6 +42,15 @@ function RecipeList() {
                 })
                 .catch(error => console.error('Error deleting recipe:', error));
         }
+    };
+
+    const editRecipe = (recipe: Recipe) => {
+        setEditingRecipe(recipe);
+    };
+
+    const handleRecipeSaved = () => {
+        setEditingRecipe(null);
+        fetchRecipes();
     };
 
     return (
@@ -68,6 +78,7 @@ function RecipeList() {
                         <td>{recipe.pageRef}</td>
                         <td>{recipe.rating}</td>
                         <td>
+                            <button onClick={() => editRecipe(recipe)}>EDIT</button>
                             <button onClick={() => deleteRecipe(recipe.id)}>DELETE</button>
                         </td>
                     </tr>
@@ -75,7 +86,11 @@ function RecipeList() {
                 </tbody>
             </table>
             <hr/>
-            <RecipeForm onRecipeCreated={fetchRecipes}/>
+            <RecipeForm
+                recipe={editingRecipe}
+                onCancel={() => setEditingRecipe(null)}
+                onRecipeSaved={handleRecipeSaved}
+            />
         </div>
     );
 }

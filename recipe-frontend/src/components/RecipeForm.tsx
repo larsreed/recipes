@@ -2,7 +2,24 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 
 interface RecipeFormProps {
-    onRecipeCreated: () => void;
+    recipe?: Recipe;
+    onCancel: () => void;
+    onRecipeSaved: () => void;
+}
+
+interface Recipe {
+    id: number;
+    name: string;
+    people: number;
+    instructions: string;
+    served?: string;
+    sourceId?: number;
+    pageRef?: string;
+    rating?: number;
+    notes?: string;
+    ingredients: Ingredient[];
+    attachments: Attachment[];
+    source?: Source
 }
 
 interface Source {
@@ -28,18 +45,19 @@ const measureOptions = [
     '', 'ts', 'tsp', 'tbsp', 'ss', 'ml', 'cl', 'dl', 'l', 'mg', 'g', 'kg', 'stk', 'pcs', 'kopper', 'cups'
 ];
 
-function RecipeForm({ onRecipeCreated }: RecipeFormProps) {
-    const [name, setName] = useState('');
-    const [instructions, setInstructions] = useState('');
-    const [people, setPeople] = useState(0);
-    const [served, setServed] = useState('');
-    const [sourceId, setSourceId] = useState<number | null>(null);
+function RecipeForm({ recipe, onCancel, onRecipeSaved }: RecipeFormProps) {
+    console.log("RecipeForm recipe", recipe);
+    const [name, setName] = useState(recipe?.name || '');
+    const [instructions, setInstructions] = useState(recipe?.instructions || '');
+    const [people, setPeople] = useState(recipe?.people || 0);
+    const [served, setServed] = useState(recipe?.served || '');
+    const [sourceId, setSourceId] = useState<number | null>(recipe?.source?.id || null);
     const [sources, setSources] = useState<Source[]>([]);
-    const [pageRef, setPageRef] = useState('');
-    const [rating, setRating] = useState<number | null>(null); // New field
-    const [notes, setNotes] = useState(''); // New field
-    const [ingredients, setIngredients] = useState<Ingredient[]>([{ name: '' }]);
-    const [attachments, setAttachments] = useState<Attachment[]>([]);
+    const [pageRef, setPageRef] = useState(recipe?.pageRef || '');
+    const [rating, setRating] = useState<number | null>(recipe?.rating || null);
+    const [notes, setNotes] = useState(recipe?.notes || '');
+    const [ingredients, setIngredients] = useState<Ingredient[]>(recipe?.ingredients || [{ name: '' }]);
+    const [attachments, setAttachments] = useState<Attachment[]>(recipe?.attachments || []);
 
     const [errors, setErrors] = useState<{ [key: string]: string }>({});
     const [apiError, setApiError] = useState<string | null>(null);
@@ -55,6 +73,32 @@ function RecipeForm({ onRecipeCreated }: RecipeFormProps) {
         };
         fetchSources();
     }, []);
+
+    useEffect(() => {
+        if (recipe) {
+            setName(recipe.name);
+            setInstructions(recipe.instructions);
+            setPeople(recipe.people);
+            setServed(recipe.served || '');
+            setSourceId(recipe.source?.id || null);
+            setPageRef(recipe.pageRef || '');
+            setRating(recipe.rating || null);
+            setNotes(recipe.notes || '');
+            setIngredients(recipe.ingredients || [{ name: '' }]);
+            setAttachments(recipe.attachments || []);
+        } else {
+            setName('');
+            setInstructions('');
+            setPeople(0);
+            setServed('');
+            setSourceId(null);
+            setPageRef('');
+            setRating(null);
+            setNotes('');
+            setIngredients([{ name: '' }]);
+            setAttachments([]);
+        }
+    }, [recipe]);
 
     const validate = () => {
         const newErrors: { [key: string]: string } = {};
@@ -111,12 +155,23 @@ function RecipeForm({ onRecipeCreated }: RecipeFormProps) {
             setErrors(newErrors);
             return;
         }
-        const newRecipe = { name, instructions, people, served, ingredients, attachments, sourceId, pageRef, rating, notes };
-        console.log('New recipe:', newRecipe);
-        const apiUrl = 'http://localhost:8080/api/recipes';
+        const newRecipe = {
+            id: recipe?.id,
+            name,
+            instructions,
+            people,
+            served,
+            ingredients,
+            attachments,
+            sourceId,
+            pageRef,
+            rating,
+            notes
+        };
+        const apiUrl = recipe ? `http://localhost:8080/api/recipes/${recipe.id}` : `http://localhost:8080/api/recipes`;
         try {
-            const response = await axios.post(apiUrl, newRecipe);
-            console.log('Recipe created:', response.data);
+            const response = recipe ? await axios.put(apiUrl, newRecipe) : await axios.post(apiUrl, newRecipe);
+            console.log("Recipe saved:", response.data);
             setName('');
             setInstructions('');
             setPeople(0);
@@ -129,16 +184,15 @@ function RecipeForm({ onRecipeCreated }: RecipeFormProps) {
             setAttachments([]);
             setErrors({});
             setApiError(null);
-            onRecipeCreated();
+            onRecipeSaved();
         } catch (error) {
-            console.error('Error creating recipe:', error);
-            setApiError('Failed to create recipe. Please try again.');
+            console.error('Error saving recipe:', error);
+            setApiError('Failed to save recipe. Please try again.');
         }
     };
-
     return (
         <form onSubmit={handleSubmit}>
-            <h2>Add a New Recipe</h2>
+            <h2>{recipe ? 'Edit Recipe' : 'Add a New Recipe'}</h2>
             <div>
                 <label>Name:</label>
                 <input type="text" value={name} onChange={(e) => setName(e.target.value)} />
@@ -233,7 +287,8 @@ function RecipeForm({ onRecipeCreated }: RecipeFormProps) {
                 </ul>
             </div>
             {apiError && <p className="error">{apiError}</p>}
-            <button type="submit">Add Recipe</button>
+            <button type="submit">{recipe ? 'Save Recipe' : 'Add Recipe'}</button>
+            <button type="button" onClick={onCancel}>Cancel</button>
         </form>
     );
 }

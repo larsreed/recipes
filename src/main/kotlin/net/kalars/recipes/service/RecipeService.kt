@@ -20,24 +20,39 @@ class RecipeService(
                 .orElseThrow { RuntimeException("Source not found") }
             recipe.source = source
         }
+        // Ensure all attachments have valid source references
+        recipe.attachments.forEach { attachment ->
+            if (!sourceRepository.existsById(attachment.id)) {
+                throw RuntimeException("Attachment source not found")
+            }
+        }
         return recipeRepository.save(recipe)
     }
 
     fun updateRecipe(id: Long, recipe: Recipe): Recipe {
         val existingRecipe = recipeRepository.findById(id)
             .orElseThrow { RuntimeException("Recipe not found") }
+
         existingRecipe.name = recipe.name
         existingRecipe.ingredients = recipe.ingredients
         existingRecipe.instructions = recipe.instructions
         existingRecipe.people = recipe.people
+        existingRecipe.served = recipe.served
         existingRecipe.pageRef = recipe.pageRef
         existingRecipe.rating = recipe.rating
         existingRecipe.notes = recipe.notes
+
         existingRecipe.source = sourceRepository.findById(recipe.sourceId)
             .orElseThrow { RuntimeException("Source not found") }
+
+        // Ensure all attachments have valid source references
+        recipe.attachments.forEach { attachment ->
+            if (!sourceRepository.existsById(attachment.id)) {
+                throw RuntimeException("Attachment source not found")
+            }
+        }
         return recipeRepository.save(existingRecipe)
     }
-
     fun deleteRecipe(id: Long) = recipeRepository.deleteById(id)
 
     fun nullifySourceInRecipes(sourceId: Long) {
