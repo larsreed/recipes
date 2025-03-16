@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
-import RecipeForm from './RecipeForm';
 import SourceModal from "./SourceModal.tsx";
+import RecipeModal from "./RecipeModal.tsx";
 
 interface Recipe {
     id: number;
@@ -22,6 +22,7 @@ function RecipeList() {
     const [recipes, setRecipes] = useState<Recipe[]>([]);
     const [editingRecipe, setEditingRecipe] = useState<Recipe | null>(null);
     const [isSourceModalOpen, setIsSourceModalOpen] = useState(false);
+    const [isRecipeModalOpen, setIsRecipeModalOpen] = useState(false);
 
     const fetchRecipes = () => {
         axios.get('http://localhost:8080/api/recipes')
@@ -48,10 +49,12 @@ function RecipeList() {
 
     const editRecipe = (recipe: Recipe) => {
         setEditingRecipe(recipe);
+        setIsRecipeModalOpen(true);
     };
 
     const handleRecipeSaved = () => {
         setEditingRecipe(null);
+        setIsRecipeModalOpen(false);
         fetchRecipes();
     };
 
@@ -64,13 +67,29 @@ function RecipeList() {
         window.location.reload(); // Refresh the entire application
     };
 
+    const handleOpenRecipeModal = () => {
+        setEditingRecipe(null);
+        setIsRecipeModalOpen(true);
+    };
+
+    const handleCloseRecipeModal = () => {
+        setIsRecipeModalOpen(false);
+    };
+
     return (
         <div>
             <h2>Recipe List</h2>
             <div>
                 <button onClick={handleOpenSourceModal}>Edit sources</button>
-                {/* Render the recipe list here */}
+                <button onClick={handleOpenRecipeModal}>Add recipe</button>
                 {isSourceModalOpen && <SourceModal onClose={handleCloseSourceModal}/>}
+                {isRecipeModalOpen && (
+                    <RecipeModal
+                        recipe={editingRecipe}
+                        onCancel={handleCloseRecipeModal}
+                        onRecipeSaved={handleRecipeSaved}
+                    />
+                )}
             </div>
             <table>
                 <thead>
@@ -101,12 +120,6 @@ function RecipeList() {
                 ))}
                 </tbody>
             </table>
-            <hr/>
-            <RecipeForm
-                recipe={editingRecipe}
-                onCancel={() => setEditingRecipe(null)}
-                onRecipeSaved={handleRecipeSaved}
-            />
         </div>
     );
 }
