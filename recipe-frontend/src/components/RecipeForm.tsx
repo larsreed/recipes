@@ -38,7 +38,6 @@ const measureOptions = [
 ];
 
 function RecipeForm({ recipe, onCancel, onRecipeSaved }: RecipeFormProps) {
-    console.log("RecipeForm recipe", recipe);
     const [name, setName] = useState(recipe?.name || '');
     const [instructions, setInstructions] = useState(recipe?.instructions || '');
     const [people, setPeople] = useState(recipe?.people || 0);
@@ -156,32 +155,32 @@ function RecipeForm({ recipe, onCancel, onRecipeSaved }: RecipeFormProps) {
             setApiError('Failed to save recipe. Please try again.');
         }
     };
+
     return (
-        <form onSubmit={handleSubmit}>
+        <form onSubmit={handleSubmit} className="recipe-form">
             <h2>{recipe ? 'Edit Recipe' : 'Add a New Recipe'}</h2>
-            <div>
+            <div className="form-group">
                 <label>Name:</label>
                 <input type="text" value={name} onChange={(e) => setName(e.target.value)} />
                 {errors.name && <p className="error">{errors.name}</p>}
             </div>
-            <div>
+            <div className="form-group">
                 <label>Instructions:</label>
                 <textarea value={instructions} onChange={(e) => setInstructions(e.target.value)} />
                 {errors.instructions && <p className="error">{errors.instructions}</p>}
             </div>
-            <div>
+            <div className="form-group">
                 <label>People:</label>
                 <input type="number" value={people} onChange={(e) => setPeople(parseInt(e.target.value))} />
                 {errors.people && <p className="error">{errors.people}</p>}
             </div>
-            <div>
+            <div className="form-group">
                 <label>Served:</label>
                 <textarea value={served} onChange={(e) => setServed(e.target.value)} />
             </div>
-            <div>
+            <div className="form-group">
                 <label>Source:</label>
-                <select value={sourceId ?? ''}
-                        onChange={(e) => setSourceId(e.target.value ? parseInt(e.target.value) : null)}>
+                <select value={sourceId ?? ''} onChange={(e) => setSourceId(e.target.value ? parseInt(e.target.value) : null)}>
                     <option value="">Select a source</option>
                     {sources.map((source) => (
                         <option key={source.id} value={source.id}>
@@ -190,59 +189,84 @@ function RecipeForm({ recipe, onCancel, onRecipeSaved }: RecipeFormProps) {
                     ))}
                 </select>
             </div>
-            <div>
+            <div className="form-group">
                 <label>Page Reference:</label>
-                <input type="text" value={pageRef} onChange={(e) => setPageRef(e.target.value)}/>
+                <input type="text" value={pageRef} onChange={(e) => setPageRef(e.target.value)} />
             </div>
-            <div>
+            <div className="form-group">
                 <label>Rating:</label>
                 <input type="number" min="1" max="6" value={rating ?? ''} onChange={(e) => setRating(parseInt(e.target.value))} />
             </div>
-            <div>
+            <div className="form-group">
                 <label>Notes:</label>
                 <textarea value={notes} onChange={(e) => setNotes(e.target.value)} />
             </div>
-            <div>
+            <div className="form-group">
                 <label>Ingredients:</label>
-                {ingredients.map((ingredient, index) => (
-                    <div key={index}>
-                        <input
-                            type="number"
-                            placeholder="Amount"
-                            value={ingredient.amount ?? ''}
-                            onChange={(e) => handleIngredientChange(index, 'amount', parseFloat(e.target.value))}
-                        />
-                        {errors[`ingredient-${index}-amount`] && <p className="error">{errors[`ingredient-${index}-amount`]}</p>}
-                        <select
-                            value={ingredient.measure ?? ''}
-                            onChange={(e) => handleIngredientChange(index, 'measure', e.target.value)}
-                        >
-                            {measureOptions.map(option => (
-                                <option key={option} value={option}>{option}</option>
-                            ))}
-                        </select>
-                        {errors[`ingredient-${index}-measure`] && <p className="error">{errors[`ingredient-${index}-measure`]}</p>}
-                        <input
-                            type="text"
-                            placeholder="Name"
-                            value={ingredient.name}
-                            onChange={(e) => handleIngredientChange(index, 'name', e.target.value)}
-                        />
-                        {errors[`ingredient-${index}-name`] && <p className="error">{errors[`ingredient-${index}-name`]}</p>}
-                        <input
-                            type="text"
-                            placeholder="Instruction"
-                            value={ingredient.instruction ?? ''}
-                            onChange={(e) => handleIngredientChange(index, 'instruction', e.target.value)}
-                        />
-                        <button type="button" onClick={() => removeIngredient(index)}>Remove</button>
-                    </div>
-                ))}
+                <table className="ingredient-table">
+                    <thead>
+                    <tr>
+                        <th>Amount</th>
+                        <th>Measure</th>
+                        <th>Name</th>
+                        <th>Instruction</th>
+                        <th>!</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    {ingredients.map((ingredient, index) => (
+                        <tr key={index}>
+                            <td>
+                                <input
+                                    type="number"
+                                    placeholder="Amount"
+                                    value={ingredient.amount ?? ''}
+                                    onChange={(e) => handleIngredientChange(index, 'amount', parseFloat(e.target.value))}
+                                />
+                                {errors[`ingredient-${index}-amount`] && <p className="error">{errors[`ingredient-${index}-amount`]}</p>}
+                            </td>
+                            <td>
+                                <select
+                                    value={ingredient.measure ?? ''}
+                                    onChange={(e) => handleIngredientChange(index, 'measure', e.target.value)}
+                                >
+                                    {measureOptions.map(option => (
+                                        <option key={option} value={option}>{option}</option>
+                                    ))}
+                                </select>
+                                {errors[`ingredient-${index}-measure`] && <p className="error">{errors[`ingredient-${index}-measure`]}</p>}
+                            </td>
+                            <td>
+                                <input
+                                    type="text"
+                                    placeholder="Name"
+                                    value={ingredient.name}
+                                    onChange={(e) => handleIngredientChange(index, 'name', e.target.value)}
+                                />
+                                {errors[`ingredient-${index}-name`] && <p className="error">{errors[`ingredient-${index}-name`]}</p>}
+                            </td>
+                            <td>
+                                <input
+                                    type="text"
+                                    placeholder="Instruction"
+                                    value={ingredient.instruction ?? ''}
+                                    onChange={(e) => handleIngredientChange(index, 'instruction', e.target.value)}
+                                />
+                            </td>
+                            <td>
+                                <button type="button" onClick={() => removeIngredient(index)}>Remove</button>
+                            </td>
+                        </tr>
+                    ))}
+                    </tbody>
+                </table>
                 <button type="button" onClick={addIngredient}>Add Ingredient</button>
             </div>
             {apiError && <p className="error">{apiError}</p>}
-            <button type="submit">{recipe ? 'Save Recipe' : 'Add Recipe'}</button>
-            <button type="button" onClick={onCancel}>Cancel</button>
+            <div className="form-actions">
+                <button type="submit">{recipe ? 'Save Recipe' : 'Add Recipe'}</button>
+                <button type="button" onClick={onCancel}>Cancel</button>
+            </div>
         </form>
     );
 }

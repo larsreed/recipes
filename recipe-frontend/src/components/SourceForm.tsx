@@ -38,7 +38,6 @@ function SourceForm({ source, onCancel, onSourceCreated }: SourceFormProps) {
         return newErrors;
     };
 
-
     const handleSubmit = async (event: React.FormEvent) => {
         event.preventDefault();
         const newErrors = validate();
@@ -64,19 +63,31 @@ function SourceForm({ source, onCancel, onSourceCreated }: SourceFormProps) {
     };
 
     return (
-        <form onSubmit={handleSubmit}>
+        <form onSubmit={handleSubmit} className="source-form">
             <h2>{source ? 'Edit Source' : 'Add a New Source'}</h2>
-            <div>
-                <label>Name:</label>
-                <input type="text" value={name} onChange={(e) => setName(e.target.value)}/>
+            <div className="form-group">
+                <label htmlFor="name">Name:</label>
+                <input
+                    type="text"
+                    id="name"
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    required
+                />
                 {errors.name && <p className="error">{errors.name}</p>}
             </div>
-            <div>
-                <label>Authors:</label>
-                <input type="text" value={authors} onChange={(e) => setAuthors(e.target.value)}/>
+            <div className="form-group">
+                <label htmlFor="authors">Authors:</label>
+                <input
+                    type="text"
+                    id="authors"
+                    value={authors}
+                    onChange={(e) => setAuthors(e.target.value)}
+                    required
+                />
                 {errors.authors && <p className="error">{errors.authors}</p>}
             </div>
-            <div>
+            <div className="form-actions">
                 <button type="submit">Save</button>
                 <button type="button" onClick={onCancel}>Cancel</button>
             </div>
