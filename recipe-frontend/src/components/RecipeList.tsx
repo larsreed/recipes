@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
 import RecipeForm from './RecipeForm';
+import SourceModal from "./SourceModal.tsx";
 
 interface Recipe {
     id: number;
@@ -20,6 +21,7 @@ interface Source {
 function RecipeList() {
     const [recipes, setRecipes] = useState<Recipe[]>([]);
     const [editingRecipe, setEditingRecipe] = useState<Recipe | null>(null);
+    const [isSourceModalOpen, setIsSourceModalOpen] = useState(false);
 
     const fetchRecipes = () => {
         axios.get('http://localhost:8080/api/recipes')
@@ -53,9 +55,23 @@ function RecipeList() {
         fetchRecipes();
     };
 
+    const handleOpenSourceModal = () => {
+        setIsSourceModalOpen(true);
+    };
+
+    const handleCloseSourceModal = () => {
+        setIsSourceModalOpen(false);
+        window.location.reload(); // Refresh the entire application
+    };
+
     return (
         <div>
             <h2>Recipe List</h2>
+            <div>
+                <button onClick={handleOpenSourceModal}>Edit sources</button>
+                {/* Render the recipe list here */}
+                {isSourceModalOpen && <SourceModal onClose={handleCloseSourceModal}/>}
+            </div>
             <table>
                 <thead>
                 <tr>
