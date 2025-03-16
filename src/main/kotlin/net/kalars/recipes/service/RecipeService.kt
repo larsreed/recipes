@@ -20,12 +20,6 @@ class RecipeService(
                 .orElseThrow { RuntimeException("Source not found") }
             recipe.source = source
         }
-        // Ensure all attachments have valid source references
-        recipe.attachments.forEach { attachment ->
-            if (!sourceRepository.existsById(attachment.id)) {
-                throw RuntimeException("Attachment source not found")
-            }
-        }
         return recipeRepository.save(recipe)
     }
 
@@ -45,12 +39,6 @@ class RecipeService(
         existingRecipe.source = sourceRepository.findById(recipe.sourceId)
             .orElseThrow { RuntimeException("Source not found") }
 
-        // Ensure all attachments have valid source references
-        recipe.attachments.forEach { attachment ->
-            if (!sourceRepository.existsById(attachment.id)) {
-                throw RuntimeException("Attachment source not found")
-            }
-        }
         return recipeRepository.save(existingRecipe)
     }
     fun deleteRecipe(id: Long) = recipeRepository.deleteById(id)

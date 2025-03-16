@@ -18,7 +18,6 @@ interface Recipe {
     rating?: number;
     notes?: string;
     ingredients: Ingredient[];
-    attachments: Attachment[];
     source?: Source
 }
 
@@ -32,13 +31,6 @@ interface Ingredient {
     name: string;
     instruction?: string;
     measure?: string;
-}
-
-interface Attachment {
-    id: number;
-    fileName: string;
-    fileType: string;
-    data: string; // Base64 encoded
 }
 
 const measureOptions = [
@@ -57,7 +49,6 @@ function RecipeForm({ recipe, onCancel, onRecipeSaved }: RecipeFormProps) {
     const [rating, setRating] = useState<number | null>(recipe?.rating || null);
     const [notes, setNotes] = useState(recipe?.notes || '');
     const [ingredients, setIngredients] = useState<Ingredient[]>(recipe?.ingredients || [{ name: '' }]);
-    const [attachments, setAttachments] = useState<Attachment[]>(recipe?.attachments || []);
 
     const [errors, setErrors] = useState<{ [key: string]: string }>({});
     const [apiError, setApiError] = useState<string | null>(null);
@@ -85,7 +76,6 @@ function RecipeForm({ recipe, onCancel, onRecipeSaved }: RecipeFormProps) {
             setRating(recipe.rating || null);
             setNotes(recipe.notes || '');
             setIngredients(recipe.ingredients || [{ name: '' }]);
-            setAttachments(recipe.attachments || []);
         } else {
             setName('');
             setInstructions('');
@@ -96,7 +86,6 @@ function RecipeForm({ recipe, onCancel, onRecipeSaved }: RecipeFormProps) {
             setRating(null);
             setNotes('');
             setIngredients([{ name: '' }]);
-            setAttachments([]);
         }
     }, [recipe]);
 
@@ -118,22 +107,6 @@ function RecipeForm({ recipe, onCancel, onRecipeSaved }: RecipeFormProps) {
         setIngredients(newIngredients);
     };
 
-    const handleAttachmentChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-        if (event.target.files) {
-            const file = event.target.files[0];
-            const reader = new FileReader();
-            reader.onloadend = () => {
-                setAttachments([...attachments, {
-                    id: 0,
-                    fileName: file.name,
-                    fileType: file.type,
-                    data: reader.result as string
-                }]);
-            };
-            reader.readAsDataURL(file);
-        }
-    };
-
     const addIngredient = () => {
         setIngredients([...ingredients, { name: '' }]);
     };
@@ -141,11 +114,6 @@ function RecipeForm({ recipe, onCancel, onRecipeSaved }: RecipeFormProps) {
     const removeIngredient = (index: number) => {
         const newIngredients = ingredients.filter((_, i) => i !== index);
         setIngredients(newIngredients);
-    };
-
-    const removeAttachment = (index: number) => {
-        const newAttachments = attachments.filter((_, i) => i !== index);
-        setAttachments(newAttachments);
     };
 
     const handleSubmit = async (event: React.FormEvent) => {
@@ -162,7 +130,6 @@ function RecipeForm({ recipe, onCancel, onRecipeSaved }: RecipeFormProps) {
             people,
             served,
             ingredients,
-            attachments,
             sourceId,
             pageRef,
             rating,
@@ -181,7 +148,6 @@ function RecipeForm({ recipe, onCancel, onRecipeSaved }: RecipeFormProps) {
             setRating(null);
             setNotes('');
             setIngredients([{ name: '' }]);
-            setAttachments([]);
             setErrors({});
             setApiError(null);
             onRecipeSaved();
@@ -273,18 +239,6 @@ function RecipeForm({ recipe, onCancel, onRecipeSaved }: RecipeFormProps) {
                     </div>
                 ))}
                 <button type="button" onClick={addIngredient}>Add Ingredient</button>
-            </div>
-            <div>
-                <label>Attachments:</label>
-                <input type="file" onChange={handleAttachmentChange} />
-                <ul>
-                    {attachments.map((attachment, index) => (
-                        <li key={index}>
-                            {attachment.fileName}
-                            <button type="button" onClick={() => removeAttachment(index)}>Remove</button>
-                        </li>
-                    ))}
-                </ul>
             </div>
             {apiError && <p className="error">{apiError}</p>}
             <button type="submit">{recipe ? 'Save Recipe' : 'Add Recipe'}</button>

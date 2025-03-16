@@ -7,13 +7,6 @@ interface Source {
     authors: string;
 }
 
-interface Attachment {
-    id: number;
-    fileName: string;
-    fileType: string;
-    data: string; // Base64 encoded
-}
-
 interface SourceFormProps {
     source?: Source;
     onCancel: () => void;
@@ -24,7 +17,6 @@ interface SourceFormProps {
 function SourceForm({ source, onCancel, onSourceCreated }: SourceFormProps) {
     const [name, setName] = useState(source?.name || '');
     const [authors, setAuthors] = useState(source?.authors || '');
-    const [attachments, setAttachments] = useState<Attachment[]>([]);
 
     useEffect(() => {
         if (source) {
@@ -33,7 +25,6 @@ function SourceForm({ source, onCancel, onSourceCreated }: SourceFormProps) {
         } else {
             setName('');
             setAuthors('');
-            setAttachments([]);
         }
     }, [source]);
 
@@ -47,26 +38,6 @@ function SourceForm({ source, onCancel, onSourceCreated }: SourceFormProps) {
         return newErrors;
     };
 
-    const handleAttachmentChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-        if (event.target.files) {
-            const file = event.target.files[0];
-            const reader = new FileReader();
-            reader.onloadend = () => {
-                setAttachments([...attachments, {
-                    id: 0,
-                    fileName: file.name,
-                    fileType: file.type,
-                    data: reader.result as string
-                }]);
-            };
-            reader.readAsDataURL(file);
-        }
-    };
-
-    const removeAttachment = (index: number) => {
-        const newAttachments = attachments.filter((_, i) => i !== index);
-        setAttachments(newAttachments);
-    };
 
     const handleSubmit = async (event: React.FormEvent) => {
         event.preventDefault();
@@ -75,7 +46,7 @@ function SourceForm({ source, onCancel, onSourceCreated }: SourceFormProps) {
             setErrors(newErrors);
             return;
         }
-        const newSource = { ...source, name, authors, attachments };
+        const newSource = { ...source, name, authors };
         console.log('New source:', newSource);
         const apiUrl = source ? `http://localhost:8080/api/sources/${source.id}` : 'http://localhost:8080/api/sources';
         try {
@@ -83,7 +54,6 @@ function SourceForm({ source, onCancel, onSourceCreated }: SourceFormProps) {
             console.log('Source saved:', response.data);
             setName('');
             setAuthors('');
-            setAttachments([]);
             setErrors({});
             setApiError(null);
             if (onSourceCreated) onSourceCreated();
@@ -105,18 +75,6 @@ function SourceForm({ source, onCancel, onSourceCreated }: SourceFormProps) {
                 <label>Authors:</label>
                 <input type="text" value={authors} onChange={(e) => setAuthors(e.target.value)}/>
                 {errors.authors && <p className="error">{errors.authors}</p>}
-            </div>
-            <div>
-                <label>Attachments:</label>
-                <input type="file" onChange={handleAttachmentChange}/>
-                <ul>
-                    {attachments.map((attachment, index) => (
-                        <li key={index}>
-                            {attachment.fileName}
-                            <button type="button" onClick={() => removeAttachment(index)}>Remove</button>
-                        </li>
-                    ))}
-                </ul>
             </div>
             <div>
                 <button type="submit">Save</button>

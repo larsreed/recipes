@@ -9,9 +9,6 @@ data class Source (
     val id: Long = 0,
     val name: String,
     val authors: String,
-    @OneToMany(cascade = [CascadeType.ALL], fetch = FetchType.LAZY)
-    @JoinColumn(name = "attachment_id")
-    var attachments: List<Attachment> = mutableListOf()
 ) {
-    constructor() : this(0, "", "", mutableListOf())
+    constructor() : this(0, "", "")
 }
