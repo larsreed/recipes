@@ -23,11 +23,13 @@ function RecipeList() {
     const [editingRecipe, setEditingRecipe] = useState<Recipe | null>(null);
     const [isSourceModalOpen, setIsSourceModalOpen] = useState(false);
     const [isRecipeModalOpen, setIsRecipeModalOpen] = useState(false);
+    const [isSearchPanelOpen, setIsSearchPanelOpen] = useState(false);
+    const [searchQuery, setSearchQuery] = useState('');
+    const [isSearchActive, setIsSearchActive] = useState(false);
 
     const fetchRecipes = () => {
         axios.get('http://localhost:8080/api/recipes')
             .then(response => {
-                console.log('Fetched recipes:', response.data);
                 setRecipes(response.data);
             })
             .catch(error => console.error('Error fetching recipes:', error));
@@ -76,12 +78,40 @@ function RecipeList() {
         setIsRecipeModalOpen(false);
     };
 
+    const handleOpenSearchPanel = () => {
+        setIsSearchPanelOpen(true);
+    };
+
+    const handleCloseSearchPanel = () => {
+        setIsSearchPanelOpen(false);
+    };
+
+    const handleSearch = () => {
+        axios.get(`http://localhost:8080/api/recipes/search?query=${encodeURIComponent(searchQuery)}`)
+            .then(response => {
+                setRecipes(response.data);
+                setIsSearchActive(true);
+                setIsSearchPanelOpen(false);
+            })
+            .catch(error => console.error('Error searching recipes:', error));
+    };
+
+    const handleShowAllRecipes = () => {
+        fetchRecipes();
+        setIsSearchActive(false);
+    };
+
     return (
         <div>
             <h2>Recipe List</h2>
             <div>
                 <button onClick={handleOpenSourceModal}>Edit sources</button>
+                &nbsp;
                 <button onClick={handleOpenRecipeModal}>Add recipe</button>
+                &nbsp;
+                <button onClick={handleOpenSearchPanel}>Find</button>
+                &nbsp;
+                {isSearchActive && <button onClick={handleShowAllRecipes}>All</button>}
                 {isSourceModalOpen && <SourceModal onClose={handleCloseSourceModal}/>}
                 {isRecipeModalOpen && (
                     <RecipeModal
@@ -91,6 +121,18 @@ function RecipeList() {
                     />
                 )}
             </div>
+            {isSearchPanelOpen && (
+                <div>
+                    <input
+                        type="text"
+                        placeholder="Enter regex..."
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                    />
+                    <button onClick={handleSearch}>Search</button>
+                    <button onClick={handleCloseSearchPanel}>Cancel</button>
+                </div>
+            )}
             <table>
                 <thead>
                 <tr>
