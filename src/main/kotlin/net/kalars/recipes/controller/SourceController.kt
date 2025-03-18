@@ -34,5 +34,9 @@ class SourceController(private val sourceService: SourceService) {
         return ResponseEntity.noContent().build()
     }
 
-
+    @GetMapping("/check-name")
+    fun checkSourceName(@RequestParam name: String): Map<String, Boolean> {
+        val exists = sourceService.existsByName(name)
+        return mapOf("exists" to exists)
+    }
 }

@@ -49,6 +49,12 @@ function SourceForm({ source, onCancel, onSourceCreated }: SourceFormProps) {
         console.log('New source:', newSource);
         const apiUrl = source ? `http://localhost:8080/api/sources/${source.id}` : 'http://localhost:8080/api/sources';
         try {
+            const getResponse = await axios.get(`http://localhost:8080/api/sources/check-name?name=${encodeURIComponent(name)}`);
+            if (getResponse.data.exists) {
+                setApiError('Source name must be unique');
+                console.error('Duplicate source name', name);
+                return;
+            }
             const response = source ? await axios.put(apiUrl, newSource) : await axios.post(apiUrl, newSource);
             console.log('Source saved:', response.data);
             setName('');

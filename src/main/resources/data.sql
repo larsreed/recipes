@@ -11,7 +11,7 @@ CREATE TABLE recipe (
     notes TEXT NULL
 );
 
-CREATE TABLE Ingredient (
+CREATE TABLE ingredient (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
     amount FLOAT NULL,
     measure VARCHAR(10) NULL,
@@ -30,5 +30,6 @@ CREATE TABLE source (
      authors VARCHAR(255)
 );
 
+ALTER TABLE source ADD CONSTRAINT unique_source_name UNIQUE (name);
 
 ALTER TABLE recipe ADD CONSTRAINT fk_source FOREIGN KEY (source_id) REFERENCES source(id);
