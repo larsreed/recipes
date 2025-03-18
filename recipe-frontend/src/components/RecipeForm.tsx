@@ -137,14 +137,16 @@ function RecipeForm({ recipe, onCancel, onRecipeSaved }: RecipeFormProps) {
             ingredients
         }));
         try {
-            const response = await axios.post('http://localhost:8080/api/recipes/import', formData, {
-                headers: {
-                    'Content-Type': 'multipart/form-data'
-                }
+            const response = await axios.post('http://localhost:8080/api/recipes/import-ingredients',
+                formData, {
+                    headers: {
+                        'Content-Type': 'multipart/form-data'
+                    }
             });
             console.log("Ingredients imported:", response.data);
             setIngredients(response.data.ingredients);
             setCsvFile(null);
+            // @ts-expect-error won't be null
             document.getElementById('csvFileName').value = '';
         } catch (error) {
             console.error('Error importing ingredients:', error);

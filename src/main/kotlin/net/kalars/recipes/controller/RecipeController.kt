@@ -49,7 +49,7 @@ class RecipeController(private val recipeService: RecipeService) {
         }
     }
 
-    @PostMapping("/import")
+    @PostMapping("/import-ingredients")
     fun importIngredients(@RequestParam("file") file: MultipartFile, @RequestParam("recipe") recipeJson: String): Recipe {
         val recipe = ObjectMapper().readValue(recipeJson, Recipe::class.java)
         val reader = BufferedReader(InputStreamReader(file.inputStream))
