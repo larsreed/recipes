@@ -1,9 +1,16 @@
 package net.kalars.recipes.controller
 
+import com.fasterxml.jackson.databind.ObjectMapper
 import net.kalars.recipes.model.Recipe
+import net.kalars.recipes.model.Ingredient
 import net.kalars.recipes.service.RecipeService
 import org.springframework.web.bind.annotation.*
+import org.springframework.web.bind.annotation.*
+import org.springframework.web.multipart.MultipartFile
 import java.util.regex.Pattern
+import java.io.BufferedReader
+import java.io.InputStreamReader
+import java.util.stream.Collectors
 
 @RestController
 @RequestMapping("/api/recipes")
@@ -18,7 +25,6 @@ class RecipeController(private val recipeService: RecipeService) {
         println(recipe)
         return recipeService.createRecipe(recipe)
     }
-
 
     @PutMapping("/{id}")
     fun updateRecipe(@PathVariable id: Long, @RequestBody recipe: Recipe): Recipe = recipeService.updateRecipe(id, recipe)
@@ -41,5 +47,23 @@ class RecipeController(private val recipeService: RecipeService) {
                                 pattern.matcher(ingredient.instruction).find()
                     }
         }
+    }
+
+    @PostMapping("/import")
+    fun importIngredients(@RequestParam("file") file: MultipartFile, @RequestParam("recipe") recipeJson: String): Recipe {
+        val recipe = ObjectMapper().readValue(recipeJson, Recipe::class.java)
+        val reader = BufferedReader(InputStreamReader(file.inputStream))
+        val ingredientList = reader.lines().skip(1).map { line ->
+            val columns = line.split(",", ";", "\t")
+            Ingredient(
+                amount = columns[0].toFloatOrNull(),
+                measure = columns[1],
+                name = columns[2],
+                instruction = columns[3]
+            )
+        }.collect(Collectors.toList())
+        recipe.ingredients.addAll(ingredientList)
+
+        return recipeService.updateRecipe(recipe.id, recipe)
     }
 }

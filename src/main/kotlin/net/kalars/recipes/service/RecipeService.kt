@@ -36,8 +36,9 @@ class RecipeService(
         existingRecipe.rating = recipe.rating
         existingRecipe.notes = recipe.notes
 
-        existingRecipe.source = sourceRepository.findById(recipe.sourceId)
-            .orElseThrow { RuntimeException("Source not found") }
+        existingRecipe.source = if (recipe.sourceId == 0L) null else {
+            sourceRepository.findById(recipe.sourceId).orElseThrow { RuntimeException("Source not found") }
+        }
 
         return recipeRepository.save(existingRecipe)
     }

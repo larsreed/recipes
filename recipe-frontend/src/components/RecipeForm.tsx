@@ -51,6 +51,7 @@ function RecipeForm({ recipe, onCancel, onRecipeSaved }: RecipeFormProps) {
 
     const [errors, setErrors] = useState<{ [key: string]: string }>({});
     const [apiError, setApiError] = useState<string | null>(null);
+    const [csvFile, setCsvFile] = useState(null);
 
     useEffect(() => {
         const fetchSources = async () => {
@@ -115,6 +116,42 @@ function RecipeForm({ recipe, onCancel, onRecipeSaved }: RecipeFormProps) {
         setIngredients(newIngredients);
     };
 
+    const handleImport = async (event) => {
+        event.preventDefault();
+        if (!csvFile) {
+            alert('Please select a CSV file to import.');
+            return;
+        }
+        const formData = new FormData();
+        formData.append('file', csvFile);
+        formData.append('recipe', JSON.stringify({
+            id: recipe?.id,
+            name,
+            instructions,
+            people,
+            served,
+            sourceId,
+            pageRef,
+            rating,
+            notes,
+            ingredients
+        }));
+        try {
+            const response = await axios.post('http://localhost:8080/api/recipes/import', formData, {
+                headers: {
+                    'Content-Type': 'multipart/form-data'
+                }
+            });
+            console.log("Ingredients imported:", response.data);
+            setIngredients(response.data.ingredients);
+            setCsvFile(null);
+            document.getElementById('csvFileName').value = '';
+        } catch (error) {
+            console.error('Error importing ingredients:', error);
+            setApiError('Failed to import ingredients. Please try again.');
+        }
+    };
+
     const handleSubmit = async (event: React.FormEvent) => {
         event.preventDefault();
         const newErrors = validate();
@@ -161,26 +198,27 @@ function RecipeForm({ recipe, onCancel, onRecipeSaved }: RecipeFormProps) {
             <h2>{recipe ? 'Edit Recipe' : 'Add a New Recipe'}</h2>
             <div className="form-group">
                 <label>Name:</label>
-                <input type="text" value={name} onChange={(e) => setName(e.target.value)} />
+                <input type="text" value={name} onChange={(e) => setName(e.target.value)}/>
                 {errors.name && <p className="error">{errors.name}</p>}
             </div>
             <div className="form-group">
                 <label>Instructions:</label>
-                <textarea value={instructions} onChange={(e) => setInstructions(e.target.value)} />
+                <textarea value={instructions} onChange={(e) => setInstructions(e.target.value)}/>
                 {errors.instructions && <p className="error">{errors.instructions}</p>}
             </div>
             <div className="form-group">
                 <label>People:</label>
-                <input type="number" value={people} onChange={(e) => setPeople(parseInt(e.target.value))} />
+                <input type="number" value={people} onChange={(e) => setPeople(parseInt(e.target.value))}/>
                 {errors.people && <p className="error">{errors.people}</p>}
             </div>
             <div className="form-group">
                 <label>Served:</label>
-                <textarea value={served} onChange={(e) => setServed(e.target.value)} />
+                <textarea value={served} onChange={(e) => setServed(e.target.value)}/>
             </div>
             <div className="form-group">
                 <label>Source:</label>
-                <select value={sourceId ?? ''} onChange={(e) => setSourceId(e.target.value ? parseInt(e.target.value) : null)}>
+                <select value={sourceId ?? ''}
+                        onChange={(e) => setSourceId(e.target.value ? parseInt(e.target.value) : null)}>
                     <option value="">Select a source</option>
                     {sources.map((source) => (
                         <option key={source.id} value={source.id}>
@@ -191,15 +229,16 @@ function RecipeForm({ recipe, onCancel, onRecipeSaved }: RecipeFormProps) {
             </div>
             <div className="form-group">
                 <label>Page Reference:</label>
-                <input type="text" value={pageRef} onChange={(e) => setPageRef(e.target.value)} />
+                <input type="text" value={pageRef} onChange={(e) => setPageRef(e.target.value)}/>
             </div>
             <div className="form-group">
                 <label>Rating:</label>
-                <input type="number" min="1" max="6" value={rating ?? ''} onChange={(e) => setRating(parseInt(e.target.value))} />
+                <input type="number" min="1" max="6" value={rating ?? ''}
+                       onChange={(e) => setRating(parseInt(e.target.value))}/>
             </div>
             <div className="form-group">
                 <label>Notes:</label>
-                <textarea value={notes} onChange={(e) => setNotes(e.target.value)} />
+                <textarea value={notes} onChange={(e) => setNotes(e.target.value)}/>
             </div>
             <div className="form-group">
                 <label>Ingredients:</label>
@@ -223,7 +262,8 @@ function RecipeForm({ recipe, onCancel, onRecipeSaved }: RecipeFormProps) {
                                     value={ingredient.amount ?? ''}
                                     onChange={(e) => handleIngredientChange(index, 'amount', parseFloat(e.target.value))}
                                 />
-                                {errors[`ingredient-${index}-amount`] && <p className="error">{errors[`ingredient-${index}-amount`]}</p>}
+                                {errors[`ingredient-${index}-amount`] &&
+                                    <p className="error">{errors[`ingredient-${index}-amount`]}</p>}
                             </td>
                             <td>
                                 <select
@@ -234,7 +274,8 @@ function RecipeForm({ recipe, onCancel, onRecipeSaved }: RecipeFormProps) {
                                         <option key={option} value={option}>{option}</option>
                                     ))}
                                 </select>
-                                {errors[`ingredient-${index}-measure`] && <p className="error">{errors[`ingredient-${index}-measure`]}</p>}
+                                {errors[`ingredient-${index}-measure`] &&
+                                    <p className="error">{errors[`ingredient-${index}-measure`]}</p>}
                             </td>
                             <td>
                                 <input
@@ -243,7 +284,8 @@ function RecipeForm({ recipe, onCancel, onRecipeSaved }: RecipeFormProps) {
                                     value={ingredient.name}
                                     onChange={(e) => handleIngredientChange(index, 'name', e.target.value)}
                                 />
-                                {errors[`ingredient-${index}-name`] && <p className="error">{errors[`ingredient-${index}-name`]}</p>}
+                                {errors[`ingredient-${index}-name`] &&
+                                    <p className="error">{errors[`ingredient-${index}-name`]}</p>}
                             </td>
                             <td>
                                 <input
@@ -262,6 +304,12 @@ function RecipeForm({ recipe, onCancel, onRecipeSaved }: RecipeFormProps) {
                 </table>
                 <button type="button" onClick={addIngredient}>Add Ingredient</button>
             </div>
+            <div className="form-group">
+                <label>Import Ingredients from CSV:</label>
+                <input id="csvFileName" type="file" accept=".csv,.txt" onChange={(e) => setCsvFile(e.target.files[0])}/>
+                <button type="button" onClick={handleImport}>Import</button>
+            </div>
+
             {apiError && <p className="error">{apiError}</p>}
             <div className="form-actions">
                 <button type="submit">{recipe ? 'Save Recipe' : 'Add Recipe'}</button>

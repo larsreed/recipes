@@ -10,7 +10,7 @@ data class Recipe(
     var name: String,
     @OneToMany(cascade = [CascadeType.ALL], fetch = FetchType.LAZY)
     @JoinColumn(name = "recipe_id")
-    var ingredients: List<Ingredient> = mutableListOf(),
+    var ingredients: MutableList<Ingredient> = mutableListOf(),
     var people: Int,
     @Column(columnDefinition = "TEXT")
     var instructions: String,
