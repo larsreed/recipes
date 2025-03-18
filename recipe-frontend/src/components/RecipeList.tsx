@@ -10,12 +10,23 @@ interface Recipe {
     source?: Source;
     pageRef?: string;
     rating?: number;
+    people: number;
+    ingredients: Ingredient[];
+    instructions: string;
 }
 
 interface Source {
     id: number;
     name: string;
     authors: string;
+}
+
+interface Ingredient {
+    id: number;
+    amount: number;
+    measure: string;
+    name: string;
+    instruction: string;
 }
 
 function RecipeList() {
@@ -101,6 +112,65 @@ function RecipeList() {
         setIsSearchActive(false);
     };
 
+    const handleViewRecipe = (recipe: Recipe) => {
+        const guests = prompt("Guests", "1");
+        if (guests && parseInt(guests) > 0) {
+            const guestsNumber = parseInt(guests);
+            const newWindow = window.open("", "_blank");
+            if (newWindow) {
+                newWindow.document.write(`
+                    <html>
+                    <head>
+                        <title>Recipe View</title>
+                        <style>
+                            @page {
+                                size: A4;
+                                margin: 0
+                            }
+                            body { font-family: Calibri, sans-serif; 
+                                background-color:#FFFFFF; 
+                                background-image:none; 
+                                color:#000000;
+                                margin: 0;
+                                overflow: hidden;
+                                position: relative;
+                                box-sizing: border-box;
+                                page-break-after: always;
+                                width: 210mm; 
+                                height: 296mm;
+                             }
+                            .recipe { max-width: 600px; margin: auto; }
+                            .ingredient { margin-bottom: 10px; }
+                            .instructions { margin-top: 20px; }
+                        </style>
+                    </head>
+                    <body>
+                        <div class="recipe">
+                            <h2>${recipe.name}</h2>
+                            ${recipe.served ? `<p>Served: ${recipe.served}</p>` : ''}
+                            ${recipe.source ? `<p>Source: ${recipe.source.name}${recipe.pageRef ? ` p.${recipe.pageRef}` : ''}</p>` : ''}
+                            ${recipe.rating ? `<p>Rating: ${recipe.rating}</p>` : ''}
+                            <h3>Ingredients</h3>
+                            <ul>
+                                ${recipe.ingredients.map(ingredient => `
+                                    <li class="ingredient">
+                                        ${((ingredient.amount * guestsNumber) / recipe.people).toFixed(2)} ${ingredient.measure} ${ingredient.name} ${ingredient.instruction || ""}
+                                    </li>
+                                `).join('')}
+                            </ul>
+                            <h3>Instructions</h3>
+                            <p class="instructions">${recipe.instructions}</p>
+                        </div>
+                    </body>
+                    </html>
+                `);
+                newWindow.document.close();
+            }
+        } else {
+            alert("Please enter a valid number of guests.");
+        }
+    };
+
     return (
         <div>
             <h2>Recipe List</h2>
@@ -130,6 +200,7 @@ function RecipeList() {
                         onChange={(e) => setSearchQuery(e.target.value)}
                     />
                     <button onClick={handleSearch}>Search</button>
+                    &nbsp;
                     <button onClick={handleCloseSearchPanel}>Cancel</button>
                 </div>
             )}
@@ -156,7 +227,10 @@ function RecipeList() {
                         <td>{recipe.rating}</td>
                         <td>
                             <button onClick={() => editRecipe(recipe)}>EDIT</button>
+                            &nbsp;
                             <button onClick={() => deleteRecipe(recipe.id)}>DELETE</button>
+                            &nbsp;
+                            <button onClick={() => handleViewRecipe(recipe)}>VIEW</button>
                         </td>
                     </tr>
                 ))}
