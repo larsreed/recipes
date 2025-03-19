@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import SourceModal from "./SourceModal.tsx";
 import RecipeModal from "./RecipeModal.tsx";
@@ -37,13 +37,18 @@ function RecipeList() {
     const [isSearchPanelOpen, setIsSearchPanelOpen] = useState(false);
     const [searchQuery, setSearchQuery] = useState('');
     const [isSearchActive, setIsSearchActive] = useState(false);
+    const [csvFile, setCsvFile] = useState<File | null>(null);
+    const [apiError, setApiError] = useState<string | null>(null);
 
     const fetchRecipes = () => {
         axios.get('http://localhost:8080/api/recipes')
             .then(response => {
                 setRecipes(response.data);
             })
-            .catch(error => console.error('Error fetching recipes:', error));
+            .catch(error => {
+                console.error('Error fetching recipes:', error)
+                setApiError('Failed to fetch recipes');
+            });
     };
 
     useEffect(() => {
@@ -55,8 +60,12 @@ function RecipeList() {
             axios.delete(`http://localhost:8080/api/recipes/${id}`)
                 .then(() => {
                     setRecipes(recipes.filter(recipe => recipe.id !== id));
+                    setApiError(null);
                 })
-                .catch(error => console.error('Error deleting recipe:', error));
+                .catch(error => {
+                    console.error('Error deleting recipe:', error)
+                    setApiError('Failed to delete recipe');
+                });
         }
     };
 
@@ -103,13 +112,43 @@ function RecipeList() {
                 setRecipes(response.data);
                 setIsSearchActive(true);
                 setIsSearchPanelOpen(false);
+                setApiError(null);
             })
-            .catch(error => console.error('Error searching recipes:', error));
+            .catch(error => {
+                console.error('Error searching recipes:', error)
+                setApiError('Failed to search for recipes');
+            });
     };
 
     const handleShowAllRecipes = () => {
         fetchRecipes();
         setIsSearchActive(false);
+    };
+
+    const handleImport = async (event: React.FormEvent) => {
+        event.preventDefault();
+        if (!csvFile) {
+            alert('Please select a CSV file to import.');
+            return;
+        }
+        const formData = new FormData();
+        formData.append('file', csvFile);
+        try {
+            const response = await axios.post('http://localhost:8080/api/recipes/import', formData, {
+                headers: {
+                    'Content-Type': 'multipart/form-data'
+                }
+            });
+            console.log("Recipes imported:", response.data);
+            fetchRecipes();
+            setCsvFile(null);
+            setApiError(null);
+            document.getElementById('csvFileInput').value = ''; // Clear the file input
+        } catch (error) {
+            console.error('Error importing recipes:', error);
+            setApiError('Failed to import recipes');
+            fetchRecipes();
+        }
     };
 
     const handleViewRecipe = (recipe: Recipe) => {
@@ -236,6 +275,11 @@ function RecipeList() {
                 ))}
                 </tbody>
             </table>
+            <div>
+                Import recipes: <input id="csvFileInput" type="file" accept=".csv,.txt" onChange={(e) => setCsvFile(e.target.files[0])}/>
+                <button onClick={handleImport}>Import</button>
+            </div>
+            {apiError && <p className="error">{apiError}</p>}
         </div>
     );
 }

@@ -2,9 +2,9 @@ package net.kalars.recipes.controller
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import net.kalars.recipes.model.Recipe
+import net.kalars.recipes.model.Source
 import net.kalars.recipes.model.Ingredient
 import net.kalars.recipes.service.RecipeService
-import org.springframework.web.bind.annotation.*
 import org.springframework.web.bind.annotation.*
 import org.springframework.web.multipart.MultipartFile
 import java.util.regex.Pattern
@@ -22,8 +22,7 @@ class RecipeController(private val recipeService: RecipeService) {
 
     @PostMapping
     fun createRecipe(@RequestBody recipe: Recipe): Recipe {
-        println(recipe)
-        return recipeService.createRecipe(recipe)
+         return recipeService.createRecipe(recipe)
     }
 
     @PutMapping("/{id}")
@@ -65,5 +64,25 @@ class RecipeController(private val recipeService: RecipeService) {
         recipe.ingredients.addAll(ingredientList)
 
         return recipeService.updateRecipe(recipe.id, recipe)
+    }
+
+    @PostMapping("/import")
+    fun importRecipes(@RequestParam("file") file: MultipartFile): List<Recipe> {
+        val reader = BufferedReader(InputStreamReader(file.inputStream))
+        val recipes = reader.lines().skip(1).map { line ->
+            val columns = line.replace("\\n", "\n").split(",", ";", "\t")
+            val sourceName = columns[6]
+            recipeService.createRecipe(
+                Recipe(
+                    name = columns[0],
+                    people = columns[1].toInt(),
+                    instructions = columns[2],
+                    served = columns[3],
+                    rating = columns[4].toIntOrNull(),
+                    notes = columns[5],
+                    pageRef = columns[7]
+                ), sourceName)
+        }.collect(Collectors.toList())
+        return recipes
     }
 }

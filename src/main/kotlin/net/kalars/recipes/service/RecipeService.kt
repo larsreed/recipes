@@ -23,6 +23,13 @@ class RecipeService(
         return recipeRepository.save(recipe)
     }
 
+    fun createRecipe(recipe: Recipe, sourceName: String?): Recipe {
+        if (sourceName ==null || sourceName.isBlank()) return createRecipe(recipe)
+        val source = sourceRepository.findByName(sourceName)
+            .orElseThrow { RuntimeException("Source "+ sourceName + " not found") }
+        return createRecipe(recipe.copy(sourceId = source.id))
+    }
+
     fun updateRecipe(id: Long, recipe: Recipe): Recipe {
         val existingRecipe = recipeRepository.findById(id)
             .orElseThrow { RuntimeException("Recipe not found") }
@@ -37,7 +44,8 @@ class RecipeService(
         existingRecipe.notes = recipe.notes
 
         existingRecipe.source = if (recipe.sourceId == 0L) null else {
-            sourceRepository.findById(recipe.sourceId).orElseThrow { RuntimeException("Source not found") }
+            sourceRepository.findById(recipe.sourceId)
+                .orElseThrow { RuntimeException("Source not found") }
         }
 
         return recipeRepository.save(existingRecipe)
