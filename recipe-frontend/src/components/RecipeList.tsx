@@ -13,6 +13,7 @@ interface Recipe {
     rating?: number;
     people: number;
     ingredients: Ingredient[];
+    attachments: Attachment[];
     instructions: string;
 }
 
@@ -40,6 +41,7 @@ function RecipeList() {
     const [htmlContent, setHtmlContent] = useState('');
     const [searchQuery, setSearchQuery] = useState('');
     const [isSearchActive, setIsSearchActive] = useState(false);
+    const [isExportAll, setIsExportAll] = useState(false);
     const [csvFile, setCsvFile] = useState<File | null>(null);
     const [apiError, setApiError] = useState<string | null>(null);
 
@@ -155,6 +157,18 @@ function RecipeList() {
         }
     };
 
+    const exportHtmlContent = (htmlContent: string, fileName: string) => {
+        const blob = new Blob([htmlContent], { type: 'text/html' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = fileName;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+    };
+
     const handleExportAll = (singleRecipe?: Recipe) => {
         const guests = prompt("Guests", "4");
         if (guests && parseInt(guests) > 0) {
@@ -263,8 +277,10 @@ function RecipeList() {
                 newWindow.document.close();
             }
 
-            setIsDialogOpen(true);
-            setHtmlContent(htmlContent);
+            if (!singleRecipe) {
+                setIsExportAll(true);
+                setIsDialogOpen(true);
+            }
         } else {
             alert("Please enter a valid number of guests.");
         }
@@ -272,15 +288,9 @@ function RecipeList() {
 
     const handleConfirmExport = () => {
         setIsDialogOpen(false);
-        const blob = new Blob([htmlContent], { type: 'text/html' });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = 'recipes.html';
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        URL.revokeObjectURL(url);
+        if (isExportAll) {
+            exportHtmlContent(htmlContent, 'recipes.html');
+        }
     };
 
     const handleCancelExport = () => {
