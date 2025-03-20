@@ -280,6 +280,7 @@ function RecipeList() {
             if (!singleRecipe) {
                 setIsExportAll(true);
                 setIsDialogOpen(true);
+                setHtmlContent(htmlContent);
             }
         } else {
             alert("Please enter a valid number of guests.");
@@ -291,10 +292,12 @@ function RecipeList() {
         if (isExportAll) {
             exportHtmlContent(htmlContent, 'recipes.html');
         }
+        setHtmlContent('');;
     };
 
     const handleCancelExport = () => {
         setIsDialogOpen(false);
+        setHtmlContent('');;
     };
 
     const handleViewRecipe = (recipe: Recipe) => {
