@@ -14,6 +14,9 @@ class RecipeService(
 
     fun getAllRecipes(): List<Recipe> = recipeRepository.findAll()
 
+    fun getRecipeById(id: Long): Recipe = recipeRepository.findById(id)
+        .orElseThrow { RuntimeException("Recipe not found") }
+
     fun createRecipe(recipe: Recipe): Recipe {
         if (recipe.sourceId != 0L) {
             val source: Source = sourceRepository.findById(recipe.sourceId)
@@ -26,7 +29,7 @@ class RecipeService(
     fun createRecipe(recipe: Recipe, sourceName: String?): Recipe {
         if (sourceName ==null || sourceName.isBlank()) return createRecipe(recipe)
         val source = sourceRepository.findByName(sourceName)
-            .orElseThrow { RuntimeException("Source "+ sourceName + " not found") }
+            .orElseThrow { RuntimeException("Source $sourceName not found") }
         return createRecipe(recipe.copy(sourceId = source.id))
     }
 
@@ -35,13 +38,15 @@ class RecipeService(
             .orElseThrow { RuntimeException("Recipe not found") }
 
         existingRecipe.name = recipe.name
-        existingRecipe.ingredients = recipe.ingredients
         existingRecipe.instructions = recipe.instructions
         existingRecipe.people = recipe.people
         existingRecipe.served = recipe.served
         existingRecipe.pageRef = recipe.pageRef
         existingRecipe.rating = recipe.rating
         existingRecipe.notes = recipe.notes
+
+        updateCollection(existingRecipe.ingredients, recipe.ingredients)
+        updateCollection(existingRecipe.attachments, recipe.attachments)
 
         existingRecipe.source = if (recipe.sourceId == 0L) null else {
             sourceRepository.findById(recipe.sourceId)
@@ -50,6 +55,15 @@ class RecipeService(
 
         return recipeRepository.save(existingRecipe)
     }
+
+    private fun <T> updateCollection(existingCollection: MutableList<T>, newCollection: List<T>) {
+        val toRemove = existingCollection.filterNot { it in newCollection }
+        val toAdd = newCollection.filterNot { it in existingCollection }
+
+        existingCollection.removeAll(toRemove)
+        existingCollection.addAll(toAdd)
+    }
+
     fun deleteRecipe(id: Long) = recipeRepository.deleteById(id)
 
     fun nullifySourceInRecipes(sourceId: Long) {

@@ -24,6 +24,14 @@ CREATE TABLE ingredient (
             ON DELETE CASCADE
 );
 
+CREATE TABLE attachment (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    file_name VARCHAR(255) NOT NULL,
+    file_content TEXT NOT NULL,
+    recipe_id BIGINT,
+    FOREIGN KEY (recipe_id) REFERENCES recipe(id) ON DELETE CASCADE
+);
+
 CREATE TABLE source (
      id BIGINT AUTO_INCREMENT PRIMARY KEY,
      name VARCHAR(128),

@@ -8,7 +8,6 @@
   padding: 2em;
 }
 
-/* Modal styles */
 .modal {
   display: block;
   position: fixed;
@@ -22,7 +21,8 @@
   background-color: rgba(0,0,0,0.4);
 }
 
-.modal-content, .prompt-dialog-content {
+.modal-content,
+.prompt-dialog-content {
   background-color: #fefefe;
   color: #000; /* Set text color to black */
   margin: 15% auto;
@@ -47,7 +47,8 @@
   align-items: center;
 }
 
-.close, .close-text {
+.close,
+.close-text {
   color: #aaa;
   float: right;
   font-size: 28px;
@@ -62,7 +63,8 @@
 }
 
 /* SourceForm styles */
-.source-form, .recipe-form {
+.source-form,
+.recipe-form {
   display: flex;
   flex-direction: column;
   gap: 1rem;
@@ -74,7 +76,9 @@
   gap: 0.5rem;
 }
 
-.form-group label, .ingredient-group label, .ingredient-field label {
+.form-group label,
+.ingredient-group label,
+.ingredient-field label {
   margin-bottom: 0.5rem;
   text-align: left;
 }
@@ -84,7 +88,8 @@
   border-collapse: collapse;
 }
 
-.ingredient-table th, .ingredient-table td {
+.ingredient-table th,
+.ingredient-table td {
   border: 1px solid #ddd;
   padding: 8px;
   text-align: left;
@@ -95,7 +100,8 @@
   font-weight: bold;
 }
 
-.ingredient-table input, .ingredient-table select {
+.ingredient-table input,
+.ingredient-table select {
   width: 100%;
   box-sizing: border-box;
 }

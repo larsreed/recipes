@@ -215,12 +215,29 @@ function RecipeList() {
                     .instructions {
                         margin-top: 20px;
                     }
+                    .attachment {
+                        margin-top: 20px;
+                    }
+                    .attachment img {
+                        max-width: 100%;
+                        height: auto;
+                    }
                 </style>
             </head>
             <body>
                 ${recipesToExport.map(recipe => `
                     <div class="recipe">
                         <h2>${recipe.name}</h2>
+                        <div class="attachments">
+                            ${recipe.attachments.map(attachment => `
+                                <div class="attachment">
+                                    ${attachment.fileName.match(/\.(jpeg|jpg|gif|png)$/) ?
+                                        `<img src="data:image/jpeg;base64,${attachment.fileContent}" alt="${attachment.fileName}" />` :
+                                        `<p>Attachment: ${attachment.fileName}</p>`
+                                    }
+                                </div>
+                            `).join('')}
+                        </div>
                         ${recipe.served ? `<p>Served: ${recipe.served}</p>` : ''}
                         ${recipe.source ? `<p>Source: ${recipe.source.name}${recipe.pageRef ? ` p.${recipe.pageRef}` : ''}</p>` : ''}
                         ${recipe.rating ? `<p>Rating: ${recipe.rating}</p>` : ''}

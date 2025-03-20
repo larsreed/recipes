@@ -1,6 +1,7 @@
 package net.kalars.recipes.controller
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import net.kalars.recipes.model.Attachment
 import net.kalars.recipes.model.Recipe
 import net.kalars.recipes.model.Source
 import net.kalars.recipes.model.Ingredient
@@ -10,11 +11,12 @@ import org.springframework.web.multipart.MultipartFile
 import java.util.regex.Pattern
 import java.io.BufferedReader
 import java.io.InputStreamReader
+import java.util.*
 import java.util.stream.Collectors
 
 @RestController
 @RequestMapping("/api/recipes")
-@CrossOrigin(origins = ["http://localhost:5173"]) // HACK! Must fix
+@CrossOrigin(origins = ["http://localhost:5173"]) // TODO HACK! Must fix
 class RecipeController(private val recipeService: RecipeService) {
 
     @GetMapping
@@ -23,6 +25,26 @@ class RecipeController(private val recipeService: RecipeService) {
     @PostMapping
     fun createRecipe(@RequestBody recipe: Recipe): Recipe {
          return recipeService.createRecipe(recipe)
+    }
+
+    @PostMapping("/{id}/attachments")
+    fun addAttachment(@PathVariable id: Long, @RequestParam("file") file: MultipartFile): Recipe {
+        println(id.toString())
+        val recipe = recipeService.getRecipeById(id)
+        val attachment = Attachment(
+            fileName = file.originalFilename ?: "unknown",
+            fileContent = Base64.getEncoder().encodeToString(file.bytes)
+        )
+        println("Attachment $attachment")
+        recipe.attachments.add(attachment)
+        return recipeService.updateRecipe(id, recipe)
+    }
+
+    @DeleteMapping("/{recipeId}/attachments/{attachmentId}")
+    fun deleteAttachment(@PathVariable recipeId: Long, @PathVariable attachmentId: Long): Recipe {
+        val recipe = recipeService.getRecipeById(recipeId)
+        recipe.attachments.removeIf { it.id == attachmentId }
+        return recipeService.updateRecipe(recipeId, recipe)
     }
 
     @PutMapping("/{id}")

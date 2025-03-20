@@ -18,7 +18,14 @@ interface Recipe {
     rating?: number;
     notes?: string;
     ingredients: Ingredient[];
-    source?: Source
+    source?: Source;
+    attachments: Attachment[];
+}
+
+interface Attachment {
+    id: number;
+    fileName: string;
+    fileContent: string;
 }
 
 interface Source {
@@ -48,6 +55,7 @@ function RecipeForm({ recipe, onCancel, onRecipeSaved }: RecipeFormProps) {
     const [rating, setRating] = useState<number | null>(recipe?.rating || null);
     const [notes, setNotes] = useState(recipe?.notes || '');
     const [ingredients, setIngredients] = useState<Ingredient[]>(recipe?.ingredients || [{ name: '' }]);
+    const [attachments, setAttachments] = useState<Attachment[]>(recipe?.attachments || []);
 
     const [errors, setErrors] = useState<{ [key: string]: string }>({});
     const [apiError, setApiError] = useState<string | null>(null);
@@ -116,6 +124,31 @@ function RecipeForm({ recipe, onCancel, onRecipeSaved }: RecipeFormProps) {
         setIngredients(newIngredients);
     };
 
+    const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
+        if (event.target.files && recipe) {
+            const file = event.target.files[0];
+            const formData = new FormData();
+            formData.append('file', file);
+            try {
+                const response = await axios.post(`http://localhost:8080/api/recipes/${recipe.id}/attachments`, formData, {
+                    headers: {
+                        'Content-Type': 'multipart/form-data'
+                    }
+                });
+                console.log(response);
+                setAttachments(response.data.attachments);
+                event.target.value = ''; // Clear the file input field
+            } catch (error) {
+                console.error('Error uploading file:', error);
+            }
+        }
+    };
+
+    const handleDeleteAttachment = async (attachmentId: number) => {
+        const response = await axios.delete(`http://localhost:8080/api/recipes/${recipe.id}/attachments/${attachmentId}`);
+        setAttachments(response.data.attachments);
+    };
+
     const handleImport = async (event) => {
         event.preventDefault();
         if (!csvFile) {
@@ -171,7 +204,8 @@ function RecipeForm({ recipe, onCancel, onRecipeSaved }: RecipeFormProps) {
             sourceId,
             pageRef,
             rating,
-            notes
+            notes,
+            attachments
         };
         const apiUrl = recipe ? `http://localhost:8080/api/recipes/${recipe.id}` : `http://localhost:8080/api/recipes`;
         try {
@@ -186,6 +220,7 @@ function RecipeForm({ recipe, onCancel, onRecipeSaved }: RecipeFormProps) {
             setRating(null);
             setNotes('');
             setIngredients([{ name: '' }]);
+            setAttachments([{ id: 0 }]);
             setErrors({});
             setApiError(null);
             onRecipeSaved();
@@ -241,6 +276,19 @@ function RecipeForm({ recipe, onCancel, onRecipeSaved }: RecipeFormProps) {
             <div className="form-group">
                 <label>Notes:</label>
                 <textarea value={notes} onChange={(e) => setNotes(e.target.value)}/>
+            </div>
+            <div className="form-group">
+                <label>Attachments</label>
+                <input type="file" onChange={handleFileChange}/>
+                <ul>
+                    {attachments.map(attachment => (
+                        <li key={attachment.id}>
+                            {attachment.fileName}
+                            &nbsp;
+                            <button onClick={() => handleDeleteAttachment(attachment.id)}>Delete</button>
+                        </li>
+                    ))}
+                </ul>
             </div>
             <div className="form-group">
                 <label>Ingredients:</label>
