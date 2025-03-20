@@ -143,10 +143,11 @@ function RecipeList() {
             fetchRecipes();
             setCsvFile(null);
             setApiError(null);
-            document.getElementById('csvFileInput').value = ''; // Clear the file input
+            const fileInput = document.getElementById('csvFileInput') as HTMLInputElement;
+            if (fileInput) fileInput.value = ''; // Clear the file input
         } catch (error) {
             console.error('Error importing recipes:', error);
-            setApiError('Failed to import recipes');
+            setApiError('Failed to import recipes. Please check the CSV file format and try again.\'');
             fetchRecipes();
         }
     };
