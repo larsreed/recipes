@@ -4,6 +4,12 @@ import SourceModal from "./SourceModal.tsx";
 import RecipeModal from "./RecipeModal.tsx";
 import PromptDialog from "./PromptDialog.tsx";
 
+interface Attachment {
+    id: number;
+    fileName: string;
+    fileContent: string;
+}
+
 interface Recipe {
     id: number;
     name: string;
@@ -33,6 +39,8 @@ interface Ingredient {
 
 function RecipeList() {
     const [recipes, setRecipes] = useState<Recipe[]>([]);
+    const [selectedRecipes, setSelectedRecipes] = useState<Set<number>>(new Set());
+    const [selectAll, setSelectAll] = useState(false);
     const [editingRecipe, setEditingRecipe] = useState<Recipe | null>(null);
     const [isSourceModalOpen, setIsSourceModalOpen] = useState(false);
     const [isRecipeModalOpen, setIsRecipeModalOpen] = useState(false);
@@ -173,7 +181,7 @@ function RecipeList() {
         const guests = prompt("Guests", "4");
         if (guests && parseInt(guests) > 0) {
             const guestsNumber = parseInt(guests);
-            const recipesToExport = singleRecipe ? [singleRecipe] : recipes;
+            const recipesToExport = singleRecipe ? [singleRecipe] : (selectedRecipes.size > 0 ? recipes.filter(recipe => selectedRecipes.has(recipe.id)) : recipes);
             const htmlContent = `
             <html>
             <head>
@@ -304,6 +312,27 @@ function RecipeList() {
         handleExportAll(recipe);
     };
 
+    const handleCheckboxChange = (recipeId: number) => {
+        setSelectedRecipes(prevSelectedRecipes => {
+            const newSelectedRecipes = new Set(prevSelectedRecipes);
+            if (newSelectedRecipes.has(recipeId)) {
+                newSelectedRecipes.delete(recipeId);
+            } else {
+                newSelectedRecipes.add(recipeId);
+            }
+            return newSelectedRecipes;
+        });
+    };
+
+    const handleSelectAllChange = () => {
+        if (selectAll) {
+            setSelectedRecipes(new Set());
+        } else {
+            setSelectedRecipes(new Set(recipes.map(recipe => recipe.id)));
+        }
+        setSelectAll(!selectAll);
+    };
+
     return (
         <div>
             <h2>Recipe List</h2>
@@ -342,7 +371,14 @@ function RecipeList() {
             <table>
                 <thead>
                 <tr>
-                    <th>ID</th>
+                    <th>
+                        ID
+                        <input
+                            type="checkbox"
+                            checked={selectAll}
+                            onChange={handleSelectAllChange}
+                        />
+                    </th>
                     <th>Name</th>
                     <th>Served</th>
                     <th>Source</th>
@@ -354,7 +390,14 @@ function RecipeList() {
                 <tbody>
                 {recipes.map(recipe => (
                     <tr key={recipe.id}>
-                        <td>{recipe.id}</td>
+                        <td>
+                            {recipe.id}
+                            <input
+                                type="checkbox"
+                                checked={selectedRecipes.has(recipe.id)}
+                                onChange={() => handleCheckboxChange(recipe.id)}
+                            />
+                        </td>
                         <td>{recipe.name}</td>
                         <td>{recipe.served}</td>
                         <td>{recipe.source ? recipe.source.name : ''}</td>
