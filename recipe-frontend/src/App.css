@@ -9,7 +9,7 @@
 }
 
 /* Modal styles */
-.modal {
+.modal, .prompt-dialog {
   display: block;
   position: fixed;
   z-index: 1;
@@ -22,7 +22,7 @@
   background-color: rgba(0,0,0,0.4);
 }
 
-.modal-content {
+.modal-content, .prompt-dialog-content {
   background-color: #fefefe;
   color: #000; /* Set text color to black */
   margin: 15% auto;
@@ -30,6 +30,7 @@
   border: 1px solid #888;
   width: 80%;
 }
+
 
 .close, .close-text {
   color: #aaa;

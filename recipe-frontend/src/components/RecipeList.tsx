@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import SourceModal from "./SourceModal.tsx";
 import RecipeModal from "./RecipeModal.tsx";
+import PromptDialog from "./PromptDialog.tsx";
 
 interface Recipe {
     id: number;
@@ -35,6 +36,8 @@ function RecipeList() {
     const [isSourceModalOpen, setIsSourceModalOpen] = useState(false);
     const [isRecipeModalOpen, setIsRecipeModalOpen] = useState(false);
     const [isSearchPanelOpen, setIsSearchPanelOpen] = useState(false);
+    const [isDialogOpen, setIsDialogOpen] = useState(false);
+    const [htmlContent, setHtmlContent] = useState('');
     const [searchQuery, setSearchQuery] = useState('');
     const [isSearchActive, setIsSearchActive] = useState(false);
     const [csvFile, setCsvFile] = useState<File | null>(null);
@@ -152,63 +155,123 @@ function RecipeList() {
         }
     };
 
-    const handleViewRecipe = (recipe: Recipe) => {
-        const guests = prompt("Guests", "1");
+    const handleExportAll = (singleRecipe?: Recipe) => {
+        const guests = prompt("Guests", "4");
         if (guests && parseInt(guests) > 0) {
             const guestsNumber = parseInt(guests);
+            const recipesToExport = singleRecipe ? [singleRecipe] : recipes;
+            const htmlContent = `
+            <html>
+            <head>
+                <title>${singleRecipe ? singleRecipe.name : "All Recipes"}</title>
+                <style>
+                    @page {
+                        size: A4;
+                        margin: 0;
+                    }
+                    body {
+                        font-family: Calibri, sans-serif;
+                        background-color: #FFFFFF;
+                        background-image: none;
+                        color: #000000;
+                        margin: 0;
+                        overflow: auto;
+                        position: relative;
+                        box-sizing: border-box;
+                        width: 210mm;
+                        height: 296mm;
+                    }
+                    .recipe {
+                        max-width: 800px;
+                        margin: 20px auto;
+                        padding: 20px;
+                        background: #fff;
+                        border: 1px solid #ddd;
+                        border-radius: 8px;
+                        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+                        page-break-after: always;
+                    }
+                    .recipe h2 {
+                        margin-top: 0;
+                        color: #2c3e50;
+                    }
+                    .recipe p {
+                        margin: 5px 0;
+                    }
+                    .recipe h3 {
+                        margin-bottom: 10px;
+                        color: #16a085;
+                    }
+                    .recipe ul {
+                        list-style-type: none;
+                        padding: 0;
+                    }
+                    .recipe ul li {
+                        margin-bottom: 5px;
+                    }
+                    .ingredient {
+                        margin-bottom: 10px;
+                    }
+                    .instructions {
+                        margin-top: 20px;
+                    }
+                </style>
+            </head>
+            <body>
+                ${recipesToExport.map(recipe => `
+                    <div class="recipe">
+                        <h2>${recipe.name}</h2>
+                        ${recipe.served ? `<p>Served: ${recipe.served}</p>` : ''}
+                        ${recipe.source ? `<p>Source: ${recipe.source.name}${recipe.pageRef ? ` p.${recipe.pageRef}` : ''}</p>` : ''}
+                        ${recipe.rating ? `<p>Rating: ${recipe.rating}</p>` : ''}
+                        <h3>Ingredients</h3>
+                        <ul>
+                            ${recipe.ingredients.map(ingredient => `
+                                <li class="ingredient">
+                                    ${((ingredient.amount * guestsNumber) / recipe.people).toFixed(2)} ${ingredient.measure} ${ingredient.name} ${ingredient.instruction || ""}
+                                </li>
+                            `).join('')}
+                        </ul>
+                        <h3>Instructions</h3>
+                        <p class="instructions">${recipe.instructions}</p>
+                    </div>
+                `).join('')}
+            </body>
+            </html>
+            `;
+
             const newWindow = window.open("", "_blank");
             if (newWindow) {
-                newWindow.document.write(`
-                    <html>
-                    <head>
-                        <title>Recipe View</title>
-                        <style>
-                            @page {
-                                size: A4;
-                                margin: 0
-                            }
-                            body { font-family: Calibri, sans-serif; 
-                                background-color:#FFFFFF; 
-                                background-image:none; 
-                                color:#000000;
-                                margin: 0;
-                                overflow: hidden;
-                                position: relative;
-                                box-sizing: border-box;
-                                page-break-after: always;
-                                width: 210mm; 
-                                height: 296mm;
-                             }
-                            .recipe { max-width: 600px; margin: auto; }
-                            .ingredient { margin-bottom: 10px; }
-                            .instructions { margin-top: 20px; }
-                        </style>
-                    </head>
-                    <body>
-                        <div class="recipe">
-                            <h2>${recipe.name}</h2>
-                            ${recipe.served ? `<p>Served: ${recipe.served}</p>` : ''}
-                            ${recipe.source ? `<p>Source: ${recipe.source.name}${recipe.pageRef ? ` p.${recipe.pageRef}` : ''}</p>` : ''}
-                            ${recipe.rating ? `<p>Rating: ${recipe.rating}</p>` : ''}
-                            <h3>Ingredients</h3>
-                            <ul>
-                                ${recipe.ingredients.map(ingredient => `
-                                    <li class="ingredient">
-                                        ${((ingredient.amount * guestsNumber) / recipe.people).toFixed(2)} ${ingredient.measure} ${ingredient.name} ${ingredient.instruction || ""}
-                                    </li>
-                                `).join('')}
-                            </ul>
-                            <h3>Instructions</h3>
-                            <p class="instructions">${recipe.instructions}</p>
-                        </div>
-                    </body>
-                    </html>
-                `);
+                newWindow.document.write(htmlContent);
                 newWindow.document.close();
             }
+
+            setIsDialogOpen(true);
+            setHtmlContent(htmlContent);
         } else {
             alert("Please enter a valid number of guests.");
         }
+    };
+
+    const handleConfirmExport = () => {
+        setIsDialogOpen(false);
+        const blob = new Blob([htmlContent], { type: 'text/html' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'recipes.html';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+    };
+
+    const handleCancelExport = () => {
+        setIsDialogOpen(false);
+    };
+
+    const handleViewRecipe = (recipe: Recipe) => {
+        handleExportAll(recipe);
     };
 
     return (
@@ -218,6 +281,8 @@ function RecipeList() {
                 <button onClick={handleOpenSourceModal}>Edit sources</button>
                 &nbsp;
                 <button onClick={handleOpenRecipeModal}>Add recipe</button>
+                &nbsp;
+                <button onClick={() => handleExportAll()}>Export All</button>
                 &nbsp;
                 <button onClick={handleOpenSearchPanel}>Find</button>
                 &nbsp;
@@ -233,7 +298,7 @@ function RecipeList() {
             </div>
             {isSearchPanelOpen && (
                 <div>
-                    <input
+                <input
                         type="text"
                         placeholder="Enter regex..."
                         value={searchQuery}
@@ -281,6 +346,13 @@ function RecipeList() {
                 <button onClick={handleImport}>Import</button>
             </div>
             {apiError && <p className="error">{apiError}</p>}
+            {isDialogOpen && (
+                <PromptDialog
+                    message="Do you want to export the recipes to a file?"
+                    onConfirm={handleConfirmExport}
+                    onCancel={handleCancelExport}
+                />
+            )}
         </div>
     );
 }
