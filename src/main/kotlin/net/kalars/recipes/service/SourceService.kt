@@ -11,14 +11,6 @@ class SourceService(private val sourceRepository: SourceRepository) {
 
     fun getAllSources(): List<Source> = sourceRepository.findAll()
 
-    @Transactional
-    fun createSource(source: Source): Source {
-        if (sourceRepository.existsByName(source.name)) {
-            throw IllegalArgumentException("Source name must be unique")
-        }
-        return sourceRepository.save(source)
-    }
-
     fun deleteSource(id: Long) = sourceRepository.deleteById(id)
 
     fun getSource(id: Long): Source {

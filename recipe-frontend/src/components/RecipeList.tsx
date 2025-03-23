@@ -300,12 +300,12 @@ function RecipeList() {
         if (isExportAll) {
             exportHtmlContent(htmlContent, 'recipes.html');
         }
-        setHtmlContent('');;
+        setHtmlContent('');
     };
 
     const handleCancelExport = () => {
         setIsDialogOpen(false);
-        setHtmlContent('');;
+        setHtmlContent('');
     };
 
     const handleViewRecipe = (recipe: Recipe) => {

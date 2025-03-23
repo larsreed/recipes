@@ -47,8 +47,7 @@
   align-items: center;
 }
 
-.close,
-.close-text {
+.close {
   color: #aaa;
   float: right;
   font-size: 28px;

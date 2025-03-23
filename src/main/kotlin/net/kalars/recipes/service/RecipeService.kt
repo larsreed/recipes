@@ -27,7 +27,7 @@ class RecipeService(
     }
 
     fun createRecipe(recipe: Recipe, sourceName: String?): Recipe {
-        if (sourceName ==null || sourceName.isBlank()) return createRecipe(recipe)
+        if (sourceName.isNullOrBlank()) return createRecipe(recipe)
         val source = sourceRepository.findByName(sourceName)
             .orElseThrow { RuntimeException("Source $sourceName not found") }
         return createRecipe(recipe.copy(sourceId = source.id))
@@ -67,7 +67,7 @@ class RecipeService(
     fun deleteRecipe(id: Long) = recipeRepository.deleteById(id)
 
     fun nullifySourceInRecipes(sourceId: Long) {
-        val recipes = recipeRepository.findBySource_Id(sourceId)
+        val recipes = recipeRepository.findbysourceId(sourceId)
         recipes.forEach { it.source = null }
         recipeRepository.saveAll(recipes)
     }

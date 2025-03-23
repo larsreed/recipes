@@ -3,7 +3,6 @@ package net.kalars.recipes.controller
 import com.fasterxml.jackson.databind.ObjectMapper
 import net.kalars.recipes.model.Attachment
 import net.kalars.recipes.model.Recipe
-import net.kalars.recipes.model.Source
 import net.kalars.recipes.model.Ingredient
 import net.kalars.recipes.service.RecipeService
 import org.springframework.web.bind.annotation.*
