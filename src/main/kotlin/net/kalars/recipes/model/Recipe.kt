@@ -2,7 +2,6 @@ package net.kalars.recipes.model
 
 import jakarta.persistence.*
 
-
 @Entity
 data class Recipe(
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -17,13 +16,12 @@ data class Recipe(
     @Column(columnDefinition = "TEXT")
     var instructions: String,
     var served: String? = null,
-    @Transient
-    val sourceId: Long = 0,
+    var sourceId: Long = 0,
     var pageRef: String? = null,
     var rating: Int? = null,
     var notes: String? = null
 ) {
-    @ManyToOne @JoinColumn(name = "source_id")
+    @ManyToOne @JoinColumn(name = "sourceId", insertable = false, updatable = false)
     var source: Source? = null
 
     constructor() : this(0, "", mutableListOf(), mutableListOf(),0, "", null, 0, null, null, null)

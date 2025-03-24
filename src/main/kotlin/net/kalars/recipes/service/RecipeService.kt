@@ -18,8 +18,8 @@ class RecipeService(
         .orElseThrow { RuntimeException("Recipe not found") }
 
     fun createRecipe(recipe: Recipe): Recipe {
-        if (recipe.sourceId != 0L) {
-            val source: Source = sourceRepository.findById(recipe.sourceId)
+        if (recipe.sourceId != null) {
+            val source: Source = sourceRepository.findById(recipe.sourceId!!)
                 .orElseThrow { RuntimeException("Source not found") }
             recipe.source = source
         }
@@ -48,9 +48,10 @@ class RecipeService(
         updateCollection(existingRecipe.ingredients, recipe.ingredients)
         updateCollection(existingRecipe.attachments, recipe.attachments)
 
+        existingRecipe.sourceId = recipe.sourceId
         existingRecipe.source = if (recipe.sourceId == 0L) null else {
             sourceRepository.findById(recipe.sourceId)
-                .orElseThrow { RuntimeException("Source not found") }
+                .orElseThrow { RuntimeException("Source ${recipe.sourceId} not found") }
         }
 
         return recipeRepository.save(existingRecipe)
@@ -67,7 +68,7 @@ class RecipeService(
     fun deleteRecipe(id: Long) = recipeRepository.deleteById(id)
 
     fun nullifySourceInRecipes(sourceId: Long) {
-        val recipes = recipeRepository.findbysourceId(sourceId)
+        val recipes = recipeRepository.findBySourceId(sourceId)
         recipes.forEach { it.source = null }
         recipeRepository.saveAll(recipes)
     }
