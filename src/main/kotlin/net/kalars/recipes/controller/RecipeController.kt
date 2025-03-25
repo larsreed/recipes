@@ -18,8 +18,14 @@ import java.util.stream.Collectors
 @CrossOrigin(origins = ["http://localhost:5173"]) // TODO HACK! Must fix
 class RecipeController(private val recipeService: RecipeService) {
 
-    @GetMapping
-    fun getAllRecipes(): List<Recipe> = recipeService.getAllRecipes()
+    @GetMapping("/recipes")
+    fun getRecipes(@RequestParam includeSubrecipes: Boolean): List<Recipe> {
+        return if (includeSubrecipes) {
+            recipeService.getAllRecipes()
+        } else {
+            recipeService.getMainRecipes()
+        }
+    }
 
     @PostMapping
     fun createRecipe(@RequestBody recipe: Recipe): Recipe {
@@ -92,16 +98,17 @@ class RecipeController(private val recipeService: RecipeService) {
         val reader = BufferedReader(InputStreamReader(file.inputStream))
         val recipes = reader.lines().skip(1).map { line ->
             val columns = line.replace("\\n", "\n").split(",", ";", "\t")
-            val sourceName = columns[6]
+            val sourceName = columns[7]
             recipeService.createRecipe(
                 Recipe(
                     name = columns[0],
-                    people = columns[1].toInt(),
-                    instructions = columns[2],
-                    served = columns[3],
-                    rating = columns[4].toIntOrNull(),
-                    notes = columns[5],
-                    pageRef = columns[7]
+                    subrecipe = columns[1].toBoolean(),
+                    people = columns[2].toInt(),
+                    instructions = columns[3],
+                    served = columns[4],
+                    rating = columns[5].toIntOrNull(),
+                    notes = columns[6],
+                    pageRef = columns[8]
                 ), sourceName)
         }.collect(Collectors.toList())
         return recipes

@@ -2,6 +2,7 @@
 CREATE TABLE recipe (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
     name VARCHAR(128) NOT NULL,
+    subrecipe BOOLEAN  DEFAULT FALSE;
     people INT NOT NULL,
     instructions TEXT NOT NULL,
     source_id BIGINT,

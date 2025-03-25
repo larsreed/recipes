@@ -14,6 +14,10 @@ class RecipeService(
 
     fun getAllRecipes(): List<Recipe> = recipeRepository.findAll()
 
+    fun getMainRecipes(): List<Recipe> {
+        return recipeRepository.findBySubrecipeFalse()
+    }
+
     fun getRecipeById(id: Long): Recipe = recipeRepository.findById(id)
         .orElseThrow { RuntimeException("Recipe not found") }
 
@@ -38,6 +42,7 @@ class RecipeService(
             .orElseThrow { RuntimeException("Recipe not found") }
 
         existingRecipe.name = recipe.name
+        existingRecipe.subrecipe = recipe.subrecipe
         existingRecipe.instructions = recipe.instructions
         existingRecipe.people = recipe.people
         existingRecipe.served = recipe.served

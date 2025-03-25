@@ -7,6 +7,7 @@ data class Recipe(
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     val id: Long = 0,
     var name: String,
+    var subrecipe: Boolean = false, // New field
     @OneToMany(cascade = [CascadeType.ALL], orphanRemoval = true, fetch = FetchType.LAZY)
     @JoinColumn(name = "recipe_id")
     var ingredients: MutableList<Ingredient> = mutableListOf(),
@@ -24,5 +25,5 @@ data class Recipe(
     @ManyToOne @JoinColumn(name = "sourceId", insertable = false, updatable = false)
     var source: Source? = null
 
-    constructor() : this(0, "", mutableListOf(), mutableListOf(),0, "", null, 0, null, null, null)
+    constructor() : this(0, "", false, mutableListOf(), mutableListOf(), 0, "", null, 0L, null, null, null)
 }

@@ -13,6 +13,7 @@ interface Attachment {
 interface Recipe {
     id: number;
     name: string;
+    subrecipe: boolean;
     served?: string;
     source?: Source;
     pageRef?: string;
@@ -50,11 +51,12 @@ function RecipeList() {
     const [searchQuery, setSearchQuery] = useState('');
     const [isSearchActive, setIsSearchActive] = useState(false);
     const [isExportAll, setIsExportAll] = useState(false);
+    const [includeSubrecipes, setIncludeSubrecipes] = useState(false);
     const [csvFile, setCsvFile] = useState<File | null>(null);
     const [apiError, setApiError] = useState<string | null>(null);
 
     const fetchRecipes = () => {
-        axios.get('http://localhost:8080/api/recipes')
+        axios.get(`http://localhost:8080/api/recipes?includeSubrecipes=${includeSubrecipes}`)
             .then(response => {
                 setRecipes(response.data);
             })
@@ -66,7 +68,7 @@ function RecipeList() {
 
     useEffect(() => {
         fetchRecipes();
-    }, []);
+    }, [includeSubrecipes]);
 
     const deleteRecipe = (id: number) => {
         if (window.confirm('Are you sure you want to delete this recipe?')) {
@@ -249,7 +251,7 @@ function RecipeList() {
             <body>
                 ${recipesToExport.map(recipe => `
                     <div class="recipe">
-                        <h2>${recipe.name}</h2>
+                        ${recipe.subrecipe ? `<h3>» ${recipe.name}</h3>` : `<h2>${recipe.name}</h2>`}
                         <div class="attachments">
                             ${recipe.attachments.map(attachment => `
                                 <div class="attachment">
@@ -355,9 +357,20 @@ function RecipeList() {
                     />
                 )}
             </div>
+            <div>
+                <label>
+                    <input
+                        type="checkbox"
+                        checked={includeSubrecipes}
+                        onChange={(e) => setIncludeSubrecipes(e.target.checked)}
+                    />
+                    Include subrecipes
+                </label>
+
+            </div>
             {isSearchPanelOpen && (
                 <div>
-                <input
+                    <input
                         type="text"
                         placeholder="Enter regex..."
                         value={searchQuery}

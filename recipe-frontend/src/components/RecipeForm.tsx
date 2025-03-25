@@ -10,6 +10,7 @@ interface RecipeFormProps {
 interface Recipe {
     id: number;
     name: string;
+    subrecipe: boolean;
     people: number;
     instructions: string;
     served?: string;
@@ -46,6 +47,7 @@ const measureOptions = [
 
 function RecipeForm({ recipe, onCancel, onRecipeSaved }: RecipeFormProps) {
     const [name, setName] = useState(recipe?.name || '');
+    const [subrecipe, setSubrecipe] = useState(recipe?.subrecipe || false);
     const [instructions, setInstructions] = useState(recipe?.instructions || '');
     const [people, setPeople] = useState(recipe?.people || 0);
     const [served, setServed] = useState(recipe?.served || '');
@@ -76,6 +78,7 @@ function RecipeForm({ recipe, onCancel, onRecipeSaved }: RecipeFormProps) {
     useEffect(() => {
         if (recipe) {
             setName(recipe.name);
+            setSubrecipe(recipe.subrecipe);
             setInstructions(recipe.instructions);
             setPeople(recipe.people);
             setServed(recipe.served || '');
@@ -86,6 +89,7 @@ function RecipeForm({ recipe, onCancel, onRecipeSaved }: RecipeFormProps) {
             setIngredients(recipe.ingredients || [{ name: '' }]);
         } else {
             setName('');
+            setSubrecipe(false);
             setInstructions('');
             setPeople(0);
             setServed('');
@@ -160,6 +164,7 @@ function RecipeForm({ recipe, onCancel, onRecipeSaved }: RecipeFormProps) {
         formData.append('recipe', JSON.stringify({
             id: recipe?.id,
             name,
+            subrecipe,
             instructions,
             people,
             served,
@@ -197,6 +202,7 @@ function RecipeForm({ recipe, onCancel, onRecipeSaved }: RecipeFormProps) {
         const newRecipe = {
             id: recipe?.id,
             name,
+            subrecipe,
             instructions,
             people,
             served,
@@ -212,6 +218,7 @@ function RecipeForm({ recipe, onCancel, onRecipeSaved }: RecipeFormProps) {
             const response = recipe ? await axios.put(apiUrl, newRecipe) : await axios.post(apiUrl, newRecipe);
             console.log("Recipe saved:", response.data);
             setName('');
+            setSubrecipe(false);
             setInstructions('');
             setPeople(0);
             setServed('');
@@ -237,6 +244,13 @@ function RecipeForm({ recipe, onCancel, onRecipeSaved }: RecipeFormProps) {
                 <label>Name:</label>
                 <input type="text" value={name} onChange={(e) => setName(e.target.value)}/>
                 {errors.name && <p className="error">{errors.name}</p>}
+            </div>
+            <div className="form-group">
+
+                <label>
+                    <input type="checkbox" checked={subrecipe} onChange={(e) => setSubrecipe(e.target.checked)}/>
+                    Is subrecipe
+                </label>
             </div>
             <div className="form-group">
                 <label>Instructions:</label>
