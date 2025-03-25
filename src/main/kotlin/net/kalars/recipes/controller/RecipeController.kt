@@ -18,7 +18,7 @@ import java.util.stream.Collectors
 @CrossOrigin(origins = ["http://localhost:5173"]) // TODO HACK! Must fix
 class RecipeController(private val recipeService: RecipeService) {
 
-    @GetMapping("/recipes")
+    @GetMapping
     fun getRecipes(@RequestParam includeSubrecipes: Boolean): List<Recipe> {
         return if (includeSubrecipes) {
             recipeService.getAllRecipes()
