@@ -9,8 +9,15 @@ CREATE TABLE recipe (
     served TEXT NULL,
     page_ref VARCHAR(64) NULL,
     rating INT NULL,
-    notes TEXT NULL
+    notes TEXT NULL,
+    main_recipe_id BIGINT NULL,
+    CONSTRAINT fk_main_recipe
+        FOREIGN KEY (main_recipe_id)
+            REFERENCES recipe(id)
+            ON DELETE SET NULL
 );
+ALTER TABLE recipe DROP main_recipe_id;
+ALTER TABLE recipe DROP CONSTRAINT fk_main_recipe;
 
 CREATE TABLE ingredient (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
@@ -37,6 +44,15 @@ CREATE TABLE source (
      id BIGINT AUTO_INCREMENT PRIMARY KEY,
      name VARCHAR(128),
      authors VARCHAR(255)
+);
+
+CREATE TABLE recipe_subrecipe (
+    recipe_id BIGINT,
+    subrecipe_id BIGINT,
+    subrecipe_order INT NOT NULL,
+    PRIMARY KEY (recipe_id, subrecipe_id),
+    CONSTRAINT fk_recipe FOREIGN KEY (recipe_id) REFERENCES recipe(id) ON DELETE CASCADE,
+    CONSTRAINT fk_subrecipe FOREIGN KEY (subrecipe_id) REFERENCES recipe(id) ON DELETE CASCADE
 );
 
 ALTER TABLE source ADD CONSTRAINT unique_source_name UNIQUE (name);

@@ -27,6 +27,11 @@ class RecipeController(private val recipeService: RecipeService) {
         }
     }
 
+    @GetMapping("/references/{subrecipeId}")
+    fun getMainRecipesReferencingSubrecipe(@PathVariable subrecipeId: Long): List<Recipe> {
+        return recipeService.findBySubrecipesId(subrecipeId)
+    }
+
     @PostMapping
     fun createRecipe(@RequestBody recipe: Recipe): Recipe {
          return recipeService.createRecipe(recipe)

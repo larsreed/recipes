@@ -18,12 +18,14 @@ class RecipeService(
         return recipeRepository.findBySubrecipeFalse()
     }
 
+    fun getMainRecipes(): List<Recipe> = recipeRepository.findBySubrecipeFalse()
+
     fun getRecipeById(id: Long): Recipe = recipeRepository.findById(id)
         .orElseThrow { RuntimeException("Recipe not found") }
 
     fun createRecipe(recipe: Recipe): Recipe {
-        if (recipe.sourceId != null) {
-            val source: Source = sourceRepository.findById(recipe.sourceId!!)
+        if (recipe.sourceId != null && recipe.sourceId != 0L) {
+            val source: Source = sourceRepository.findById(recipe.sourceId)
                 .orElseThrow { RuntimeException("Source not found") }
             recipe.source = source
         }
@@ -59,6 +61,14 @@ class RecipeService(
                 .orElseThrow { RuntimeException("Source ${recipe.sourceId} not found") }
         }
 
+        // Update subrecipes and preserve order
+        val subrecipes = recipe.subrecipes.map { subrecipe ->
+            recipeRepository.findById(subrecipe.id)
+                .orElseThrow { RuntimeException("Subrecipe not found") }
+        }
+        existingRecipe.subrecipes.clear()
+        existingRecipe.subrecipes.addAll(subrecipes)
+
         return recipeRepository.save(existingRecipe)
     }
 
@@ -77,4 +87,6 @@ class RecipeService(
         recipes.forEach { it.source = null }
         recipeRepository.saveAll(recipes)
     }
+
+    fun findBySubrecipesId(subrecipeId: Long): List<Recipe> = recipeRepository.findBySubrecipesId(subrecipeId)
 }

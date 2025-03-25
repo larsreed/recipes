@@ -22,6 +22,7 @@ interface Recipe {
     ingredients: Ingredient[];
     attachments: Attachment[];
     instructions: string;
+    subrecipes?: Recipe[];
 }
 
 interface Source {
@@ -179,11 +180,42 @@ function RecipeList() {
         URL.revokeObjectURL(url);
     };
 
-    const handleExportAll = (singleRecipe?: Recipe) => {
+    const handleExportView = (singleRecipe?: Recipe) => {
         const guests = prompt("Guests", "4");
         if (guests && parseInt(guests) > 0) {
             const guestsNumber = parseInt(guests);
             const recipesToExport = singleRecipe ? [singleRecipe] : (selectedRecipes.size > 0 ? recipes.filter(recipe => selectedRecipes.has(recipe.id)) : recipes);
+
+            const generateRecipeHtml = (recipe: Recipe) => `
+            <div class="recipe">
+                ${recipe.subrecipe ? `<h3>» ${recipe.name}</h3>` : `<h2>${recipe.name}</h2>`}
+                <div class="attachments">
+                    ${recipe.attachments.map(attachment => `
+                        <div class="attachment">
+                            ${attachment.fileName.match(/\.(jpeg|jpg|gif|png)$/) ?
+                `<img src="data:image/jpeg;base64,${attachment.fileContent}" alt="${attachment.fileName}" />` :
+                `<p>Attachment: ${attachment.fileName}</p>`
+            }
+                        </div>
+                    `).join('')}
+                </div>
+                ${recipe.served ? `<p>Served: ${recipe.served}</p>` : ''}
+                ${recipe.source ? `<p>Source: ${recipe.source.name}${recipe.pageRef ? ` p.${recipe.pageRef}` : ''}</p>` : ''}
+                ${recipe.rating ? `<p>Rating: ${recipe.rating}</p>` : ''}
+                ${recipe.subrecipe ? `<h4>Ingredients</h4>` : `<h3>Ingredients</h3>`}
+                <ul>
+                    ${recipe.ingredients.map(ingredient => `
+                        <li class="ingredient">
+                            ${((ingredient.amount * guestsNumber) / recipe.people).toFixed(2)} ${ingredient.measure} ${ingredient.name} ${ingredient.instruction || ""}
+                        </li>
+                    `).join('')}
+                </ul>
+                ${recipe.subrecipe ? `<h4>Instructions</h4>`: `<h3>Instructions</h3>`}
+                <p class="instructions">${recipe.instructions}</p>
+                ${recipe.subrecipes ? recipe.subrecipes.map(subrecipe => generateRecipeHtml(subrecipe)).join('') : ''}
+            </div>
+        `;
+
             const htmlContent = `
             <html>
             <head>
@@ -249,37 +281,10 @@ function RecipeList() {
                 </style>
             </head>
             <body>
-                ${recipesToExport.map(recipe => `
-                    <div class="recipe">
-                        ${recipe.subrecipe ? `<h3>» ${recipe.name}</h3>` : `<h2>${recipe.name}</h2>`}
-                        <div class="attachments">
-                            ${recipe.attachments.map(attachment => `
-                                <div class="attachment">
-                                    ${attachment.fileName.match(/\.(jpeg|jpg|gif|png)$/) ?
-                                        `<img src="data:image/jpeg;base64,${attachment.fileContent}" alt="${attachment.fileName}" />` :
-                                        `<p>Attachment: ${attachment.fileName}</p>`
-                                    }
-                                </div>
-                            `).join('')}
-                        </div>
-                        ${recipe.served ? `<p>Served: ${recipe.served}</p>` : ''}
-                        ${recipe.source ? `<p>Source: ${recipe.source.name}${recipe.pageRef ? ` p.${recipe.pageRef}` : ''}</p>` : ''}
-                        ${recipe.rating ? `<p>Rating: ${recipe.rating}</p>` : ''}
-                        <h3>Ingredients</h3>
-                        <ul>
-                            ${recipe.ingredients.map(ingredient => `
-                                <li class="ingredient">
-                                    ${((ingredient.amount * guestsNumber) / recipe.people).toFixed(2)} ${ingredient.measure} ${ingredient.name} ${ingredient.instruction || ""}
-                                </li>
-                            `).join('')}
-                        </ul>
-                        <h3>Instructions</h3>
-                        <p class="instructions">${recipe.instructions}</p>
-                    </div>
-                `).join('')}
+                ${recipesToExport.map(recipe => generateRecipeHtml(recipe)).join('')}
             </body>
             </html>
-            `;
+        `;
 
             const newWindow = window.open("", "_blank");
             if (newWindow) {
@@ -311,7 +316,7 @@ function RecipeList() {
     };
 
     const handleViewRecipe = (recipe: Recipe) => {
-        handleExportAll(recipe);
+        handleExportView(recipe);
     };
 
     const handleCheckboxChange = (recipeId: number) => {
@@ -343,7 +348,7 @@ function RecipeList() {
                 &nbsp;
                 <button onClick={handleOpenRecipeModal}>Add recipe</button>
                 &nbsp;
-                <button onClick={() => handleExportAll()}>Export All</button>
+                <button onClick={() => handleExportView()}>Export All</button>
                 &nbsp;
                 <button onClick={handleOpenSearchPanel}>Find</button>
                 &nbsp;
