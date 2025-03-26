@@ -186,7 +186,7 @@ function RecipeList() {
             const guestsNumber = parseInt(guests);
             const recipesToExport = singleRecipe ? [singleRecipe] : (selectedRecipes.size > 0 ? recipes.filter(recipe => selectedRecipes.has(recipe.id)) : recipes);
 
-            const generateRecipeHtml = (recipe: Recipe) => `
+            const generateRecipeHtml: (recipe: Recipe) => string = (recipe: Recipe) => `
             <div class="recipe">
                 ${recipe.subrecipe ? `<h3>» ${recipe.name}</h3>` : `<h2>${recipe.name}</h2>`}
                 <div class="attachments">
@@ -217,7 +217,7 @@ function RecipeList() {
         `;
 
             const htmlContent = `
-            <html>
+            <html lang="en">
             <head>
                 <title>${singleRecipe ? singleRecipe.name : "All Recipes"}</title>
                 <style>
@@ -433,7 +433,8 @@ function RecipeList() {
                 </tbody>
             </table>
             <div>
-                Import recipes: <input id="csvFileInput" type="file" accept=".csv,.txt" onChange={(e) => setCsvFile(e.target.files[0])}/>
+                Import recipes: <input id="csvFileInput" type="file" accept=".csv,.txt"
+                                       onChange={(e) => setCsvFile(e.target.files[0])}/>
                 <button onClick={handleImport}>Import</button>
             </div>
             {apiError && <p className="error">{apiError}</p>}

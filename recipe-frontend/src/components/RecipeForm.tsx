@@ -122,7 +122,7 @@ function RecipeForm({ recipe, onCancel, onRecipeSaved }: RecipeFormProps) {
     }, [recipe]);
 
     useEffect(() => {
-        if (recipe.subrecipe) {
+        if (recipe && recipe.subrecipe) {
             axios.get(`http://localhost:8080/api/recipes/references/${recipe.id}`)
                 .then(response => {
                     setMainRecipes(response.data);
@@ -169,6 +169,7 @@ function RecipeForm({ recipe, onCancel, onRecipeSaved }: RecipeFormProps) {
 
     const ItemType = 'SUBRECIPE';
 
+    // @ts-expect-error look at later
     const DraggableSubrecipe = ({ subrecipe, index, moveSubrecipe }) => {
         const [, ref] = useDrag({
             type: ItemType,
@@ -186,6 +187,7 @@ function RecipeForm({ recipe, onCancel, onRecipeSaved }: RecipeFormProps) {
         });
 
         return (
+            // @ts-expect-error look at later
             <div ref={(node) => ref(drop(node))}>
                 <span>{subrecipe.name}</span>
                 <button onClick={() => handleRemoveSubrecipe(index)}>Remove</button>

@@ -1,8 +1,7 @@
-
 CREATE TABLE recipe (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
     name VARCHAR(128) NOT NULL,
-    subrecipe BOOLEAN  DEFAULT FALSE;
+    subrecipe BOOLEAN DEFAULT FALSE;
     people INT NOT NULL,
     instructions TEXT NOT NULL,
     source_id BIGINT,
@@ -10,14 +9,7 @@ CREATE TABLE recipe (
     page_ref VARCHAR(64) NULL,
     rating INT NULL,
     notes TEXT NULL,
-    main_recipe_id BIGINT NULL,
-    CONSTRAINT fk_main_recipe
-        FOREIGN KEY (main_recipe_id)
-            REFERENCES recipe(id)
-            ON DELETE SET NULL
 );
-ALTER TABLE recipe DROP main_recipe_id;
-ALTER TABLE recipe DROP CONSTRAINT fk_main_recipe;
 
 CREATE TABLE ingredient (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
