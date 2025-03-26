@@ -14,17 +14,13 @@ class RecipeService(
 
     fun getAllRecipes(): List<Recipe> = recipeRepository.findAll()
 
-    fun getMainRecipes(): List<Recipe> {
-        return recipeRepository.findBySubrecipeFalse()
-    }
-
     fun getMainRecipes(): List<Recipe> = recipeRepository.findBySubrecipeFalse()
 
     fun getRecipeById(id: Long): Recipe = recipeRepository.findById(id)
         .orElseThrow { RuntimeException("Recipe not found") }
 
     fun createRecipe(recipe: Recipe): Recipe {
-        if (recipe.sourceId != null && recipe.sourceId != 0L) {
+        if (recipe.sourceId != 0L) {
             val source: Source = sourceRepository.findById(recipe.sourceId)
                 .orElseThrow { RuntimeException("Source not found") }
             recipe.source = source
