@@ -10,6 +10,7 @@ CREATE TABLE recipe (
     rating INT NULL,
     notes TEXT NULL,
 );
+ALTER TABLE recipe ADD COLUMN wine_tip TEXT null;
 
 CREATE TABLE ingredient (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,

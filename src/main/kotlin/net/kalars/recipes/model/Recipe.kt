@@ -17,6 +17,7 @@ data class Recipe(
     var rating: Int? = null,
     var notes: String? = null,
     var subrecipe: Boolean = false,
+    var wineTips: String? = null,
 
     @ManyToMany
     @JoinTable(
@@ -41,5 +42,5 @@ data class Recipe(
     var source: Source? = null
 
     constructor() : this(0, "", 0, "", null, null, null,
-        null, false, mutableListOf(), mutableListOf(), mutableListOf(), 0)
+        null, false, null, mutableListOf(), mutableListOf(), mutableListOf(), 0)
 }

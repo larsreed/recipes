@@ -20,6 +20,7 @@ interface Recipe {
     pageRef?: string;
     rating?: number;
     notes?: string;
+    wineTips?: string;
     ingredients: Ingredient[];
     source?: Source;
     attachments: Attachment[];
@@ -62,6 +63,7 @@ function RecipeForm({ recipe, onCancel, onRecipeSaved }: RecipeFormProps) {
     const [sources, setSources] = useState<Source[]>([]);
     const [pageRef, setPageRef] = useState(recipe?.pageRef || '');
     const [rating, setRating] = useState<number | null>(recipe?.rating || null);
+    const [wineTips, setWineTips] = useState(recipe?.wineTips || null);
     const [notes, setNotes] = useState(recipe?.notes || '');
     const [ingredients, setIngredients] = useState<Ingredient[]>(recipe?.ingredients || [{ name: '' }]);
     const [attachments, setAttachments] = useState<Attachment[]>(recipe?.attachments || []);
@@ -104,6 +106,7 @@ function RecipeForm({ recipe, onCancel, onRecipeSaved }: RecipeFormProps) {
             setSourceId(recipe.source?.id || null);
             setPageRef(recipe.pageRef || '');
             setRating(recipe.rating || null);
+            setWineTips(recipe.wineTips || null);
             setNotes(recipe.notes || '');
             setIngredients(recipe.ingredients || [{ name: '' }]);
             setSubrecipes(recipe.subrecipes || []);
@@ -116,6 +119,7 @@ function RecipeForm({ recipe, onCancel, onRecipeSaved }: RecipeFormProps) {
             setSourceId(null);
             setPageRef('');
             setRating(null);
+            setWineTips(null);
             setNotes('');
             setIngredients([{ name: '' }]);
         }
@@ -250,6 +254,7 @@ function RecipeForm({ recipe, onCancel, onRecipeSaved }: RecipeFormProps) {
             instructions,
             people,
             served,
+            wineTips,
             sourceId,
             pageRef,
             rating,
@@ -288,6 +293,7 @@ function RecipeForm({ recipe, onCancel, onRecipeSaved }: RecipeFormProps) {
             instructions,
             people,
             served,
+            wineTips,
             ingredients,
             sourceId,
             pageRef,
@@ -308,6 +314,7 @@ function RecipeForm({ recipe, onCancel, onRecipeSaved }: RecipeFormProps) {
             setSourceId(null);
             setPageRef('');
             setRating(null);
+            setWineTips(null);
             setNotes('');
             setIngredients([{ name: '' }]);
             setAttachments([{ id: 0 }]);
@@ -371,6 +378,10 @@ function RecipeForm({ recipe, onCancel, onRecipeSaved }: RecipeFormProps) {
                     <label>Rating:</label>
                     <input type="number" min="1" max="6" value={rating ?? ''}
                            onChange={(e) => setRating(parseInt(e.target.value))}/>
+                </div>
+                <div className="form-group">
+                    <label>Wine tips:</label>
+                    <input type="text" value={wineTips} onChange={(e) => setWineTips(e.target.value)}/>
                 </div>
                 <div className="form-group">
                     <label>Notes:</label>

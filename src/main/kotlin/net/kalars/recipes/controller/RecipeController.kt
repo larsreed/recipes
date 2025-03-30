@@ -103,7 +103,7 @@ class RecipeController(private val recipeService: RecipeService) {
         val reader = BufferedReader(InputStreamReader(file.inputStream))
         val recipes = reader.lines().skip(1).map { line ->
             val columns = line.replace("\\n", "\n").split(",", ";", "\t")
-            val sourceName = columns[7]
+            val sourceName = columns[8]
             recipeService.createRecipe(
                 Recipe(
                     name = columns[0],
@@ -112,8 +112,9 @@ class RecipeController(private val recipeService: RecipeService) {
                     instructions = columns[3],
                     served = columns[4],
                     rating = columns[5].toIntOrNull(),
-                    notes = columns[6],
-                    pageRef = columns[8]
+                    wineTip = columns[6],
+                    notes = columns[7],
+                    pageRef = columns[9]
                 ), sourceName)
         }.collect(Collectors.toList())
         return recipes

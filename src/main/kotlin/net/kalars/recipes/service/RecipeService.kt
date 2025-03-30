@@ -47,6 +47,7 @@ class RecipeService(
         existingRecipe.pageRef = recipe.pageRef
         existingRecipe.rating = recipe.rating
         existingRecipe.notes = recipe.notes
+        existingRecipe.wineTips = recipe.wineTips
 
         updateCollection(existingRecipe.ingredients, recipe.ingredients)
         updateCollection(existingRecipe.attachments, recipe.attachments)

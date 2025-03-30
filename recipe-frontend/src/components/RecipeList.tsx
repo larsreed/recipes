@@ -19,6 +19,7 @@ interface Recipe {
     pageRef?: string;
     rating?: number;
     people: number;
+    wineTips?: string;
     ingredients: Ingredient[];
     attachments: Attachment[];
     instructions: string;
@@ -202,6 +203,7 @@ function RecipeList() {
                 ${recipe.served ? `<p>Served: ${recipe.served}</p>` : ''}
                 ${recipe.source ? `<p>Source: ${recipe.source.name}${recipe.pageRef ? ` p.${recipe.pageRef}` : ''}</p>` : ''}
                 ${recipe.rating ? `<p>Rating: ${recipe.rating}</p>` : ''}
+                ${recipe.wineTips ? `<p>Wine tips: ${recipe.wineTips}</p>` : ''}
                 ${recipe.subrecipe ? `<h4>Ingredients</h4>` : `<h3>Ingredients</h3>`}
                 <ul>
                     ${recipe.ingredients.map(ingredient => `

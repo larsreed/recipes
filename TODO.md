@@ -2,11 +2,10 @@
 
 1. Attachments are not saved anymore!
 2. Ingredients are not saved anymore!
-2. Order of subrecipes (drag/drop) is not saved in the database.
+3. Order of subrecipes (drag/drop) is not saved in the database.
 
 # Features
 
-1. Add wine tips to recipes
 2. Change to common imp/exp-format
 3. Make it possible to change order of ingredients
 4. ESC to close dialogs (Source, RecipeForm)
