@@ -1,19 +1,18 @@
 # Bugs
 
-1. Attachments are not saved anymore!
-2. Ingredients are not saved anymore!
-3. Order of subrecipes (drag/drop) is not saved in the database.
+3. Order of sub recipes (drag/drop) is not saved in the database.
+4. if measure is blank, it is printed as "null" in the recipe
 
 # Features
 
 2. Change to common imp/exp-format
 3. Make it possible to change order of ingredients
-4. ESC to close dialogs (Source, RecipeForm)
+4. ESC to close dialogs (Source, RecipeForm, do you want YES=ENter,ESC=no)
     1. check if dirty first
 5. Hide the import-buttons until a file is selected
-6. Clear file fields after succesful import/export
-7. Sortable recipelist
-8. Refactor localhost-adresses
+6. Clear file fields after successful import/export
+7. Sortable recipe list
+8. Refactor localhost-addresses
 9. upgrade all frontend frameworks, latest React
 10. turn on dependabot
 11. make number of people default to 4 for new recipe
@@ -21,7 +20,7 @@
     1. \+ use visible grid
     2. \+ varying colors
     3. \+ hover
-13. better layout for subrecipe name list
+13. better layout for sub recipe name list
 14. display attachments beside name in RecipeForm if picture types
 15. remove the current page break form print view, include a new marker on top level recipes only
 16. show error messages as banners, and remove after a while

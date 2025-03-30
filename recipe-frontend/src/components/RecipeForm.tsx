@@ -302,6 +302,7 @@ function RecipeForm({ recipe, onCancel, onRecipeSaved }: RecipeFormProps) {
             attachments,
             subrecipes: subrecipes.map(subrecipe => subrecipe.id)
         };
+        console.log("Recipe is ", newRecipe)
         const apiUrl = recipe ? `http://localhost:8080/api/recipes/${recipe.id}` : `http://localhost:8080/api/recipes`;
         try {
             const response = recipe ? await axios.put(apiUrl, newRecipe) : await axios.post(apiUrl, newRecipe);
@@ -324,7 +325,7 @@ function RecipeForm({ recipe, onCancel, onRecipeSaved }: RecipeFormProps) {
             onRecipeSaved();
         } catch (error) {
             console.error('Error saving recipe:', error);
-            console.log(recipe);
+            console.log(newRecipe);
             setApiError('Failed to save recipe. Please try again.');
         }
     };
