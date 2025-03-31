@@ -15,7 +15,7 @@ import java.util.stream.Collectors
 
 @RestController
 @RequestMapping("/api/recipes")
-@CrossOrigin(origins = ["http://localhost:5173"]) // TODO HACK! Must fix
+@CrossOrigin(origins = ["\${frontend.url}"]) // TODO HACK! Must fix
 class RecipeController(private val recipeService: RecipeService) {
 
     @GetMapping
@@ -112,7 +112,7 @@ class RecipeController(private val recipeService: RecipeService) {
                     instructions = columns[3],
                     served = columns[4],
                     rating = columns[5].toIntOrNull(),
-                    wineTip = columns[6],
+                    wineTips = columns[6],
                     notes = columns[7],
                     pageRef = columns[9]
                 ), sourceName)

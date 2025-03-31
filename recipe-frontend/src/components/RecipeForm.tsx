@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useDrag, useDrop, DndProvider } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
 import axios from 'axios';
+import config from '../config';
 
 interface RecipeFormProps {
     recipe?: Recipe;
@@ -75,7 +76,7 @@ function RecipeForm({ recipe, onCancel, onRecipeSaved }: RecipeFormProps) {
     useEffect(() => {
         const fetchSources = async () => {
             try {
-                const response = await axios.get<Source[]>('http://localhost:8080/api/sources');
+                const response = await axios.get<Source[]>(`${config.backendUrl}/api/sources`);
                 setSources(response.data);
             } catch (error) {
                 console.error('Error fetching sources:', error);
@@ -87,7 +88,7 @@ function RecipeForm({ recipe, onCancel, onRecipeSaved }: RecipeFormProps) {
     useEffect(() => {
         const fetchRecipes = async () => {
             try {
-                const response = await axios.get<Recipe[]>('http://localhost:8080/api/recipes?includeSubrecipes=true');
+                const response = await axios.get<Recipe[]>(`${config.backendUrl}/api/recipes?includeSubrecipes=true`);
                 setAvailableRecipes(response.data);
             } catch (error) {
                 console.error('Error fetching recipes:', error);
@@ -127,7 +128,7 @@ function RecipeForm({ recipe, onCancel, onRecipeSaved }: RecipeFormProps) {
 
     useEffect(() => {
         if (recipe && recipe.subrecipe) {
-            axios.get(`http://localhost:8080/api/recipes/references/${recipe.id}`)
+            axios.get(`${config.backendUrl}/api/recipes/references/${recipe.id}`)
                 .then(response => {
                     setMainRecipes(response.data);
                 })
@@ -220,7 +221,7 @@ function RecipeForm({ recipe, onCancel, onRecipeSaved }: RecipeFormProps) {
             const formData = new FormData();
             formData.append('file', file);
             try {
-                const response = await axios.post(`http://localhost:8080/api/recipes/${recipe.id}/attachments`, formData, {
+                const response = await axios.post(`${config.backendUrl}/api/recipes/${recipe.id}/attachments`, formData, {
                     headers: {
                         'Content-Type': 'multipart/form-data'
                     }
@@ -235,7 +236,7 @@ function RecipeForm({ recipe, onCancel, onRecipeSaved }: RecipeFormProps) {
     };
 
     const handleDeleteAttachment = async (attachmentId: number) => {
-        const response = await axios.delete(`http://localhost:8080/api/recipes/${recipe.id}/attachments/${attachmentId}`);
+        const response = await axios.delete(`${config.backendUrl}/api/recipes/${recipe.id}/attachments/${attachmentId}`);
         setAttachments(response.data.attachments);
     };
 
@@ -262,7 +263,7 @@ function RecipeForm({ recipe, onCancel, onRecipeSaved }: RecipeFormProps) {
             ingredients
         }));
         try {
-            const response = await axios.post('http://localhost:8080/api/recipes/import-ingredients',
+            const response = await axios.post(`${config.backendUrl}/api/recipes/import-ingredients`,
                 formData, {
                     headers: {
                         'Content-Type': 'multipart/form-data'
@@ -303,7 +304,7 @@ function RecipeForm({ recipe, onCancel, onRecipeSaved }: RecipeFormProps) {
             subrecipes: subrecipes.map(subrecipe => subrecipe.id)
         };
         console.log("Recipe is ", newRecipe)
-        const apiUrl = recipe ? `http://localhost:8080/api/recipes/${recipe.id}` : `http://localhost:8080/api/recipes`;
+        const apiUrl = recipe ? `${config.backendUrl}/api/recipes/${recipe.id}` : `${config.backendUrl}/api/recipes`;
         try {
             const response = recipe ? await axios.put(apiUrl, newRecipe) : await axios.post(apiUrl, newRecipe);
             console.log("Recipe saved:", response.data);

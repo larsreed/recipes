@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from "axios";
+import config from '../config';
+
 
 interface Source {
     id: number;
@@ -47,9 +49,9 @@ function SourceForm({ source, onCancel, onSourceCreated }: SourceFormProps) {
         }
         const newSource = { ...source, name, authors };
         console.log('New source:', newSource);
-        const apiUrl = source ? `http://localhost:8080/api/sources/${source.id}` : 'http://localhost:8080/api/sources';
+        const apiUrl = source ? `${config.backendUrl}/api/sources/${source.id}` : `${config.backendUrl}/api/sources`;
         try {
-            const getResponse = await axios.get(`http://localhost:8080/api/sources/check-name?name=${encodeURIComponent(name)}`);
+            const getResponse = await axios.get(`${config.backendUrl}/api/sources/check-name?name=${encodeURIComponent(name)}`);
             if (getResponse.data.exists) {
                 setApiError('Source name must be unique');
                 console.error('Duplicate source name', name);

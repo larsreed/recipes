@@ -3,6 +3,8 @@ import axios from 'axios';
 import SourceModal from "./SourceModal.tsx";
 import RecipeModal from "./RecipeModal.tsx";
 import PromptDialog from "./PromptDialog.tsx";
+import config from '../config';
+
 
 interface Attachment {
     id: number;
@@ -58,7 +60,7 @@ function RecipeList() {
     const [apiError, setApiError] = useState<string | null>(null);
 
     const fetchRecipes = () => {
-        axios.get(`http://localhost:8080/api/recipes?includeSubrecipes=${includeSubrecipes}`)
+        axios.get(`${config.backendUrl}/api/recipes?includeSubrecipes=${includeSubrecipes}`)
             .then(response => {
                 setRecipes(response.data);
             })
@@ -74,7 +76,7 @@ function RecipeList() {
 
     const deleteRecipe = (id: number) => {
         if (window.confirm('Are you sure you want to delete this recipe?')) {
-            axios.delete(`http://localhost:8080/api/recipes/${id}`)
+            axios.delete(`${config.backendUrl}/api/recipes/${id}`)
                 .then(() => {
                     setRecipes(recipes.filter(recipe => recipe.id !== id));
                     setApiError(null);
@@ -124,7 +126,7 @@ function RecipeList() {
     };
 
     const handleSearch = () => {
-        axios.get(`http://localhost:8080/api/recipes/search?query=${encodeURIComponent(searchQuery)}`)
+        axios.get(`${config.backendUrl}/api/recipes/search?query=${encodeURIComponent(searchQuery)}`)
             .then(response => {
                 setRecipes(response.data);
                 setIsSearchActive(true);
@@ -151,7 +153,7 @@ function RecipeList() {
         const formData = new FormData();
         formData.append('file', csvFile);
         try {
-            const response = await axios.post('http://localhost:8080/api/recipes/import', formData, {
+            const response = await axios.post('${config.backendUrl}/api/recipes/import', formData, {
                 headers: {
                     'Content-Type': 'multipart/form-data'
                 }
@@ -208,7 +210,10 @@ function RecipeList() {
                 <ul>
                     ${recipe.ingredients.map(ingredient => `
                         <li class="ingredient">
-                            ${((ingredient.amount * guestsNumber) / recipe.people).toFixed(2)} ${ingredient.measure} ${ingredient.name} ${ingredient.instruction || ""}
+                            ${ingredient.amount ? ((ingredient.amount * guestsNumber) / recipe.people).toFixed(2) : ''} 
+                            ${ingredient.measure || ''} 
+                            ${ingredient.name} 
+                            ${ingredient.instruction || ""}
                         </li>
                     `).join('')}
                 </ul>

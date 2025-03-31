@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
 import SourceForm from './SourceForm';
+import config from '../config';
 
 interface Source {
     id: number;
@@ -13,7 +14,7 @@ function SourceList() {
     const [editingSource, setEditingSource] = useState<Source | null>(null);
 
     const fetchSources = () => {
-        axios.get('http://localhost:8080/api/sources')
+        axios.get(`${config.backendUrl}/api/sources`)
             .then(response => {
                 setSources(response.data);
             })
@@ -27,8 +28,8 @@ function SourceList() {
     const deleteSource = async (id: number) => {
         if (window.confirm('Are you sure you want to delete this source?')) {
             try {
-                await axios.put(`http://localhost:8080/api/recipes/nullify-source/${id}`);
-                await axios.delete(`http://localhost:8080/api/sources/${id}`);
+                await axios.put(`${config.backendUrl}/api/recipes/nullify-source/${id}`);
+                await axios.delete(`${config.backendUrl}/api/sources/${id}`);
                 setSources(sources.filter(source => source.id !== id));
             } catch (error) {
                 console.error('Error deleting source:', error);
@@ -48,7 +49,7 @@ function SourceList() {
 
     const saveSource = async (source: Source) => {
         try {
-            await axios.put(`http://localhost:8080/api/sources/${source.id}`, source);
+            await axios.put(`${config.backendUrl}/api/sources/${source.id}`, source);
             setEditingSource(null);
             fetchSources();
         } catch (error) {
