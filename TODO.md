@@ -1,12 +1,9 @@
 # Bugs
 
 1. Order of sub recipes (drag/drop) is not saved in the database.
-2. if measure is blank, it is printed as "null" in the recipe
-3. when trying to update a Source, i get the error "Source name must be unique"
-4. Cancel in Edit Sources does not close the dialog
-5. winetips - react-dom-client.development.js:17812  A component is changing an uncontrolled input to be controlled. This is likely caused by the value changing from undefined to a defined value, which should not happen. Decide between using a controlled or uncontrolled input element for the lifetime of the component. More info: https://react.dev/link/controlled-components
-6. when creating a new recipe, attachments are not saved
-7. if no source is given, insert fails (constraint violation)
+2. winetips - react-dom-client.development.js:17812  A component is changing an uncontrolled input to be controlled. This is likely caused by the value changing from undefined to a defined value, which should not happen. Decide between using a controlled or uncontrolled input element for the lifetime of the component. More info: https://react.dev/link/controlled-components
+3. when creating a new recipe, attachments are not saved
+4. if no source is given, insert fails (constraint violation)
 
 # Features
 
@@ -16,8 +13,8 @@
 4. include wine tips in the search
 5. Change to common imp/exp-format
 6. Make it possible to change order of ingredients
-7. ESC to close dialogs (Source, RecipeForm, do you want YES=ENter,ESC=no)
-    1. check if dirty first
+7. ESC to close dialogs (RecipeForm, do you want YES=ENter,ESC=no)
+    1. check if dirty first, also for SourceModal
 8. Hide the import-buttons until a file is selected
 9. Clear file fields after successful import/export
 10. Sortable recipe list

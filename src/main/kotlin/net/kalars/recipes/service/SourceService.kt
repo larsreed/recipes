@@ -32,5 +32,5 @@ class SourceService(private val sourceRepository: SourceRepository) {
         return sourceRepository.save(updatedSource)
     }
 
-    fun existsByName(name: String): Boolean = sourceRepository.existsByName(name)
+    fun existsByNameAndIdNot(name: String, id: Long): Boolean = sourceRepository.existsByNameAndIdNot(name, id)
 }

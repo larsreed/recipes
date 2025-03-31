@@ -48,10 +48,11 @@ function SourceForm({ source, onCancel, onSourceCreated }: SourceFormProps) {
             return;
         }
         const newSource = { ...source, name, authors };
-        console.log('New source:', newSource);
         const apiUrl = source ? `${config.backendUrl}/api/sources/${source.id}` : `${config.backendUrl}/api/sources`;
         try {
-            const getResponse = await axios.get(`${config.backendUrl}/api/sources/check-name?name=${encodeURIComponent(name)}`);
+            const checkUrl = `${config.backendUrl}/api/sources/check-name?name=${encodeURIComponent(name)}&id=${source ? source.id : -1}`;
+            console.log('New source:', newSource, ' ', apiUrl, ' ', checkUrl);
+            const getResponse = await axios.get(checkUrl);
             if (getResponse.data.exists) {
                 setApiError('Source name must be unique');
                 console.error('Duplicate source name', name);
@@ -68,6 +69,14 @@ function SourceForm({ source, onCancel, onSourceCreated }: SourceFormProps) {
             console.error('Error saving source:', error);
             setApiError('Failed to save source. Please try again.');
         }
+    };
+
+    const handleCancel = () => {
+        setName('');
+        setAuthors('');
+        setErrors({});
+        setApiError(null);
+        onCancel();
     };
 
     return (
@@ -97,7 +106,7 @@ function SourceForm({ source, onCancel, onSourceCreated }: SourceFormProps) {
             </div>
             <div className="form-actions">
                 <button type="submit">Save</button>
-                <button type="button" onClick={onCancel}>Cancel</button>
+                <button type="button" onClick={handleCancel}>Cancel</button>
             </div>
             {apiError && <p className="error">{apiError}</p>}
         </form>

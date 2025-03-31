@@ -35,8 +35,8 @@ class SourceController(private val sourceService: SourceService) {
     }
 
     @GetMapping("/check-name")
-    fun checkSourceName(@RequestParam name: String): Map<String, Boolean> {
-        val exists = sourceService.existsByName(name)
+    fun checkSourceName(@RequestParam name: String, @RequestParam id: Long): Map<String, Boolean> {
+        val exists = sourceService.existsByNameAndIdNot(name, id)
         return mapOf("exists" to exists)
     }
 }
