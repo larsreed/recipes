@@ -126,7 +126,9 @@ function RecipeList() {
     };
 
     const handleSearch = () => {
-        axios.get(`${config.backendUrl}/api/recipes/search?query=${encodeURIComponent(searchQuery)}`)
+        const searchUrl = `${config.backendUrl}/api/recipes/search?query=${encodeURIComponent(searchQuery)}`
+        console.log(searchUrl);
+        axios.get(searchUrl)
             .then(response => {
                 setRecipes(response.data);
                 setIsSearchActive(true);
@@ -153,7 +155,7 @@ function RecipeList() {
         const formData = new FormData();
         formData.append('file', csvFile);
         try {
-            const response = await axios.post('${config.backendUrl}/api/recipes/import', formData, {
+            const response = await axios.post(`${config.backendUrl}/api/recipes/import`, formData, {
                 headers: {
                     'Content-Type': 'multipart/form-data'
                 }
@@ -356,7 +358,13 @@ function RecipeList() {
                 <button onClick={handleOpenRecipeModal}>Add recipe</button>
                 &nbsp;
                 <button onClick={() => handleExportView()}>Export All</button>
-                &nbsp;
+            </div>
+            <div>
+                Import recipes: <input id="csvFileInput" type="file" accept=".csv,.txt"
+                                       onChange={(e) => setCsvFile(e.target.files[0])}/>
+                {csvFile && <button onClick={handleImport}>Import</button>}
+            </div>
+            <div>
                 <button onClick={handleOpenSearchPanel}>Find</button>
                 &nbsp;
                 {isSearchActive && <button onClick={handleShowAllRecipes}>All</button>}
@@ -368,6 +376,15 @@ function RecipeList() {
                         onRecipeSaved={handleRecipeSaved}
                     />
                 )}
+            {isSearchPanelOpen &&
+                <input
+                        type="text"
+                        placeholder="Enter regex..."
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                    />}
+            {isSearchPanelOpen && <button onClick={handleSearch}>Search</button>}
+            {isSearchPanelOpen && <button onClick={handleCloseSearchPanel}>Cancel</button> }
             </div>
             <div>
                 <label>
@@ -378,21 +395,7 @@ function RecipeList() {
                     />
                     Include subrecipes
                 </label>
-
             </div>
-            {isSearchPanelOpen && (
-                <div>
-                    <input
-                        type="text"
-                        placeholder="Enter regex..."
-                        value={searchQuery}
-                        onChange={(e) => setSearchQuery(e.target.value)}
-                    />
-                    <button onClick={handleSearch}>Search</button>
-                    &nbsp;
-                    <button onClick={handleCloseSearchPanel}>Cancel</button>
-                </div>
-            )}
             <table>
                 <thead>
                 <tr>
@@ -439,11 +442,6 @@ function RecipeList() {
                 ))}
                 </tbody>
             </table>
-            <div>
-                Import recipes: <input id="csvFileInput" type="file" accept=".csv,.txt"
-                                       onChange={(e) => setCsvFile(e.target.files[0])}/>
-                <button onClick={handleImport}>Import</button>
-            </div>
             {apiError && <p className="error">{apiError}</p>}
             {isDialogOpen && (
                 <PromptDialog

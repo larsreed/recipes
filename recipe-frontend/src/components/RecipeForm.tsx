@@ -109,7 +109,7 @@ function RecipeForm({ recipe, onCancel, onRecipeSaved }: RecipeFormProps) {
             setRating(recipe.rating || null);
             setWineTips(recipe.wineTips || null);
             setNotes(recipe.notes || '');
-            setIngredients(recipe.ingredients || [{ name: '' }]);
+            setIngredients(recipe.ingredients || []);
             setSubrecipes(recipe.subrecipes || []);
         } else {
             setName('');
@@ -122,7 +122,7 @@ function RecipeForm({ recipe, onCancel, onRecipeSaved }: RecipeFormProps) {
             setRating(null);
             setWineTips(null);
             setNotes('');
-            setIngredients([{ name: '' }]);
+            setIngredients([]);
         }
     }, [recipe]);
 
@@ -174,7 +174,6 @@ function RecipeForm({ recipe, onCancel, onRecipeSaved }: RecipeFormProps) {
 
     const ItemType = 'SUBRECIPE';
 
-    // @ts-expect-error look at later
     const DraggableSubrecipe = ({ subrecipe, index, moveSubrecipe }) => {
         const [, ref] = useDrag({
             type: ItemType,
@@ -318,8 +317,8 @@ function RecipeForm({ recipe, onCancel, onRecipeSaved }: RecipeFormProps) {
             setRating(null);
             setWineTips(null);
             setNotes('');
-            setIngredients([{ name: '' }]);
-            setAttachments([{ id: 0 }]);
+            setIngredients([]);
+            setAttachments([]);
             setSubrecipes([]);
             setErrors({});
             setApiError(null);
@@ -383,25 +382,27 @@ function RecipeForm({ recipe, onCancel, onRecipeSaved }: RecipeFormProps) {
                 </div>
                 <div className="form-group">
                     <label>Wine tips:</label>
-                    <input type="text" value={wineTips} onChange={(e) => setWineTips(e.target.value)}/>
+                    <input type="text" value={wineTips ?? ''} onChange={(e) => setWineTips(e.target.value)}/>
                 </div>
                 <div className="form-group">
                     <label>Notes:</label>
                     <textarea value={notes} onChange={(e) => setNotes(e.target.value)}/>
                 </div>
-                <div className="form-group">
-                    <label>Attachments</label>
-                    <input type="file" onChange={handleFileChange}/>
-                    <ul>
-                        {attachments.map(attachment => (
-                            <li key={attachment.id}>
-                                {attachment.fileName}
-                                &nbsp;
-                                <button onClick={() => handleDeleteAttachment(attachment.id)}>Delete</button>
-                            </li>
-                        ))}
-                    </ul>
-                </div>
+                {recipe && (
+                    <div id="attachments" className="form-group">
+                        <label>Attachments</label>
+                        <input type="file" onChange={handleFileChange}/>
+                        <ul>
+                            {attachments.map(attachment => (
+                                <li key={attachment.id}>
+                                    {attachment.fileName}
+                                    &nbsp;
+                                    <button onClick={() => handleDeleteAttachment(attachment.id)}>Delete</button>
+                                </li>
+                            ))}
+                        </ul>
+                    </div>
+                )}
                 <div className="form-group">
                     <label>Select Subrecipe:</label>
                     <select value={selectedSubrecipeId ?? ''}

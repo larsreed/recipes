@@ -71,12 +71,13 @@ class RecipeController(private val recipeService: RecipeService) {
         val pattern = Pattern.compile(query, Pattern.CASE_INSENSITIVE)
         return recipeService.getAllRecipes().filter { recipe ->
             pattern.matcher(recipe.name).find() ||
-                    pattern.matcher(recipe.instructions).find() ||
-                    pattern.matcher(recipe.served).find() ||
-                    recipe.ingredients.any { ingredient ->
-                        pattern.matcher(ingredient.name).find() ||
-                                pattern.matcher(ingredient.instruction).find()
-                    }
+            pattern.matcher(recipe.instructions).find() ||
+            pattern.matcher(recipe.served).find() ||
+            pattern.matcher(recipe.wineTips ?: "").find() ||
+            recipe.ingredients.any { ingredient ->
+                pattern.matcher(ingredient.name).find() ||
+                pattern.matcher(ingredient.instruction ?: "").find()
+            }
         }
     }
 
