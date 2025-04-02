@@ -58,7 +58,7 @@ function RecipeForm({ recipe, onCancel, onRecipeSaved }: RecipeFormProps) {
     const [availableRecipes, setAvailableRecipes] = useState<Recipe[]>([]);
     const [selectedSubrecipeId, setSelectedSubrecipeId] = useState<number | null>(null);
     const [instructions, setInstructions] = useState(recipe?.instructions || '');
-    const [people, setPeople] = useState(recipe?.people || 0);
+    const [people, setPeople] = useState(recipe?.people || 4);
     const [served, setServed] = useState(recipe?.served || '');
     const [sourceId, setSourceId] = useState<number | null>(recipe?.source?.id || null);
     const [sources, setSources] = useState<Source[]>([]);
@@ -115,7 +115,7 @@ function RecipeForm({ recipe, onCancel, onRecipeSaved }: RecipeFormProps) {
             setName('');
             setSubrecipe(false);
             setInstructions('');
-            setPeople(0);
+            setPeople(4);
             setServed('');
             setSourceId(null);
             setPageRef('');
@@ -310,7 +310,7 @@ function RecipeForm({ recipe, onCancel, onRecipeSaved }: RecipeFormProps) {
             setName('');
             setSubrecipe(false);
             setInstructions('');
-            setPeople(0);
+            setPeople(4);
             setServed('');
             setSourceId(null);
             setPageRef('');
