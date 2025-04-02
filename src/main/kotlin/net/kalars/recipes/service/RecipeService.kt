@@ -20,8 +20,8 @@ class RecipeService(
         .orElseThrow { RuntimeException("Recipe not found") }
 
     fun createRecipe(recipe: Recipe): Recipe {
-        if (recipe.sourceId != 0L) {
-            val source: Source = sourceRepository.findById(recipe.sourceId)
+        if (recipe.sourceId != null && recipe.sourceId != 0L) {
+            val source: Source = sourceRepository.findById(recipe.sourceId!!)
                 .orElseThrow { RuntimeException("Source not found") }
             recipe.source = source
         }
@@ -53,9 +53,10 @@ class RecipeService(
         updateCollection(existingRecipe.attachments, recipe.attachments)
 
         existingRecipe.sourceId = recipe.sourceId
-        existingRecipe.source = if (recipe.sourceId == 0L) null else {
-            sourceRepository.findById(recipe.sourceId)
-                .orElseThrow { RuntimeException("Source ${recipe.sourceId} not found") }
+        existingRecipe.source = if (recipe.sourceId == null || recipe.sourceId == 0L)
+            null else {
+                sourceRepository.findById(recipe.sourceId!!)
+                    .orElseThrow { RuntimeException("Source ${recipe.sourceId} not found") }
         }
 
         // Update subrecipes and preserve order

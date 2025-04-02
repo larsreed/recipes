@@ -4,13 +4,13 @@ CREATE TABLE recipe (
     subrecipe BOOLEAN DEFAULT FALSE;
     people INT NOT NULL,
     instructions TEXT NOT NULL,
-    source_id BIGINT,
+    source_id BIGINT NULL,
     served TEXT NULL,
     page_ref VARCHAR(64) NULL,
     rating INT NULL,
     notes TEXT NULL,
+    wine_tip TEXT null
 );
-ALTER TABLE recipe ADD COLUMN wine_tip TEXT null;
 
 CREATE TABLE ingredient (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,

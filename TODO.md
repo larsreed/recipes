@@ -1,7 +1,6 @@
 # Bugs
 
 1. Order of sub recipes (drag/drop) is not saved in the database.
-2. if no source is given, insert fails (constraint violation)
 
 # Features
 
@@ -15,8 +14,7 @@
 7. Hide the import-buttons until a file is selected
 8. Clear file fields after successful import/export
 9. Sortable recipe list
-10. Refactor localhost-addresses
-11. upgrade all frontend frameworks, latest React
+10. upgrade all frontend frameworks, latest React
 12. turn on dependabot
 13. make number of people default to 4 for new recipe
 14. more space in RecipeList

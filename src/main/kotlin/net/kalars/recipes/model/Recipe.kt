@@ -36,11 +36,11 @@ data class Recipe(
     @OneToMany(cascade = [CascadeType.ALL], orphanRemoval = true, fetch = FetchType.LAZY)
     var attachments: MutableList<Attachment> = mutableListOf(),
 
-    var sourceId: Long = 0,
+    var sourceId: Long? = null,
 ) {
     @ManyToOne @JoinColumn(name = "sourceId", insertable = false, updatable = false)
     var source: Source? = null
 
     constructor() : this(0, "", 0, "", null, null, null,
-        null, false, null, mutableListOf(), mutableListOf(), mutableListOf(), 0)
+        null, false, null, mutableListOf(), mutableListOf(), mutableListOf(), null)
 }
