@@ -56,6 +56,7 @@ function RecipeList() {
     const [isSearchActive, setIsSearchActive] = useState(false);
     const [isExportAll, setIsExportAll] = useState(false);
     const [includeSubrecipes, setIncludeSubrecipes] = useState(false);
+    const [sortConfig, setSortConfig] = useState({ key: 'id', direction: 'ascending' });
     const [csvFile, setCsvFile] = useState<File | null>(null);
     const [apiError, setApiError] = useState<string | null>(null);
 
@@ -73,6 +74,32 @@ function RecipeList() {
     useEffect(() => {
         fetchRecipes();
     }, [includeSubrecipes]);
+
+    const sortedRecipes = [...recipes].sort((a, b) => {
+        if (a[sortConfig.key] < b[sortConfig.key]) {
+            return sortConfig.direction === 'ascending' ? -1 : 1;
+        }
+        if (a[sortConfig.key] > b[sortConfig.key]) {
+            return sortConfig.direction === 'ascending' ? 1 : -1;
+        }
+        return 0;
+    });
+
+    const requestSort = (key) => {
+        let direction = 'ascending';
+        if (sortConfig.key === key && sortConfig.direction === 'ascending') {
+            direction = 'descending';
+        }
+        setSortConfig({ key, direction });
+    };
+
+    const getSortIcon = (key) => {
+        if (sortConfig.key === key) {
+            return sortConfig.direction === 'ascending' ? 'fas fa-sort-up' : 'fas fa-sort-down';
+        }
+        return 'fas fa-sort';
+    };
+
 
     const deleteRecipe = (id: number) => {
         if (window.confirm('Are you sure you want to delete this recipe?')) {
@@ -405,19 +432,29 @@ function RecipeList() {
                             onChange={handleSelectAllChange}
                         />
                     </th>
-                    <th>
-                        ID
+                    <th onClick={() => requestSort('id')}>
+                        ID <i className={getSortIcon('id')}></i>
                     </th>
-                    <th>Name</th>
-                    <th>Served</th>
-                    <th>Source</th>
-                    <th>Page Reference</th>
-                    <th>Rating</th>
+                    <th onClick={() => requestSort('name')}>
+                        Name <i className={getSortIcon('name')}></i>
+                    </th>
+                    <th onClick={() => requestSort('served')}>
+                        Served <i className={getSortIcon('served')}></i>
+                    </th>
+                    <th onClick={() => requestSort('source')}>
+                        Source <i className={getSortIcon('source')}></i>
+                    </th>
+                    <th onClick={() => requestSort('pageRef')}>
+                        Page Reference <i className={getSortIcon('pageRef')}></i>
+                    </th>
+                    <th onClick={() => requestSort('rating')}>
+                        Rating <i className={getSortIcon('rating')}></i>
+                    </th>
                     <th/>
                 </tr>
                 </thead>
                 <tbody>
-                {recipes.map(recipe => (
+                {sortedRecipes.map(recipe => (
                     <tr key={recipe.id}>
                         <td>
                             <input
