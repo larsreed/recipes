@@ -4,7 +4,6 @@
 
 # Features
 
-1. remove source from recipe
 2. sort the Source list in RecipeForm
 3. Change to common imp/exp-format
 4. Make it possible to change order of ingredients

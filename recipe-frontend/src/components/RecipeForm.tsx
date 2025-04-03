@@ -363,7 +363,7 @@ function RecipeForm({ recipe, onCancel, onRecipeSaved }: RecipeFormProps) {
                     <label>Source:</label>
                     <select value={sourceId ?? ''}
                             onChange={(e) => setSourceId(e.target.value ? parseInt(e.target.value) : null)}>
-                        <option value="">Select a source</option>
+                        <option value="">No source</option>
                         {sources.map((source) => (
                             <option key={source.id} value={source.id}>
                                 {source.name}
