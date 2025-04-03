@@ -26,7 +26,6 @@
 17. display \n as linebreaks in print view
 18. ability to use markdown in larger text fields
     1. \+ visual editor
-19. new logo / favicon
 20. cleanup extraneous logging
 
 # General improvements

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, {useState, useEffect} from 'react';
 import axios from 'axios';
 import SourceModal from "./SourceModal.tsx";
 import RecipeModal from "./RecipeModal.tsx";
@@ -174,7 +174,7 @@ function RecipeList() {
     };
 
     const exportHtmlContent = (htmlContent: string, fileName: string) => {
-        const blob = new Blob([htmlContent], { type: 'text/html' });
+        const blob = new Blob([htmlContent], {type: 'text/html'});
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
@@ -219,7 +219,7 @@ function RecipeList() {
                         </li>
                     `).join('')}
                 </ul>
-                ${recipe.subrecipe ? `<h4>Instructions</h4>`: `<h3>Instructions</h3>`}
+                ${recipe.subrecipe ? `<h4>Instructions</h4>` : `<h3>Instructions</h3>`}
                 <p class="instructions">${recipe.instructions}</p>
                 ${recipe.subrecipes ? recipe.subrecipes.map(subrecipe => generateRecipeHtml(subrecipe)).join('') : ''}
             </div>
@@ -351,7 +351,6 @@ function RecipeList() {
 
     return (
         <div>
-            <h2>Recipe List</h2>
             <div>
                 <button onClick={handleOpenSourceModal}>Edit sources</button>
                 &nbsp;
@@ -376,15 +375,15 @@ function RecipeList() {
                         onRecipeSaved={handleRecipeSaved}
                     />
                 )}
-            {isSearchPanelOpen &&
-                <input
+                {isSearchPanelOpen &&
+                    <input
                         type="text"
                         placeholder="Enter regex..."
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
                     />}
-            {isSearchPanelOpen && <button onClick={handleSearch}>Search</button>}
-            {isSearchPanelOpen && <button onClick={handleCloseSearchPanel}>Cancel</button> }
+                {isSearchPanelOpen && <button onClick={handleSearch}>Search</button>}
+                {isSearchPanelOpen && <button onClick={handleCloseSearchPanel}>Cancel</button>}
             </div>
             <div>
                 <label>
@@ -396,16 +395,18 @@ function RecipeList() {
                     Include subrecipes
                 </label>
             </div>
-            <table>
+            <table className="recipe-list-table">
                 <thead>
                 <tr>
                     <th>
-                        ID
                         <input
                             type="checkbox"
                             checked={selectAll}
                             onChange={handleSelectAllChange}
                         />
+                    </th>
+                    <th>
+                        ID
                     </th>
                     <th>Name</th>
                     <th>Served</th>
@@ -419,24 +420,33 @@ function RecipeList() {
                 {recipes.map(recipe => (
                     <tr key={recipe.id}>
                         <td>
-                            {recipe.id}
                             <input
                                 type="checkbox"
                                 checked={selectedRecipes.has(recipe.id)}
                                 onChange={() => handleCheckboxChange(recipe.id)}
                             />
                         </td>
+                        <td>
+                            {recipe.id}
+                        </td>
                         <td>{recipe.name}</td>
                         <td>{recipe.served}</td>
                         <td>{recipe.source ? recipe.source.name : ''}</td>
                         <td>{recipe.pageRef}</td>
-                        <td>{recipe.rating}</td>
+                        <td className="center">{recipe.rating}</td>
                         <td>
-                            <button onClick={() => editRecipe(recipe)}>EDIT</button>
+                            <button onClick={() => editRecipe(recipe)}
+                                    title="Edit">
+                                <i className="fas fa-edit"></i>
+                            </button>
                             &nbsp;
-                            <button onClick={() => deleteRecipe(recipe.id)}>DELETE</button>
+                            <button onClick={() => deleteRecipe(recipe.id)} title="Delete">
+                                <i className="fas fa-trash"></i>
+                            </button>
                             &nbsp;
-                            <button onClick={() => handleViewRecipe(recipe)}>VIEW</button>
+                            <button onClick={() => handleViewRecipe(recipe)} title="View">
+                                <i className="fas fa-print"></i>
+                            </button>
                         </td>
                     </tr>
                 ))}

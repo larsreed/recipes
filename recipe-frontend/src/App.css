@@ -4,6 +4,10 @@
   text-align: center;
 }
 
+.center {
+  text-align: center !important;
+}
+
 .card {
   padding: 2em;
 }
@@ -121,7 +125,6 @@
   font-size: 0.875rem;
 }
 
-
 .prompt-dialog-content p {
   margin-bottom: 20px;
   font-size: 1.2rem;
@@ -149,4 +152,38 @@
 
 .prompt-dialog-content button:last-child:hover {
   background-color: #c0392b;
+}
+
+.recipe-list-table {
+  width: 100%;
+  border-collapse: collapse;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 16px;
+}
+
+.recipe-list-table th,
+.recipe-list-table td {
+  border: 1px solid #ddd;
+  padding: 8px;
+  text-align: left;
+}
+
+.recipe-list-table th {
+  background-color: #f2f2f2;
+  color: #242424;
+  font-weight: bold;
+}
+
+.recipe-list-table tr {
+  /*display: contents;*/
+}
+
+.recipe-list-table td {
+  /*background-color: #f9f9f9;*/
+  border-radius: 8px;
+  transition: background-color 0.3s;
+}
+
+.recipe-list-table tr:hover {
+  background-color: #213547;
 }
