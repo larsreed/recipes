@@ -2,6 +2,12 @@
   margin: 0 auto;
   padding: 2rem;
   text-align: center;
+  background-color: #f0f8ff; /* AliceBlue */
+  color: #4682b4;
+}
+
+h1 {
+  color: #4682b4;
 }
 
 .center {
@@ -10,6 +16,9 @@
 
 .card {
   padding: 2em;
+  background-color: #e6e6fa; /* Lavender */
+  border-radius: 10px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
 
 .modal {
@@ -21,17 +30,17 @@
   width: 100%;
   height: 100%;
   overflow: auto;
-  background-color: rgb(0,0,0);
-  background-color: rgba(0,0,0,0.4);
+  background-color: rgba(0, 0, 0, 0.5);
 }
 
 .modal-content,
 .prompt-dialog-content {
-  background-color: #fefefe;
-  color: #000; /* Set text color to black */
+  background-color: #fff;
+  color: #333;
   margin: 15% auto;
   padding: 20px;
-  border: 1px solid #888;
+  border: 2px solid #4682b4; /* SteelBlue */
+  border-radius: 10px;
   width: 80%;
 }
 
@@ -52,7 +61,7 @@
 }
 
 .close {
-  color: #aaa;
+  color: #4682b4; /* SteelBlue */
   float: right;
   font-size: 28px;
   font-weight: bold;
@@ -60,12 +69,11 @@
 
 .close:hover,
 .close:focus {
-  color: black;
+  color: #5a9bd4; /* Lighter SteelBlue */
   text-decoration: none;
   cursor: pointer;
 }
 
-/* SourceForm styles */
 .source-form,
 .recipe-form {
   display: flex;
@@ -99,7 +107,8 @@
 }
 
 .ingredient-table th {
-  background-color: #f2f2f2;
+  background-color: #4682b4; /* SteelBlue */
+  color: #fff;
   font-weight: bold;
 }
 
@@ -118,10 +127,19 @@
   padding: 0.5rem 1rem;
   font-size: 1rem;
   cursor: pointer;
+  border: none;
+  border-radius: 5px;
+  background-color: #4682b4; /* SteelBlue */
+  color: #fff;
+  transition: background-color 0.3s ease;
+}
+
+.form-actions button:hover {
+  background-color: #5a9bd4; /* Lighter SteelBlue */
 }
 
 .error {
-  color: red;
+  color: #e74c3c; /* Red */
   font-size: 0.875rem;
 }
 
@@ -136,22 +154,22 @@
   font-size: 1rem;
   cursor: pointer;
   border: none;
-  border-radius: 4px;
-  background-color: #16a085;
+  border-radius: 5px;
+  background-color: #16a085; /* Green */
   color: white;
   transition: background-color 0.3s ease;
 }
 
 .prompt-dialog-content button:hover {
-  background-color: #13876b;
+  background-color: #13876b; /* Darker Green */
 }
 
 .prompt-dialog-content button:last-child {
-  background-color: #e74c3c;
+  background-color: #e74c3c; /* Red */
 }
 
 .prompt-dialog-content button:last-child:hover {
-  background-color: #c0392b;
+  background-color: #c0392b; /* Darker Red */
 }
 
 .recipe-list-table {
@@ -169,21 +187,11 @@
 }
 
 .recipe-list-table th {
-  background-color: #f2f2f2;
-  color: #242424;
+  background-color: #4682b4; /* SteelBlue */
+  color: #fff;
   font-weight: bold;
 }
 
-.recipe-list-table tr {
-  /*display: contents;*/
-}
-
-.recipe-list-table td {
-  /*background-color: #f9f9f9;*/
-  border-radius: 8px;
-  transition: background-color 0.3s;
-}
-
 .recipe-list-table tr:hover {
-  background-color: #213547;
+  background-color: #d3d3d3; /* LightGray */
 }
