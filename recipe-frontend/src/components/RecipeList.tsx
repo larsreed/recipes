@@ -379,13 +379,6 @@ function RecipeList() {
     return (
         <div>
             <div>
-                <button onClick={handleOpenSourceModal}>Edit sources</button>
-                &nbsp;
-                <button onClick={handleOpenRecipeModal}>Add recipe</button>
-                &nbsp;
-                <button onClick={() => handleExportView()}>Export All</button>
-            </div>
-            <div>
                 Import recipes: <input id="csvFileInput" type="file" accept=".csv,.txt"
                                        onChange={(e) => setCsvFile(e.target.files[0])}/>
                 {csvFile && <button onClick={handleImport}>Import</button>}
@@ -409,10 +402,13 @@ function RecipeList() {
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
                     />}
+                &nbsp;
                 {isSearchPanelOpen && <button onClick={handleSearch}>Search</button>}
+                &nbsp;
                 {isSearchPanelOpen && <button onClick={handleCloseSearchPanel}>Cancel</button>}
-            </div>
-            <div>
+                &nbsp;
+                <button onClick={handleOpenSourceModal}>Edit sources</button>
+                &nbsp;
                 <label>
                     <input
                         type="checkbox"
@@ -423,7 +419,7 @@ function RecipeList() {
                 </label>
             </div>
             <table className="recipe-list-table">
-                <thead>
+            <thead>
                 <tr>
                     <th>
                         <input
@@ -450,7 +446,15 @@ function RecipeList() {
                     <th onClick={() => requestSort('rating')}>
                         Rating <i className={getSortIcon('rating')}></i>
                     </th>
-                    <th/>
+                    <th>
+                        <button onClick={handleOpenRecipeModal} title="Add recipe">
+                            <i className="fas fa-plus"></i>
+                        </button>
+                        &nbsp;
+                        <button onClick={() => handleExportView()} title="Export All">
+                            <i className="fas fa-file-export"></i>
+                        </button>
+                    </th>
                 </tr>
                 </thead>
                 <tbody>
