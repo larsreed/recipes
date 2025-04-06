@@ -4,26 +4,27 @@
 
 # Features
 
-1. Change to common imp/exp-format
-2. Make it possible to change order of ingredients
-3. ESC to close dialogs (RecipeForm, do you want YES=ENter,ESC=no)
+1. Create common exp-format
+2. Change to common imp-format
+3. Make it possible to change order of ingredients
+4. ESC to close dialogs (RecipeForm, do you want YES=ENter,ESC=no)
     1. check if dirty first, also for SourceModal
-4. Hide the import-buttons until a file is selected
-5. Clear file fields after successful import/export
-6. Sortable recipe list
-7. upgrade all frontend frameworks, latest React
-8. more space in RecipeList
+5. Hide the import-buttons until a file is selected
+6. Clear file fields after successful import/export
+7. Sortable recipe list
+8. upgrade all frontend frameworks, latest React
+9. more space in RecipeList
    1. \+ use visible grid
    2. \+ varying colors
    3. \+ hover
-9. better layout for sub recipe name list
-10. display attachments beside name in RecipeForm if picture types
-11. remove the current page break form print view, include a new marker on top level recipes only
-12. show error messages as banners, and remove after a while
-13. display \n as linebreaks in print view
-14. ability to use markdown in larger text fields
+10. better layout for sub recipe name list
+11. display attachments beside name in RecipeForm if picture types
+12. remove the current page break form print view, include a new marker on top level recipes only
+13. show error messages as banners, and remove after a while
+14. display \n as linebreaks in print view
+15. ability to use markdown in larger text fields
     1. \+ visual editor
-15. cleanup extraneous logging
+16. cleanup extraneous logging
 
 # General improvements
 

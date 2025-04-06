@@ -384,7 +384,9 @@ function RecipeList() {
                 {csvFile && <button onClick={handleImport}>Import</button>}
             </div>
             <div>
-                <button onClick={handleOpenSearchPanel}>Find</button>
+                <button onClick={handleOpenSearchPanel} title="Find by content">
+                    <i className="fas fa-search"></i>
+                </button>
                 &nbsp;
                 {isSearchActive && <button onClick={handleShowAllRecipes}>All</button>}
                 {isSourceModalOpen && <SourceModal onClose={handleCloseSourceModal}/>}
@@ -419,7 +421,7 @@ function RecipeList() {
                 </label>
             </div>
             <table className="recipe-list-table">
-            <thead>
+                <thead>
                 <tr>
                     <th>
                         <input

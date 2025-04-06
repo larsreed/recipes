@@ -76,8 +76,13 @@ function SourceList() {
                         <td>{source.name}</td>
                         <td>{source.authors}</td>
                         <td>
-                            <button onClick={() => editSource(source)}>EDIT</button>
-                            <button onClick={() => deleteSource(source.id)}>DELETE</button>
+                            <button onClick={() => editSource(source)} title="Edit">
+                                <i className="fas fa-edit"></i>
+                            </button>
+                            &nbsp;
+                            <button onClick={() => deleteSource(source.id)} title="Delete">
+                                <i className="fas fa-remove"></i>
+                            </button>
                         </td>
                     </tr>
                 ))}

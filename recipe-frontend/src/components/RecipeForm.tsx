@@ -192,16 +192,19 @@ function RecipeForm({ recipe, onCancel, onRecipeSaved }: RecipeFormProps) {
 
         return (
             // @ts-expect-error look at later
-            <div ref={(node) => ref(drop(node))}>
+            <div class="subrecipe-item" ref={(node) => ref(drop(node))}>
                 <span>{subrecipe.name}</span>
-                <button onClick={() => handleRemoveSubrecipe(index)}>Remove</button>
+                &nbsp;
+                <button onClick={() => handleRemoveSubrecipe(index)} title="Remove">
+                    <i className="fas fa-remove"></i>
+                </button>
             </div>
         );
     };
 
     const handleIngredientChange = (index: number, field: string, value: string | number) => {
         const newIngredients = [...ingredients];
-        newIngredients[index] = { ...newIngredients[index], [field]: value };
+        newIngredients[index] = {...newIngredients[index], [field]: value };
         setIngredients(newIngredients);
     };
 
@@ -397,14 +400,16 @@ function RecipeForm({ recipe, onCancel, onRecipeSaved }: RecipeFormProps) {
                                 <li key={attachment.id}>
                                     {attachment.fileName}
                                     &nbsp;
-                                    <button onClick={() => handleDeleteAttachment(attachment.id)}>Delete</button>
+                                    <button onClick={() => handleDeleteAttachment(attachment.id)} title="Delete">
+                                        <i className="fas fa-remove"></i>
+                                    </button>
                                 </li>
                             ))}
                         </ul>
                     </div>
                 )}
                 <div className="form-group">
-                    <label>Select Subrecipe:</label>
+                <label>Select Subrecipe:</label>
                     <select value={selectedSubrecipeId ?? ''}
                             onChange={(e) => setSelectedSubrecipeId(e.target.value ? parseInt(e.target.value) : null)}>
                         <option value="">Select a subrecipe</option>
@@ -492,7 +497,9 @@ function RecipeForm({ recipe, onCancel, onRecipeSaved }: RecipeFormProps) {
                                     />
                                 </td>
                                 <td>
-                                    <button type="button" onClick={() => removeIngredient(index)}>Remove</button>
+                                    <button type="button" onClick={() => removeIngredient(index)} title="Remove">
+                                        <i className="fas fa-remove"></i>
+                                    </button>
                                 </td>
                             </tr>
                         ))}
