@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.*
 import org.springframework.web.multipart.MultipartFile
 import java.util.regex.Pattern
 import java.io.BufferedReader
+import java.io.File
 import java.io.InputStreamReader
 import java.util.*
 import java.util.stream.Collectors
@@ -119,5 +120,56 @@ class RecipeController(private val recipeService: RecipeService) {
                 ), sourceName)
         }.collect(Collectors.toList())
         return recipes
+    }
+
+    @PostMapping("/export-all")
+    fun exportRecipes(@RequestParam("file") fileName: String, @RequestBody recipes: List<Recipe>) {
+        val file = File(fileName)
+        file.bufferedWriter().use { writer ->
+//            // Write source record
+//            recipe.source?.let { source ->
+//                writer.write("Source\t${source.name}\t${source.authors.replace("\n", "\\n")}")
+//                writer.newLine()
+//            }
+            var firstRecipe = true
+            recipes.forEach { recipe ->
+                if (!firstRecipe) writer.newLine()
+                firstRecipe = false
+
+                // Write recipe record
+                writer.write("Recipe\t${recipe.name}\t${recipe.subrecipe}\t${recipe.people}\t${recipe.rating ?:
+                    ""}\t${recipe.served?.replace("\n", "\\n") ?:
+                    ""}\t${recipe.instructions.replace("\n", "\\n")}\t${recipe.notes?.replace("\n", 
+                    "\\n") ?:
+                    ""}\t${recipe.source?.name ?:
+                    ""}\t${recipe.pageRef ?: ""}")
+                writer.newLine()
+
+                // Write ingredient records
+                recipe.ingredients.forEach { ingredient ->
+                    writer.write("+Ingredient\t${ingredient.amount ?: 
+                    ""}\t${ingredient.measure ?: 
+                    ""}\t${ingredient.name.replace("\n",
+                        "\\n")}\t${ingredient.instruction?.replace("\n",
+                        "\\n")}")
+                    writer.newLine()
+                }
+
+                // Write subrecipe records
+                recipe.subrecipes.forEach { subrecipe ->
+                    writer.write("+Subrecipe\t${subrecipe.name.replace("\n",
+                        "\\n")}")
+                    writer.newLine()
+                }
+
+                // Write attachment records
+                recipe.attachments.forEach { attachment ->
+                    val base64Data = Base64.getEncoder().encodeToString(attachment.fileContent.toByteArray())
+                    writer.write("+Attachment\t${attachment.fileName.replace("\n",
+                        "\\n")}\t$base64Data")
+                    writer.newLine()
+                }
+            }
+        }
     }
 }

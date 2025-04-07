@@ -1,4 +1,5 @@
 import React, {useState, useEffect} from 'react';
+import Modal from 'react-modal';
 import axios from 'axios';
 import SourceModal from "./SourceModal.tsx";
 import RecipeModal from "./RecipeModal.tsx";
@@ -42,6 +43,8 @@ interface Ingredient {
     instruction: string;
 }
 
+Modal.setAppElement('#root');
+
 function RecipeList() {
     const [recipes, setRecipes] = useState<Recipe[]>([]);
     const [selectedRecipes, setSelectedRecipes] = useState<Set<number>>(new Set());
@@ -55,9 +58,11 @@ function RecipeList() {
     const [searchQuery, setSearchQuery] = useState('');
     const [isSearchActive, setIsSearchActive] = useState(false);
     const [isExportAll, setIsExportAll] = useState(false);
+    const [isCsvModalOpen, setIsCsvModalOpen] = useState(false);
     const [includeSubrecipes, setIncludeSubrecipes] = useState(false);
     const [sortConfig, setSortConfig] = useState({ key: 'id', direction: 'ascending' });
     const [csvFile, setCsvFile] = useState<File | null>(null);
+    const [csvFileName, setCsvFileName] = useState('');
     const [apiError, setApiError] = useState<string | null>(null);
 
     const fetchRecipes = () => {
@@ -74,6 +79,14 @@ function RecipeList() {
     useEffect(() => {
         fetchRecipes();
     }, [includeSubrecipes]);
+
+    const handleOpenCsvModal = () => {
+        setIsCsvModalOpen(true);
+    };
+
+    const handleCloseCsvModal = () => {
+        setIsCsvModalOpen(false);
+    };
 
     const sortedRecipes = [...recipes].sort((a, b) => {
         if (a[sortConfig.key] < b[sortConfig.key]) {
@@ -210,6 +223,43 @@ function RecipeList() {
         a.click();
         document.body.removeChild(a);
         URL.revokeObjectURL(url);
+    };
+
+    const handleCvsFileNameChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+        setCsvFileName(event.target.value);
+    };
+
+    const handleExport = () => {
+        if (csvFileName) {
+            exportCsv(csvFileName);
+            handleCloseCsvModal();
+        } else {
+            alert('Please enter an export file name.');
+        }
+    };
+
+    const exportCsv = (fileName: string) => {
+        console.log(`Exporting recipes to ${fileName}`);
+        const recipesToExport = (selectedRecipes.size == 0 ? recipes :
+            recipes.filter(recipe => selectedRecipes.has(recipe.id)));
+        try {
+            axios.post(`${config.backendUrl}/api/recipes/export-all`, { fileName, recipesToExport });
+        } catch (error) {
+            console.error('Error exporting recipes:', error);
+        }
+    };
+
+    const customCsvExportStyles = {
+        content: {
+            top: '50%',
+            left: '50%',
+            right: 'auto',
+            bottom: 'auto',
+            marginRight: '-50%',
+            transform: 'translate(-50%, -50%)',
+            width: '400px', // Set the width of the modal
+            height: '200px', // Set the height of the modal
+        },
     };
 
     const handleExportView = (singleRecipe?: Recipe) => {
@@ -378,12 +428,16 @@ function RecipeList() {
 
     return (
         <div>
-            <div>
+            <div className="standard-form">
+                <button onClick={handleOpenSourceModal}>Edit sources</button>
+            </div>
+            <div className="standard-form">
                 Import recipes: <input id="csvFileInput" type="file" accept=".csv,.txt"
                                        onChange={(e) => setCsvFile(e.target.files[0])}/>
+                &nbsp;
                 {csvFile && <button onClick={handleImport}>Import</button>}
             </div>
-            <div>
+            <div className="standard-form">
                 <button onClick={handleOpenSearchPanel} title="Find by content">
                     <i className="fas fa-search"></i>
                 </button>
@@ -409,8 +463,6 @@ function RecipeList() {
                 &nbsp;
                 {isSearchPanelOpen && <button onClick={handleCloseSearchPanel}>Cancel</button>}
                 &nbsp;
-                <button onClick={handleOpenSourceModal}>Edit sources</button>
-                &nbsp;
                 <label>
                     <input
                         type="checkbox"
@@ -419,6 +471,7 @@ function RecipeList() {
                     />
                     Include subrecipes
                 </label>
+                <p/>
             </div>
             <table className="recipe-list-table">
                 <thead>
@@ -453,9 +506,29 @@ function RecipeList() {
                             <i className="fas fa-plus"></i>
                         </button>
                         &nbsp;
-                        <button onClick={() => handleExportView()} title="Export All">
+                        <button onClick={() => handleExportView()} title="View All">
+                            <i className="fas fa-print"></i>
+                        </button>
+                        &nbsp;
+                        <button onClick={handleOpenCsvModal} id="exportCsv" title="Export All to CSV">
                             <i className="fas fa-file-export"></i>
                         </button>
+                        <Modal
+                            isOpen={isCsvModalOpen}
+                            onRequestClose={handleCloseCsvModal}
+                            contentLabel="Export CSV"
+                            style={customCsvExportStyles}>
+                            <h2>Export CSV</h2>
+                            <input
+                                type="file"
+                                accept=".csv"
+                                onChange={handleCvsFileNameChange}
+                            />
+                            <br/>
+                            <button onClick={handleExport}>Export</button>
+                            &nbsp;
+                            <button onClick={handleCloseCsvModal}>Cancel</button>
+                        </Modal>
                     </th>
                 </tr>
                 </thead>
