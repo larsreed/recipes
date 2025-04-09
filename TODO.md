@@ -1,10 +1,9 @@
 # Bugs
 
 1. Order of sub recipes (drag/drop) is not saved in the database.
-2. the new export function fails
-3. and does not include sources
-4. import recipes does not work anymore :-O
-5. should be able to select a non-existing export file name
+2. the new export function does not handle files gracefully
+3. import recipes does not work anymore :-O
+4. should be able to select a non-existing export file name
 
 # Features
 
@@ -26,7 +25,8 @@
 12. display \n as linebreaks in print view
 13. ability to use markdown in larger text fields
     1. \+ visual editor
-14. cleanup extraneous logging
+14. export - should only export referenced sources, not all, if a subset of recipes are exported
+15. cleanup extraneous logging
 
 # General improvements
 

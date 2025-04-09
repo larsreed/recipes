@@ -5,19 +5,24 @@ import net.kalars.recipes.model.Attachment
 import net.kalars.recipes.model.Recipe
 import net.kalars.recipes.model.Ingredient
 import net.kalars.recipes.service.RecipeService
+import net.kalars.recipes.service.SourceService
 import org.springframework.web.bind.annotation.*
 import org.springframework.web.multipart.MultipartFile
 import java.util.regex.Pattern
 import java.io.BufferedReader
 import java.io.File
 import java.io.InputStreamReader
+import java.net.URLDecoder
+import java.nio.charset.StandardCharsets
 import java.util.*
 import java.util.stream.Collectors
 
 @RestController
 @RequestMapping("/api/recipes")
 @CrossOrigin(origins = ["\${frontend.url}"]) // TODO HACK! Must fix
-class RecipeController(private val recipeService: RecipeService) {
+class RecipeController(private val recipeService: RecipeService,
+                       private val sourceService: SourceService
+) {
 
     @GetMapping
     fun getRecipes(@RequestParam includeSubrecipes: Boolean): List<Recipe> {
@@ -122,51 +127,47 @@ class RecipeController(private val recipeService: RecipeService) {
         return recipes
     }
 
+
     @PostMapping("/export-all")
-    fun exportRecipes(@RequestParam("file") fileName: String, @RequestBody recipes: List<Recipe>) {
-        val file = File(fileName)
+    fun exportRecipes(@RequestParam("file") fileName: String, @RequestBody(required = false) recipeIds: List<Long>?) {
+        val file = File(URLDecoder.decode(fileName, StandardCharsets.UTF_8.toString()))
+        val recipes: List<Recipe> = if (recipeIds.isNullOrEmpty()) {
+            // Fetch all recipes if the body is empty
+            recipeService.getAllRecipes()
+        } else {
+            // Fetch recipes by IDs
+            recipeService.getRecipesByIds(recipeIds)
+        }
+        val sources = sourceService.getAllSources()
+
         file.bufferedWriter().use { writer ->
-//            // Write source record
-//            recipe.source?.let { source ->
-//                writer.write("Source\t${source.name}\t${source.authors.replace("\n", "\\n")}")
-//                writer.newLine()
-//            }
-            var firstRecipe = true
+            sources.forEach { source ->
+                writer.write("Source\t${source.name}\t${source.authors.replace("\n", "\\n")}")
+                writer.newLine()
+            }
+
             recipes.forEach { recipe ->
-                if (!firstRecipe) writer.newLine()
-                firstRecipe = false
 
                 // Write recipe record
-                writer.write("Recipe\t${recipe.name}\t${recipe.subrecipe}\t${recipe.people}\t${recipe.rating ?:
-                    ""}\t${recipe.served?.replace("\n", "\\n") ?:
-                    ""}\t${recipe.instructions.replace("\n", "\\n")}\t${recipe.notes?.replace("\n", 
-                    "\\n") ?:
-                    ""}\t${recipe.source?.name ?:
-                    ""}\t${recipe.pageRef ?: ""}")
+                writer.write("Recipe\t${recipe.name}\t${recipe.subrecipe}\t${recipe.people}\t${recipe.rating ?: ""}\t${recipe.served?.replace("\n", "\\n") ?: ""}\t${recipe.instructions.replace("\n", "\\n")}\t${recipe.notes?.replace("\n", "\\n") ?: ""}\t${recipe.source?.name ?: ""}\t${recipe.pageRef ?: ""}")
                 writer.newLine()
 
                 // Write ingredient records
                 recipe.ingredients.forEach { ingredient ->
-                    writer.write("+Ingredient\t${ingredient.amount ?: 
-                    ""}\t${ingredient.measure ?: 
-                    ""}\t${ingredient.name.replace("\n",
-                        "\\n")}\t${ingredient.instruction?.replace("\n",
-                        "\\n")}")
+                    writer.write("+Ingredient\t${ingredient.amount ?: ""}\t${ingredient.measure ?: ""}\t${ingredient.name.replace("\n", "\\n")}\t${ingredient.instruction?.replace("\n", "\\n")}")
                     writer.newLine()
                 }
 
                 // Write subrecipe records
                 recipe.subrecipes.forEach { subrecipe ->
-                    writer.write("+Subrecipe\t${subrecipe.name.replace("\n",
-                        "\\n")}")
+                    writer.write("+Subrecipe\t${subrecipe.name.replace("\n", "\\n")}")
                     writer.newLine()
                 }
 
                 // Write attachment records
                 recipe.attachments.forEach { attachment ->
                     val base64Data = Base64.getEncoder().encodeToString(attachment.fileContent.toByteArray())
-                    writer.write("+Attachment\t${attachment.fileName.replace("\n",
-                        "\\n")}\t$base64Data")
+                    writer.write("+Attachment\t${attachment.fileName.replace("\n", "\\n")}\t$base64Data")
                     writer.newLine()
                 }
             }

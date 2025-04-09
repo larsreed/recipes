@@ -240,10 +240,23 @@ function RecipeList() {
 
     const exportCsv = (fileName: string) => {
         console.log(`Exporting recipes to ${fileName}`);
-        const recipesToExport = (selectedRecipes.size == 0 ? recipes :
-            recipes.filter(recipe => selectedRecipes.has(recipe.id)));
+        const recipesToExport = selectedRecipes.size === 0 ? [] : recipes
+            .filter(recipe => selectedRecipes.has(recipe.id))
+            .map(recipe => recipe.id); // Only include IDs
+
         try {
-            axios.post(`${config.backendUrl}/api/recipes/export-all`, { fileName, recipesToExport });
+            axios.post(`${config.backendUrl}/api/recipes/export-all?file=${encodeURIComponent(fileName)}`,
+                recipesToExport.length > 0 ? recipesToExport : null, // Send null for an empty body
+                {
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                }
+            ).then(() => {
+                console.log('Export successful');
+            }).catch(error => {
+                console.error('Error exporting recipes:', error);
+            });
         } catch (error) {
             console.error('Error exporting recipes:', error);
         }
