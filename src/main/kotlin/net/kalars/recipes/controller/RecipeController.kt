@@ -6,6 +6,7 @@ import net.kalars.recipes.model.Recipe
 import net.kalars.recipes.model.Ingredient
 import net.kalars.recipes.service.RecipeService
 import net.kalars.recipes.service.SourceService
+import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
 import org.springframework.web.multipart.MultipartFile
 import java.util.regex.Pattern
@@ -129,48 +130,47 @@ class RecipeController(private val recipeService: RecipeService,
 
 
     @PostMapping("/export-all")
-    fun exportRecipes(@RequestParam("file") fileName: String, @RequestBody(required = false) recipeIds: List<Long>?) {
-        val file = File(URLDecoder.decode(fileName, StandardCharsets.UTF_8.toString()))
+    fun exportRecipes(@RequestBody(required = false) recipeIds: List<Long>?): ResponseEntity<String> {
         val recipes: List<Recipe> = if (recipeIds.isNullOrEmpty()) {
-            // Fetch all recipes if the body is empty
             recipeService.getAllRecipes()
         } else {
-            // Fetch recipes by IDs
             recipeService.getRecipesByIds(recipeIds)
         }
         val sources = sourceService.getAllSources()
 
-        file.bufferedWriter().use { writer ->
+        val csvContent = buildString {
             sources.forEach { source ->
-                writer.write("Source\t${source.name}\t${source.authors.replace("\n", "\\n")}")
-                writer.newLine()
+                append("Source\t${source.name}\t${source.authors.replace("\n", "\\n")}\n")
             }
 
             recipes.forEach { recipe ->
+                append("Recipe\t${recipe.name}\t${recipe.subrecipe}\t${recipe.people}\t${recipe.rating ?: 
+                  ""}\t${recipe.served?.replace("\n", "\\n") ?: 
+                  ""}\t${recipe.instructions.replace("\n", "\\n")}\t${recipe.notes?.replace("\n", 
+                    "\\n") ?:
+                  ""}\t${recipe.source?.name ?:
+                  ""}\t${recipe.pageRef ?: ""}\n")
 
-                // Write recipe record
-                writer.write("Recipe\t${recipe.name}\t${recipe.subrecipe}\t${recipe.people}\t${recipe.rating ?: ""}\t${recipe.served?.replace("\n", "\\n") ?: ""}\t${recipe.instructions.replace("\n", "\\n")}\t${recipe.notes?.replace("\n", "\\n") ?: ""}\t${recipe.source?.name ?: ""}\t${recipe.pageRef ?: ""}")
-                writer.newLine()
-
-                // Write ingredient records
                 recipe.ingredients.forEach { ingredient ->
-                    writer.write("+Ingredient\t${ingredient.amount ?: ""}\t${ingredient.measure ?: ""}\t${ingredient.name.replace("\n", "\\n")}\t${ingredient.instruction?.replace("\n", "\\n")}")
-                    writer.newLine()
+                    append("+Ingredient\t${ingredient.amount ?: 
+                    ""}\t${ingredient.measure ?: 
+                    ""}\t${ingredient.name.replace("\n", "\\n")}\t${ingredient.instruction?.replace("\n",
+                        "\\n")}\n")
                 }
 
-                // Write subrecipe records
                 recipe.subrecipes.forEach { subrecipe ->
-                    writer.write("+Subrecipe\t${subrecipe.name.replace("\n", "\\n")}")
-                    writer.newLine()
+                    append("+Subrecipe\t${subrecipe.name.replace("\n", "\\n")}\n")
                 }
 
-                // Write attachment records
                 recipe.attachments.forEach { attachment ->
                     val base64Data = Base64.getEncoder().encodeToString(attachment.fileContent.toByteArray())
-                    writer.write("+Attachment\t${attachment.fileName.replace("\n", "\\n")}\t$base64Data")
-                    writer.newLine()
+                    append("+Attachment\t${attachment.fileName.replace("\n", "\\n")}\t$base64Data\n")
                 }
             }
         }
+
+        return ResponseEntity.ok()
+            .header("Content-Type", "text/csv")
+            .body(csvContent)
     }
 }

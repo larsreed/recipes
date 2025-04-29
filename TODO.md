@@ -1,32 +1,32 @@
 # Bugs
 
 1. Order of sub recipes (drag/drop) is not saved in the database.
-2. the new export function does not handle files gracefully
 3. import recipes does not work anymore :-O
-4. should be able to select a non-existing export file name
 
 # Features
 
 1. Change to common imp-format
 2. Make it possible to change order of ingredients
-3. ESC to close dialogs (RecipeForm, do you want YES=ENter,ESC=no)
+3. make it possible to group ingredients
+4. also allow a prefix text for ingredients
+5. ESC to close dialogs (RecipeForm, do you want YES=ENter,ESC=no)
     1. check if dirty first, also for SourceModal
-4. Hide the import-buttons until a file is selected
-5. Clear file fields after successful import/export
-6. upgrade all frontend frameworks, latest React
-7. more space in RecipeList
+6. Hide the import-buttons until a file is selected
+7. Clear file fields after successful import/export
+8. upgrade all frontend frameworks, latest React
+9. more space in RecipeList
    1. \+ use visible grid
    2. \+ varying colors
    3. \+ hover
-8. better layout for sub recipe name list
-9. display attachments beside name in RecipeForm if picture types
-10. remove the current page break form print view, include a new marker on top level recipes only
-11. show error messages as banners, and remove after a while
-12. display \n as linebreaks in print view
-13. ability to use markdown in larger text fields
+10. better layout for sub recipe name list
+11. display attachments beside name in RecipeForm if picture types
+12. remove the current page break form print view, include a new marker on top level recipes only
+13. show error messages as banners, and remove after a while
+14. display \n as linebreaks in print view
+15. ability to use markdown in larger text fields
     1. \+ visual editor
-14. export - should only export referenced sources, not all, if a subset of recipes are exported
-15. cleanup extraneous logging
+16. export - should only export referenced sources, not all, if a subset of recipes is exported
+17. cleanup extraneous logging
 
 # General improvements
 

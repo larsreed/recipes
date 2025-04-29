@@ -62,7 +62,6 @@ function RecipeList() {
     const [includeSubrecipes, setIncludeSubrecipes] = useState(false);
     const [sortConfig, setSortConfig] = useState({ key: 'id', direction: 'ascending' });
     const [csvFile, setCsvFile] = useState<File | null>(null);
-    const [csvFileName, setCsvFileName] = useState('');
     const [apiError, setApiError] = useState<string | null>(null);
 
     const fetchRecipes = () => {
@@ -225,54 +224,32 @@ function RecipeList() {
         URL.revokeObjectURL(url);
     };
 
-    const handleCvsFileNameChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-        setCsvFileName(event.target.value);
-    };
-
-    const handleExport = () => {
-        if (csvFileName) {
-            exportCsv(csvFileName);
-            handleCloseCsvModal();
-        } else {
-            alert('Please enter an export file name.');
-        }
-    };
-
-    const exportCsv = (fileName: string) => {
-        console.log(`Exporting recipes to ${fileName}`);
+    const handleExportCsv = () => {
         const recipesToExport = selectedRecipes.size === 0 ? [] : recipes
             .filter(recipe => selectedRecipes.has(recipe.id))
             .map(recipe => recipe.id); // Only include IDs
 
         try {
-            axios.post(`${config.backendUrl}/api/recipes/export-all?file=${encodeURIComponent(fileName)}`,
+            axios.post(`${config.backendUrl}/api/recipes/export-all`,
                 recipesToExport.length > 0 ? recipesToExport : null, // Send null for an empty body
                 {
                     headers: {
                         'Content-Type': 'application/json',
                     },
                 }
-            ).then(() => {
-                console.log('Export successful');
+            ).then(response => {
+                const csvContent = response.data; // Assuming the backend returns CSV content as plain text
+                const newWindow = window.open("", "_blank");
+                if (newWindow) {
+                    newWindow.document.write(`<pre>${csvContent}</pre>`);
+                    newWindow.document.close();
+                }
             }).catch(error => {
-                console.error('Error exporting recipes:', error);
+                console.error("Error exporting recipes:", error);
             });
         } catch (error) {
-            console.error('Error exporting recipes:', error);
+            console.error("Error exporting recipes:", error);
         }
-    };
-
-    const customCsvExportStyles = {
-        content: {
-            top: '50%',
-            left: '50%',
-            right: 'auto',
-            bottom: 'auto',
-            marginRight: '-50%',
-            transform: 'translate(-50%, -50%)',
-            width: '400px', // Set the width of the modal
-            height: '200px', // Set the height of the modal
-        },
     };
 
     const handleExportView = (singleRecipe?: Recipe) => {
@@ -523,25 +500,9 @@ function RecipeList() {
                             <i className="fas fa-print"></i>
                         </button>
                         &nbsp;
-                        <button onClick={handleOpenCsvModal} id="exportCsv" title="Export All to CSV">
+                        <button onClick={() => handleExportCsv()} title="Export All to CSV">
                             <i className="fas fa-file-export"></i>
                         </button>
-                        <Modal
-                            isOpen={isCsvModalOpen}
-                            onRequestClose={handleCloseCsvModal}
-                            contentLabel="Export CSV"
-                            style={customCsvExportStyles}>
-                            <h2>Export CSV</h2>
-                            <input
-                                type="file"
-                                accept=".csv"
-                                onChange={handleCvsFileNameChange}
-                            />
-                            <br/>
-                            <button onClick={handleExport}>Export</button>
-                            &nbsp;
-                            <button onClick={handleCloseCsvModal}>Cancel</button>
-                        </Modal>
                     </th>
                 </tr>
                 </thead>
