@@ -58,7 +58,6 @@ function RecipeList() {
     const [searchQuery, setSearchQuery] = useState('');
     const [isSearchActive, setIsSearchActive] = useState(false);
     const [isExportAll, setIsExportAll] = useState(false);
-    const [isCsvModalOpen, setIsCsvModalOpen] = useState(false);
     const [includeSubrecipes, setIncludeSubrecipes] = useState(false);
     const [sortConfig, setSortConfig] = useState({ key: 'id', direction: 'ascending' });
     const [csvFile, setCsvFile] = useState<File | null>(null);
@@ -78,14 +77,6 @@ function RecipeList() {
     useEffect(() => {
         fetchRecipes();
     }, [includeSubrecipes]);
-
-    const handleOpenCsvModal = () => {
-        setIsCsvModalOpen(true);
-    };
-
-    const handleCloseCsvModal = () => {
-        setIsCsvModalOpen(false);
-    };
 
     const sortedRecipes = [...recipes].sort((a, b) => {
         if (a[sortConfig.key] < b[sortConfig.key]) {

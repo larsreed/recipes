@@ -2,21 +2,17 @@ package net.kalars.recipes.controller
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import net.kalars.recipes.model.Attachment
-import net.kalars.recipes.model.Recipe
 import net.kalars.recipes.model.Ingredient
+import net.kalars.recipes.model.Recipe
 import net.kalars.recipes.service.RecipeService
 import net.kalars.recipes.service.SourceService
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
 import org.springframework.web.multipart.MultipartFile
-import java.util.regex.Pattern
 import java.io.BufferedReader
-import java.io.File
 import java.io.InputStreamReader
-import java.net.URLDecoder
-import java.nio.charset.StandardCharsets
-import java.util.*
-import java.util.function.BiFunction
+import java.util.Base64
+import java.util.regex.Pattern
 import java.util.stream.Collectors
 
 @RestController
@@ -80,7 +76,7 @@ class RecipeController(private val recipeService: RecipeService,
         return recipeService.getAllRecipes().filter { recipe ->
             pattern.matcher(recipe.name).find() ||
             pattern.matcher(recipe.instructions).find() ||
-            pattern.matcher(recipe.served).find() ||
+            pattern.matcher(recipe.served ?: "" ).find() ||
             pattern.matcher(recipe.wineTips ?: "").find() ||
             recipe.ingredients.any { ingredient ->
                 pattern.matcher(ingredient.name).find() ||
@@ -105,28 +101,6 @@ class RecipeController(private val recipeService: RecipeService,
         recipe.ingredients.addAll(ingredientList)
 
         return recipeService.updateRecipe(recipe.id, recipe)
-    }
-
-    @PostMapping("/import-old") // TODO Delete this
-    fun importRecipesOld(@RequestParam("file") file: MultipartFile): List<Recipe> {
-        val reader = BufferedReader(InputStreamReader(file.inputStream))
-        val recipes = reader.lines().skip(1).map { line ->
-            val columns = line.replace("\\n", "\n").split(",", ";", "\t")
-            val sourceName = columns[8]
-            recipeService.createRecipe(
-                Recipe(
-                    name = columns[0],
-                    subrecipe = columns[1].toBoolean(),
-                    people = columns[2].toInt(),
-                    instructions = columns[3],
-                    served = columns[4],
-                    rating = columns[5].toIntOrNull(),
-                    wineTips = columns[6],
-                    notes = columns[7],
-                    pageRef = columns[9]
-                ), sourceName)
-        }.collect(Collectors.toList())
-        return recipes
     }
 
     @PostMapping("/import")
@@ -181,8 +155,8 @@ class RecipeController(private val recipeService: RecipeService,
                     val subName = mutableListOf(columns[1].replace("\\n", "\n"))
                     subrecipesToAdd.merge(
                         currentRecipe!!.name,
-                        subName,
-                        { oldMapping, subs -> (oldMapping + subs).distinct() })
+                        subName
+                    ) { oldMapping, subs -> (oldMapping + subs).distinct() }
                 }
                 line.startsWith("+Attachment") -> {
                     // Add an attachment to the current recipe
@@ -231,18 +205,34 @@ class RecipeController(private val recipeService: RecipeService,
             }
 
             recipes.forEach { recipe ->
-                append("Recipe\t${recipe.name}\t${recipe.subrecipe}\t${recipe.people}\t${recipe.rating ?: 
-                  ""}\t${recipe.served?.replace("\n", "\\n") ?: 
-                  ""}\t${recipe.instructions.replace("\n", "\\n")}\t${recipe.notes?.replace("\n", 
-                    "\\n") ?:
-                  ""}\t${recipe.source?.name ?:
-                  ""}\t${recipe.pageRef ?: ""}\n")
+                append(
+                    "Recipe\t${recipe.name}\t${recipe.subrecipe}\t${recipe.people}\t${
+                        recipe.rating ?: ""
+                    }\t${
+                        recipe.served?.replace("\n", "\\n") ?: ""
+                    }\t${recipe.instructions.replace("\n", "\\n")}\t${
+                        recipe.notes?.replace(
+                            "\n",
+                            "\\n"
+                        ) ?: ""
+                    }\t${
+                        recipe.source?.name ?: ""
+                    }\t${recipe.pageRef ?: ""}\n"
+                )
 
                 recipe.ingredients.forEach { ingredient ->
-                    append("+Ingredient\t${ingredient.amount ?: 
-                    ""}\t${ingredient.measure ?: 
-                    ""}\t${ingredient.name.replace("\n", "\\n")}\t${ingredient.instruction?.replace("\n",
-                        "\\n")}\n")
+                    append(
+                        "+Ingredient\t${
+                            ingredient.amount ?: ""
+                        }\t${
+                            ingredient.measure ?: ""
+                        }\t${ingredient.name.replace("\n", "\\n")}\t${
+                            ingredient.instruction?.replace(
+                                "\n",
+                                "\\n"
+                            )
+                        }\n"
+                    )
                 }
 
                 recipe.subrecipes.forEach { subrecipe ->
