@@ -1,12 +1,11 @@
 # Bugs
 
 1. Order of sub recipes (drag/drop) is not saved in the database.
-3. import recipes does not work anymore :-O
+
 
 # Features
 
-1. Change to common imp-format
-2. Make it possible to change order of ingredients
+1. Make it possible to change order of ingredients
 3. make it possible to group ingredients
 4. also allow a prefix text for ingredients
 5. ESC to close dialogs (RecipeForm, do you want YES=ENter,ESC=no)

@@ -16,11 +16,12 @@ import java.io.InputStreamReader
 import java.net.URLDecoder
 import java.nio.charset.StandardCharsets
 import java.util.*
+import java.util.function.BiFunction
 import java.util.stream.Collectors
 
 @RestController
 @RequestMapping("/api/recipes")
-@CrossOrigin(origins = ["\${frontend.url}"]) // TODO HACK! Must fix
+@CrossOrigin(origins = ["\${frontend.url}"])
 class RecipeController(private val recipeService: RecipeService,
                        private val sourceService: SourceService
 ) {
@@ -106,8 +107,8 @@ class RecipeController(private val recipeService: RecipeService,
         return recipeService.updateRecipe(recipe.id, recipe)
     }
 
-    @PostMapping("/import")
-    fun importRecipes(@RequestParam("file") file: MultipartFile): List<Recipe> {
+    @PostMapping("/import-old") // TODO Delete this
+    fun importRecipesOld(@RequestParam("file") file: MultipartFile): List<Recipe> {
         val reader = BufferedReader(InputStreamReader(file.inputStream))
         val recipes = reader.lines().skip(1).map { line ->
             val columns = line.replace("\\n", "\n").split(",", ";", "\t")
@@ -128,6 +129,92 @@ class RecipeController(private val recipeService: RecipeService,
         return recipes
     }
 
+    @PostMapping("/import")
+    fun importRecipes(@RequestParam("file") file: MultipartFile): List<Recipe> {
+        val reader = BufferedReader(InputStreamReader(file.inputStream))
+        val recipes = mutableListOf<Recipe>()
+        val sources = mutableMapOf<String, Long>() // Map to store source names and their IDs
+        val subrecipesToAdd = mutableMapOf<String, List<String>>() // Map to store links between main and subrecipes
+        var currentRecipe: Recipe? = null
+
+        reader.lines().forEach { line ->
+            val columns = line.split("\t")
+            when {
+                line.startsWith("Source") -> {
+                    // Create or fetch the source
+                    val sourceName = columns[1]
+                    val authors = columns[2].replace("\\n", "\n")
+                    val source = sourceService.createOrGetSource(sourceName, authors)
+                    sources[sourceName] = source.id
+                }
+                line.startsWith("Recipe") -> {
+                    // Save the previous recipe if it exists
+                    currentRecipe?.let { recipes.add(recipeService.createRecipe(it)) }
+
+                    // Create a new recipe
+                    currentRecipe = Recipe(
+                        name = columns[1],
+                        subrecipe = columns[2].toBoolean(),
+                        people = columns[3].toInt(),
+                        rating = columns[4].toIntOrNull(),
+                        served = columns[5].replace("\\n", "\n"),
+                        instructions = columns[6].replace("\\n", "\n"),
+                        notes = columns[7].replace("\\n", "\n"),
+                        pageRef = columns[9]
+                    )
+                    val sourceId = sources[columns[8]]
+                    currentRecipe?.sourceId = sourceId
+                }
+                line.startsWith("+Ingredient") -> {
+                    // Add an ingredient to the current recipe
+                    currentRecipe?.ingredients?.add(
+                        Ingredient(
+                            amount = columns[1].toFloatOrNull(),
+                            measure = columns[2],
+                            name = columns[3].replace("\\n", "\n"),
+                            instruction = columns[4].replace("\\n", "\n")
+                        )
+                    )
+                }
+                line.startsWith("+Subrecipe") && currentRecipe!=null -> {
+                    // Remember a subrecipe to add later
+                    val subName = mutableListOf(columns[1].replace("\\n", "\n"))
+                    subrecipesToAdd.merge(
+                        currentRecipe!!.name,
+                        subName,
+                        { oldMapping, subs -> (oldMapping + subs).distinct() })
+                }
+                line.startsWith("+Attachment") -> {
+                    // Add an attachment to the current recipe
+                    val fileName = columns[1].replace("\\n", "\n")
+                    val fileContent = String(Base64.getDecoder().decode(columns[2]))
+                    currentRecipe?.attachments?.add(
+                        Attachment(
+                            fileName = fileName,
+                            fileContent = fileContent
+                        )
+                    )
+                }
+            }
+        }
+
+        // Save the last recipe
+        currentRecipe?.let { recipes.add(recipeService.createRecipe(it)) }
+
+        // Add subrecipes to the main recipes
+        recipes.forEach { recipe ->
+            val subrecipeNames = subrecipesToAdd[recipe.name]
+            if (subrecipeNames != null) {
+                val subrecipes = subrecipeNames.mapNotNull { name ->
+                    recipes.find { it.name == name }
+                }
+                recipe.subrecipes.addAll(subrecipes)
+                recipeService.updateRecipe(recipe.id, recipe)
+            }
+        }
+
+        return recipes
+    }
 
     @PostMapping("/export-all")
     fun exportRecipes(@RequestBody(required = false) recipeIds: List<Long>?): ResponseEntity<String> {

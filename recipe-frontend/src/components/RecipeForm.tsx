@@ -276,6 +276,19 @@ function RecipeForm({ recipe, onCancel, onRecipeSaved }: RecipeFormProps) {
             setCsvFile(null);
             // @ts-expect-error won't be null
             document.getElementById('csvFileName').value = '';
+            setName(response.data.name);
+            setSubrecipe(response.data.subrecipe);
+            setInstructions(response.data.instructions);
+            setPeople(response.data.people);
+            setServed(response.data.served || '');
+            setSourceId(response.data.source?.id || null);
+            setPageRef(response.data.pageRef || '');
+            setRating(response.data.rating || null);
+            setWineTips(response.data.wineTips || null);
+            setNotes(response.data.notes || '');
+            setIngredients(response.data.ingredients || []);
+            setSubrecipes(response.data.subrecipes || []);
+            setAttachments(response.data.attachments || []);
         } catch (error) {
             console.error('Error importing ingredients:', error);
             setApiError('Failed to import ingredients. Please try again.');

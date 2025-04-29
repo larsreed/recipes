@@ -11,6 +11,16 @@ class SourceService(private val sourceRepository: SourceRepository) {
 
     fun getAllSources(): List<Source> = sourceRepository.findAll()
 
+    fun createOrGetSource(name: String, authors: String): Source {
+        // Check if the source already exists
+        val existingSource = sourceRepository.findByName(name)
+        return existingSource.orElseGet {
+            // Create and save a new source
+            val newSource = Source(name = name, authors = authors)
+            sourceRepository.save(newSource)
+        }
+    }
+
     fun deleteSource(id: Long) = sourceRepository.deleteById(id)
 
     fun getSource(id: Long): Source {
@@ -19,7 +29,6 @@ class SourceService(private val sourceRepository: SourceRepository) {
     }
 
     fun saveSource(source: Source): Source = sourceRepository.save(source)
-
 
     @Transactional
     fun updateSource(id: Long, source: Source): Source {
