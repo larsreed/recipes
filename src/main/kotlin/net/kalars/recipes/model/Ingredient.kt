@@ -6,11 +6,12 @@ import jakarta.persistence.*
 data class Ingredient(
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     val id: Long = 0,
+    var prefix: String? = null,
     var amount: Float? = null,
     var measure: String? = null,
     @Column(nullable = false)
     var name: String,
     var instruction: String? = null
 ) {
-    constructor() : this(0, null, null,"", null)
+    constructor() : this(0, null,null, null,"", null)
 }

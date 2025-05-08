@@ -22,6 +22,7 @@ interface Recipe {
     rating?: number;
     notes?: string;
     wineTips?: string;
+    matchFor?: string;
     ingredients: Ingredient[];
     source?: Source;
     attachments: Attachment[];
@@ -40,6 +41,7 @@ interface Source {
 }
 
 interface Ingredient {
+    prefix: string;
     amount?: number;
     name: string;
     instruction?: string;
@@ -65,6 +67,7 @@ function RecipeForm({ recipe, onCancel, onRecipeSaved }: RecipeFormProps) {
     const [pageRef, setPageRef] = useState(recipe?.pageRef || '');
     const [rating, setRating] = useState<number | null>(recipe?.rating || null);
     const [wineTips, setWineTips] = useState(recipe?.wineTips || null);
+    const [matchFor, setMatchFor] = useState(recipe?.matchFor || null);
     const [notes, setNotes] = useState(recipe?.notes || '');
     const [ingredients, setIngredients] = useState<Ingredient[]>(recipe?.ingredients || [{ name: '' }]);
     const [attachments, setAttachments] = useState<Attachment[]>(recipe?.attachments || []);
@@ -108,6 +111,7 @@ function RecipeForm({ recipe, onCancel, onRecipeSaved }: RecipeFormProps) {
             setPageRef(recipe.pageRef || '');
             setRating(recipe.rating || null);
             setWineTips(recipe.wineTips || null);
+            setMatchFor(recipe.matchFor || null);
             setNotes(recipe.notes || '');
             setIngredients(recipe.ingredients || []);
             setSubrecipes(recipe.subrecipes || []);
@@ -121,6 +125,7 @@ function RecipeForm({ recipe, onCancel, onRecipeSaved }: RecipeFormProps) {
             setPageRef('');
             setRating(null);
             setWineTips(null);
+            setMatchFor(null)
             setNotes('');
             setIngredients([]);
         }
@@ -258,6 +263,7 @@ function RecipeForm({ recipe, onCancel, onRecipeSaved }: RecipeFormProps) {
             people,
             served,
             wineTips,
+            matchFor,
             sourceId,
             pageRef,
             rating,
@@ -285,6 +291,7 @@ function RecipeForm({ recipe, onCancel, onRecipeSaved }: RecipeFormProps) {
             setPageRef(response.data.pageRef || '');
             setRating(response.data.rating || null);
             setWineTips(response.data.wineTips || null);
+            setMatchFor(response.data.matchFor || null);
             setNotes(response.data.notes || '');
             setIngredients(response.data.ingredients || []);
             setSubrecipes(response.data.subrecipes || []);
@@ -310,6 +317,7 @@ function RecipeForm({ recipe, onCancel, onRecipeSaved }: RecipeFormProps) {
             people,
             served,
             wineTips,
+            matchFor,
             ingredients,
             sourceId,
             pageRef,
@@ -332,6 +340,7 @@ function RecipeForm({ recipe, onCancel, onRecipeSaved }: RecipeFormProps) {
             setPageRef('');
             setRating(null);
             setWineTips(null);
+            setMatchFor(null)
             setNotes('');
             setIngredients([]);
             setAttachments([]);
@@ -401,6 +410,10 @@ function RecipeForm({ recipe, onCancel, onRecipeSaved }: RecipeFormProps) {
                     <input type="text" value={wineTips ?? ''} onChange={(e) => setWineTips(e.target.value)}/>
                 </div>
                 <div className="form-group">
+                    <label>Good match for:</label>
+                    <input type="text" value={matchFor ?? ''} onChange={(e) => setMatchFor(e.target.value)}/>
+                </div>
+                <div className="form-group">
                     <label>Notes:</label>
                     <textarea value={notes} onChange={(e) => setNotes(e.target.value)}/>
                 </div>
@@ -422,7 +435,7 @@ function RecipeForm({ recipe, onCancel, onRecipeSaved }: RecipeFormProps) {
                     </div>
                 )}
                 <div className="form-group">
-                <label>Select Subrecipe:</label>
+                    <label>Select Subrecipe:</label>
                     <select value={selectedSubrecipeId ?? ''}
                             onChange={(e) => setSelectedSubrecipeId(e.target.value ? parseInt(e.target.value) : null)}>
                         <option value="">Select a subrecipe</option>
@@ -459,6 +472,7 @@ function RecipeForm({ recipe, onCancel, onRecipeSaved }: RecipeFormProps) {
                     <table className="ingredient-table">
                         <thead>
                         <tr>
+                            <th>Prefix</th>
                             <th>Amount</th>
                             <th>Measure</th>
                             <th>Name</th>
@@ -469,6 +483,16 @@ function RecipeForm({ recipe, onCancel, onRecipeSaved }: RecipeFormProps) {
                         <tbody>
                         {ingredients.map((ingredient, index) => (
                             <tr key={index}>
+                                <td>
+                                    <input
+                                        type="text"
+                                        placeholder="Prefix"
+                                        value={ingredient.prefix}
+                                        onChange={(e) => handleIngredientChange(index, 'prefix', e.target.value)}
+                                    />
+                                    {errors[`ingredient-${index}-prefix`] &&
+                                        <p className="error">{errors[`ingredient-${index}-prefix`]}</p>}
+                                </td>
                                 <td>
                                     <input
                                         type="number"

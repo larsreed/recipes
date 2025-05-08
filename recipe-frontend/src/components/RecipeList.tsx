@@ -23,6 +23,7 @@ interface Recipe {
     rating?: number;
     people: number;
     wineTips?: string;
+    matchFor?: string;
     ingredients: Ingredient[];
     attachments: Attachment[];
     instructions: string;
@@ -37,6 +38,7 @@ interface Source {
 
 interface Ingredient {
     id: number;
+    prefix: string;
     amount: number;
     measure: string;
     name: string;
@@ -266,13 +268,15 @@ function RecipeList() {
                 ${recipe.source ? `<p>Source: ${recipe.source.name}${recipe.pageRef ? ` p.${recipe.pageRef}` : ''}</p>` : ''}
                 ${recipe.rating ? `<p>Rating: ${recipe.rating}</p>` : ''}
                 ${recipe.wineTips ? `<p>Wine tips: ${recipe.wineTips}</p>` : ''}
+                ${recipe.matchFor ? `<p>Match for: ${recipe.matchFor}</p>` : ''}
                 ${recipe.subrecipe ? `<h4>Ingredients</h4>` : `<h3>Ingredients</h3>`}
                 <ul>
                     ${recipe.ingredients.map(ingredient => `
                         <li class="ingredient">
+                            ${ingredient.prefix || ""}
                             ${ingredient.amount ? ((ingredient.amount * guestsNumber) / recipe.people).toFixed(2) : ''} 
                             ${ingredient.measure || ''} 
-                            ${ingredient.name} 
+                            ${ingredient.name}
                             ${ingredient.instruction || ""}
                         </li>
                     `).join('')}

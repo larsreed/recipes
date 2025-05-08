@@ -9,7 +9,8 @@ CREATE TABLE recipe (
     page_ref VARCHAR(64) NULL,
     rating INT NULL,
     notes TEXT NULL,
-    wine_tip TEXT null
+    wine_tips TEXT null,
+    match_for TEXT NULL
 );
 
 CREATE TABLE ingredient (
@@ -17,6 +18,7 @@ CREATE TABLE ingredient (
     amount FLOAT NULL,
     measure VARCHAR(10) NULL,
     name VARCHAR(128) NOT NULL,
+    prefix VARCHAR(255) NULL,
     instruction TEXT NULL,
     recipe_id BIGINT,
     CONSTRAINT fk_recipe

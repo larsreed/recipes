@@ -78,6 +78,7 @@ class RecipeController(private val recipeService: RecipeService,
             pattern.matcher(recipe.instructions).find() ||
             pattern.matcher(recipe.served ?: "" ).find() ||
             pattern.matcher(recipe.wineTips ?: "").find() ||
+            pattern.matcher(recipe.matchFor ?: "").find() ||
             recipe.ingredients.any { ingredient ->
                 pattern.matcher(ingredient.name).find() ||
                 pattern.matcher(ingredient.instruction ?: "").find()
@@ -92,10 +93,11 @@ class RecipeController(private val recipeService: RecipeService,
         val ingredientList = reader.lines().skip(1).map { line ->
             val columns = line.split(",", ";", "\t")
             Ingredient(
-                amount = columns[0].toFloatOrNull(),
-                measure = columns[1],
-                name = columns[2],
-                instruction = columns[3]
+                prefix = columns[0],
+                amount = columns[1].toFloatOrNull(),
+                measure = columns[2],
+                name = columns[3],
+                instruction = columns[4]
             )
         }.collect(Collectors.toList())
         recipe.ingredients.addAll(ingredientList)
@@ -143,10 +145,11 @@ class RecipeController(private val recipeService: RecipeService,
                     // Add an ingredient to the current recipe
                     currentRecipe?.ingredients?.add(
                         Ingredient(
-                            amount = columns[1].toFloatOrNull(),
-                            measure = columns[2],
-                            name = columns[3].replace("\\n", "\n"),
-                            instruction = columns[4].replace("\\n", "\n")
+                            prefix = columns[1].replace("\\n", "\n"),
+                            amount = columns[2].toFloatOrNull(),
+                            measure = columns[3],
+                            name = columns[4].replace("\\n", "\n"),
+                            instruction = columns[5].replace("\\n", "\n")
                         )
                     )
                 }
@@ -223,6 +226,8 @@ class RecipeController(private val recipeService: RecipeService,
                 recipe.ingredients.forEach { ingredient ->
                     append(
                         "+Ingredient\t${
+                            ingredient.prefix ?: ""
+                        }\t${
                             ingredient.amount ?: ""
                         }\t${
                             ingredient.measure ?: ""

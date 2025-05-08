@@ -48,6 +48,7 @@ class RecipeService(
         existingRecipe.rating = recipe.rating
         existingRecipe.notes = recipe.notes
         existingRecipe.wineTips = recipe.wineTips
+        existingRecipe.matchFor = recipe.matchFor
 
         updateCollection(existingRecipe.ingredients, recipe.ingredients)
         updateCollection(existingRecipe.attachments, recipe.attachments)
