@@ -5,9 +5,9 @@
 
 # Features
 
-1. create a shopping list from selected (at least one) recipes, including subrecipes
-2. Make it possible to change order of ingredients
-3. make it possible to group ingredients
+1. Make it possible to change order of ingredients
+2. make it possible to group ingredients
+3. add logo to top of page
 4. ESC to close dialogs (RecipeForm, do you want YES=ENter,ESC=no)
     1. check if dirty first, also for SourceModal
 5. Hide the import-buttons until a file is selected
@@ -26,6 +26,7 @@
     1. \+ visual editor
 18. export - should only export referenced sources, not all, if a subset of recipes is exported
 19. cleanup extraneous logging
+20. add up amounts on shopping list
 
 # General improvements
 

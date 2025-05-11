@@ -64,6 +64,7 @@ function RecipeList() {
     const [sortConfig, setSortConfig] = useState({ key: 'id', direction: 'ascending' });
     const [csvFile, setCsvFile] = useState<File | null>(null);
     const [apiError, setApiError] = useState<string | null>(null);
+    const [shoppingList, setShoppingList] = useState([]);
 
     const fetchRecipes = () => {
         axios.get(`${config.backendUrl}/api/recipes?includeSubrecipes=${includeSubrecipes}`)
@@ -242,6 +243,73 @@ function RecipeList() {
             });
         } catch (error) {
             console.error("Error exporting recipes:", error);
+        }
+    };
+
+    const handleShoppingList = () => {
+        const recipesToShop = selectedRecipes.size === 0 ? [] : recipes
+            .filter(recipe => selectedRecipes.has(recipe.id))
+            .map(recipe => recipe.id); // Only include IDs
+
+        const guests = prompt("Guests", "4");
+        if (guests && parseInt(guests) > 0) {
+
+            try {
+                axios.post(`${config.backendUrl}/api/recipes/shopping-list`,
+                    recipesToShop.length > 0 ? recipesToShop : null, // Send null for an empty body
+                    {
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                    }
+                ).then(response => {
+                    const shoppingContent = response.data; // Assuming the backend returns CSV content as plain text
+                    console.log(shoppingContent);
+                    const newWindow = window.open("", "_blank");
+                    if (newWindow) {
+                        const htmlContent = `
+                        <html>
+                        <head>
+                            <title>Shopping List</title>
+                            <style>
+                                body { font-family: Arial, sans-serif; margin: 20px; }
+                                table { border-collapse: collapse; width: 100%; }
+                                th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+                                th { background-color: #f4f4f4; }
+                            </style>
+                        </head>
+                        <body>
+                            <h1>Shopping List</h1>
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Name</th>
+                                        <th>Amount</th>
+                                        <th>Measure</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    ${shoppingContent.map(item => `
+                                        <tr>
+                                            <td>${item.name}</td>
+                                            <td>${item.amount ? ((item.amount * guests) / item.people).toFixed(2) : ''} 
+                                            <td>${item.measure || ''}</td>
+                                        </tr>
+                                    `).join('')}
+                                </tbody>
+                            </table>
+                        </body>
+                        </html>
+                    `;
+                        newWindow.document.write(htmlContent);
+                        newWindow.document.close();
+                    }
+                }).catch(error => {
+                    console.error("Error exporting shopping list:", error);
+                });
+            } catch (error) {
+                console.error("Error exporting shopping list:", error);
+            }
         }
     };
 
@@ -481,7 +549,7 @@ function RecipeList() {
                         Source <i className={getSortIcon('source')}></i>
                     </th>
                     <th onClick={() => requestSort('pageRef')}>
-                        Page Reference <i className={getSortIcon('pageRef')}></i>
+                        Page Ref <i className={getSortIcon('pageRef')}></i>
                     </th>
                     <th onClick={() => requestSort('rating')}>
                         Rating <i className={getSortIcon('rating')}></i>
@@ -497,6 +565,10 @@ function RecipeList() {
                         &nbsp;
                         <button onClick={() => handleExportCsv()} title="Export All to CSV">
                             <i className="fas fa-file-export"></i>
+                        </button>
+                        &nbsp;
+                        <button onClick={() => handleShoppingList()} title="Export shopping list">
+                            <i className="fas fa-list"></i>
                         </button>
                     </th>
                 </tr>

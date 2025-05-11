@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import net.kalars.recipes.model.Attachment
 import net.kalars.recipes.model.Ingredient
 import net.kalars.recipes.model.Recipe
+import net.kalars.recipes.model.ShoppingListItem
 import net.kalars.recipes.service.RecipeService
 import net.kalars.recipes.service.SourceService
 import org.springframework.http.ResponseEntity
@@ -255,4 +256,10 @@ class RecipeController(private val recipeService: RecipeService,
             .header("Content-Type", "text/csv")
             .body(csvContent)
     }
+
+    @PostMapping("/shopping-list")
+    fun createShoppingList(@RequestBody recipeIds: List<Long>): List<ShoppingListItem> {
+        return recipeService.generateShoppingList(recipeIds)
+    }
+
 }

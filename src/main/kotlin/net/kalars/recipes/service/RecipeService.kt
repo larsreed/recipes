@@ -1,6 +1,7 @@
 package net.kalars.recipes.service
 
 import net.kalars.recipes.model.Recipe
+import net.kalars.recipes.model.ShoppingListItem
 import net.kalars.recipes.model.Source
 import net.kalars.recipes.repository.RecipeRepository
 import net.kalars.recipes.repository.SourceRepository
@@ -90,4 +91,26 @@ class RecipeService(
     fun findBySubrecipesId(subrecipeId: Long): List<Recipe> = recipeRepository.findBySubrecipesId(subrecipeId)
 
     fun getRecipesByIds(recipeIds: List<Long>): List<Recipe> =  recipeRepository.findAllById(recipeIds)
+
+    fun generateShoppingList(recipeIds: List<Long>): List<ShoppingListItem> {
+        val ingredients = mutableListOf<ShoppingListItem>()
+
+        recipeIds.forEach { recipeId ->
+            val recipe = recipeRepository.findById(recipeId).orElseThrow {
+                IllegalArgumentException("Recipe not found: $recipeId")
+            }
+            collectIngredients(recipe, ingredients)
+        }
+
+        return ingredients
+            .sortedBy { it.name }
+    }
+
+    private fun collectIngredients(recipe: Recipe, ingredients: MutableList<ShoppingListItem>) {
+        recipe.ingredients.forEach {
+            ingredients.add(ShoppingListItem(it.name, it.amount, it.measure,recipe.people))
+        }
+        recipe.subrecipes.forEach { subrecipe -> collectIngredients(subrecipe, ingredients) }
+    }
+
 }
