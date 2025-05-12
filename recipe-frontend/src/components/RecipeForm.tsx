@@ -335,34 +335,29 @@ function RecipeForm({ recipe, onCancel, onRecipeSaved }: RecipeFormProps) {
     return (
         <form onSubmit={handleSubmit} className="recipe-form">
             <h2>{recipe ? 'Edit Recipe' : 'Add a New Recipe'}</h2>
-            <div className="form-group">
+            <div className="form-line" style={{display: 'flex', gap: '1rem'}}>
                 <label>Name:</label>
-                <input type="text" value={name} onChange={(e) => setName(e.target.value)}/>
+                <input type="text" value={name}
+                       style={{flexGrow: 1}}
+                       onChange={(e) => setName(e.target.value)}/>
                 {errors.name && <p className="error">{errors.name}</p>}
-            </div>
-            <div className="form-group">
-                <label>
+                <label style={{marginLeft: 'auto'}}>
                     <input type="checkbox" checked={subrecipe} onChange={(e) => setSubrecipe(e.target.checked)}/>
                     Is subrecipe
                 </label>
+                <label>People:</label>
+                <input type="number" value={people} onChange={(e) => setPeople(parseInt(e.target.value))}/>
+                {errors.people && <p className="error">{errors.people}</p>}
             </div>
             <div className="form-group">
                 <label>Instructions:</label>
                 <textarea value={instructions} onChange={(e) => setInstructions(e.target.value)}/>
                 {errors.instructions && <p className="error">{errors.instructions}</p>}
             </div>
-            <div className="form-group">
-                <label>People:</label>
-                <input type="number" value={people} onChange={(e) => setPeople(parseInt(e.target.value))}/>
-                {errors.people && <p className="error">{errors.people}</p>}
-            </div>
-            <div className="form-group">
-                <label>Served:</label>
-                <textarea value={served} onChange={(e) => setServed(e.target.value)}/>
-            </div>
-            <div className="form-group">
+            <div className="form-line">
                 <label>Source:</label>
                 <select value={sourceId ?? ''}
+                        style={{flexGrow: 0.8}}
                         onChange={(e) => setSourceId(e.target.value ? parseInt(e.target.value) : null)}>
                     <option value="">No source</option>
                     {sources.map((source) => (
@@ -371,23 +366,28 @@ function RecipeForm({ recipe, onCancel, onRecipeSaved }: RecipeFormProps) {
                         </option>
                     ))}
                 </select>
-            </div>
-            <div className="form-group">
                 <label>Page Reference:</label>
-                <input type="text" value={pageRef} onChange={(e) => setPageRef(e.target.value)}/>
+                <input type="text" value={pageRef}
+                       style={{flexGrow: 0.2}}
+                       onChange={(e) => setPageRef(e.target.value)}/>
             </div>
-            <div className="form-group">
+            <div className="form-line">
                 <label>Rating:</label>
                 <input type="number" min="1" max="6" value={rating ?? ''}
+                       style={{flexGrow: 0.1}}
                        onChange={(e) => setRating(parseInt(e.target.value))}/>
-            </div>
-            <div className="form-group">
+                <label>Served:</label>
+                <textarea value={served}
+                          style={{flexGrow:  0.3}}
+                          onChange={(e) => setServed(e.target.value)}/>
                 <label>Wine tips:</label>
-                <input type="text" value={wineTips ?? ''} onChange={(e) => setWineTips(e.target.value)}/>
-            </div>
-            <div className="form-group">
+                <input type="text"
+                       style={{flexGrow: 0.3}}
+                       value={wineTips ?? ''} onChange={(e) => setWineTips(e.target.value)}/>
                 <label>Good match for:</label>
-                <input type="text" value={matchFor ?? ''} onChange={(e) => setMatchFor(e.target.value)}/>
+                <input type="text" value={matchFor ?? ''}
+                       style={{flexGrow: 0.3}}
+                       onChange={(e) => setMatchFor(e.target.value)}/>
             </div>
             <div className="form-group">
                 <label>Notes:</label>
@@ -397,17 +397,26 @@ function RecipeForm({ recipe, onCancel, onRecipeSaved }: RecipeFormProps) {
                 <div id="attachments" className="form-group">
                     <label>Attachments</label>
                     <input type="file" onChange={handleFileChange}/>
-                    <ul>
-                        {attachments.map(attachment => (
-                            <li key={attachment.id}>
-                                {attachment.fileName}
-                                &nbsp;
-                                <button onClick={() => handleDeleteAttachment(attachment.id)} title="Delete">
-                                    <i className="fas fa-remove"></i>
-                                </button>
-                            </li>
+                    <table className="attachment-table">
+                        <thead>
+                        <tr>
+                            <th>File Name</th>
+                            <th>!</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        {attachments.map((attachment) => (
+                            <tr key={attachment.id}>
+                                <td>{attachment.fileName}</td>
+                                <td>
+                                    <button onClick={() => handleDeleteAttachment(attachment.id)} title="Delete">
+                                        <i className="fas fa-remove"></i>
+                                    </button>
+                                </td>
+                            </tr>
                         ))}
-                    </ul>
+                        </tbody>
+                    </table>
                 </div>
             )}
             <div className="form-group">
@@ -416,7 +425,7 @@ function RecipeForm({ recipe, onCancel, onRecipeSaved }: RecipeFormProps) {
                     <thead>
                     <tr>
                         <th>Name</th>
-                        <th></th>
+                        <th>!</th>
                     </tr>
                     </thead>
                     <tbody>

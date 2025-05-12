@@ -120,6 +120,12 @@ input[type="file"] {
   gap: 0.5rem;
 }
 
+.form-line {
+  display: flex;
+  flex-direction: row;
+  gap: 0.5rem;
+}
+
 .form-group label,
 .ingredient-group label,
 .ingredient-field label {
@@ -152,6 +158,10 @@ button {
   color: #fff;
   transition: background-color 0.3s ease;
   width: fit-content;
+}
+
+label {
+   color: #336699;
 }
 
 .form-actions button {
@@ -209,4 +219,21 @@ ul li {
 
 .subrecipe-item {
   text-align: left;
+}
+
+.attachment-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.attachment-table th,
+.attachment-table td {
+  border: 1px solid #ddd;
+  padding: 8px;
+  text-align: left;
+}
+
+.attachment-table th {
+  background-color: #4682b4; /* SteelBlue */
+  color: white;
 }
