@@ -273,7 +273,7 @@ function RecipeList() {
                             <title>Shopping List</title>
                             <style>
                                 body { font-family: Arial, sans-serif; margin: 20px; }
-                                table { border-collapse: collapse; width: 100%; }
+                                table { border-collapse: collapse; }
                                 th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
                                 th { background-color: #f4f4f4; }
                             </style>
@@ -283,7 +283,7 @@ function RecipeList() {
                             <table>
                                 <thead>
                                     <tr>
-                                        <th>Name</th>
+                                        <th>Item</th>
                                         <th>Amount</th>
                                         <th>Measure</th>
                                     </tr>
@@ -559,11 +559,11 @@ function RecipeList() {
                             <i className="fas fa-plus"></i>
                         </button>
                         &nbsp;
-                        <button onClick={() => handleExportView()} title="View All">
+                        <button onClick={() => handleExportView()} title="Print layout">
                             <i className="fas fa-print"></i>
                         </button>
                         &nbsp;
-                        <button onClick={() => handleExportCsv()} title="Export All to CSV">
+                        <button onClick={() => handleExportCsv()} title="Export to CSV">
                             <i className="fas fa-file-export"></i>
                         </button>
                         &nbsp;
