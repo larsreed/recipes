@@ -1,6 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { useDrag, useDrop, DndProvider } from 'react-dnd';
-import { HTML5Backend } from 'react-dnd-html5-backend';
 import axios from 'axios';
 import config from '../config';
 
@@ -170,42 +168,6 @@ function RecipeForm({ recipe, onCancel, onRecipeSaved }: RecipeFormProps) {
         setSubrecipes(newSubrecipes);
     };
 
-    const moveSubrecipe = (fromIndex: number, toIndex: number) => {
-        const updatedSubrecipes = [...subrecipes];
-        const [movedSubrecipe] = updatedSubrecipes.splice(fromIndex, 1);
-        updatedSubrecipes.splice(toIndex, 0, movedSubrecipe);
-        setSubrecipes(updatedSubrecipes);
-    };
-
-    const ItemType = 'SUBRECIPE';
-
-    const DraggableSubrecipe = ({ subrecipe, index, moveSubrecipe }) => {
-        const [, ref] = useDrag({
-            type: ItemType,
-            item: { index },
-        });
-
-        const [, drop] = useDrop({
-            accept: ItemType,
-            hover: (draggedItem) => {
-                if (draggedItem.index !== index) {
-                    moveSubrecipe(draggedItem.index, index);
-                    draggedItem.index = index;
-                }
-            },
-        });
-
-        return (
-            // @ts-expect-error look at later
-            <div class="subrecipe-item" ref={(node) => ref(drop(node))}>
-                <span>{subrecipe.name}</span>
-                &nbsp;
-                <button onClick={() => handleRemoveSubrecipe(index)} title="Remove">
-                    <i className="fas fa-remove"></i>
-                </button>
-            </div>
-        );
-    };
 
     const handleIngredientChange = (index: number, field: string, value: string | number) => {
         const newIngredients = [...ingredients];
@@ -356,88 +318,111 @@ function RecipeForm({ recipe, onCancel, onRecipeSaved }: RecipeFormProps) {
     };
 
     return (
-        <DndProvider backend={HTML5Backend}>
-            <form onSubmit={handleSubmit} className="recipe-form">
-                <h2>{recipe ? 'Edit Recipe' : 'Add a New Recipe'}</h2>
-                <div className="form-group">
-                    <label>Name:</label>
-                    <input type="text" value={name} onChange={(e) => setName(e.target.value)}/>
-                    {errors.name && <p className="error">{errors.name}</p>}
-                </div>
-                <div className="form-group">
-                    <label>
-                        <input type="checkbox" checked={subrecipe} onChange={(e) => setSubrecipe(e.target.checked)}/>
-                        Is subrecipe
-                    </label>
-                </div>
-                <div className="form-group">
-                    <label>Instructions:</label>
-                    <textarea value={instructions} onChange={(e) => setInstructions(e.target.value)}/>
-                    {errors.instructions && <p className="error">{errors.instructions}</p>}
-                </div>
-                <div className="form-group">
-                    <label>People:</label>
-                    <input type="number" value={people} onChange={(e) => setPeople(parseInt(e.target.value))}/>
-                    {errors.people && <p className="error">{errors.people}</p>}
-                </div>
-                <div className="form-group">
-                    <label>Served:</label>
-                    <textarea value={served} onChange={(e) => setServed(e.target.value)}/>
-                </div>
-                <div className="form-group">
-                    <label>Source:</label>
-                    <select value={sourceId ?? ''}
-                            onChange={(e) => setSourceId(e.target.value ? parseInt(e.target.value) : null)}>
-                        <option value="">No source</option>
-                        {sources.map((source) => (
-                            <option key={source.id} value={source.id}>
-                                {source.name}
-                            </option>
+        <form onSubmit={handleSubmit} className="recipe-form">
+            <h2>{recipe ? 'Edit Recipe' : 'Add a New Recipe'}</h2>
+            <div className="form-group">
+                <label>Name:</label>
+                <input type="text" value={name} onChange={(e) => setName(e.target.value)}/>
+                {errors.name && <p className="error">{errors.name}</p>}
+            </div>
+            <div className="form-group">
+                <label>
+                    <input type="checkbox" checked={subrecipe} onChange={(e) => setSubrecipe(e.target.checked)}/>
+                    Is subrecipe
+                </label>
+            </div>
+            <div className="form-group">
+                <label>Instructions:</label>
+                <textarea value={instructions} onChange={(e) => setInstructions(e.target.value)}/>
+                {errors.instructions && <p className="error">{errors.instructions}</p>}
+            </div>
+            <div className="form-group">
+                <label>People:</label>
+                <input type="number" value={people} onChange={(e) => setPeople(parseInt(e.target.value))}/>
+                {errors.people && <p className="error">{errors.people}</p>}
+            </div>
+            <div className="form-group">
+                <label>Served:</label>
+                <textarea value={served} onChange={(e) => setServed(e.target.value)}/>
+            </div>
+            <div className="form-group">
+                <label>Source:</label>
+                <select value={sourceId ?? ''}
+                        onChange={(e) => setSourceId(e.target.value ? parseInt(e.target.value) : null)}>
+                    <option value="">No source</option>
+                    {sources.map((source) => (
+                        <option key={source.id} value={source.id}>
+                            {source.name}
+                        </option>
+                    ))}
+                </select>
+            </div>
+            <div className="form-group">
+                <label>Page Reference:</label>
+                <input type="text" value={pageRef} onChange={(e) => setPageRef(e.target.value)}/>
+            </div>
+            <div className="form-group">
+                <label>Rating:</label>
+                <input type="number" min="1" max="6" value={rating ?? ''}
+                       onChange={(e) => setRating(parseInt(e.target.value))}/>
+            </div>
+            <div className="form-group">
+                <label>Wine tips:</label>
+                <input type="text" value={wineTips ?? ''} onChange={(e) => setWineTips(e.target.value)}/>
+            </div>
+            <div className="form-group">
+                <label>Good match for:</label>
+                <input type="text" value={matchFor ?? ''} onChange={(e) => setMatchFor(e.target.value)}/>
+            </div>
+            <div className="form-group">
+                <label>Notes:</label>
+                <textarea value={notes} onChange={(e) => setNotes(e.target.value)}/>
+            </div>
+            {recipe && (
+                <div id="attachments" className="form-group">
+                    <label>Attachments</label>
+                    <input type="file" onChange={handleFileChange}/>
+                    <ul>
+                        {attachments.map(attachment => (
+                            <li key={attachment.id}>
+                                {attachment.fileName}
+                                &nbsp;
+                                <button onClick={() => handleDeleteAttachment(attachment.id)} title="Delete">
+                                    <i className="fas fa-remove"></i>
+                                </button>
+                            </li>
                         ))}
-                    </select>
+                    </ul>
                 </div>
-                <div className="form-group">
-                    <label>Page Reference:</label>
-                    <input type="text" value={pageRef} onChange={(e) => setPageRef(e.target.value)}/>
-                </div>
-                <div className="form-group">
-                    <label>Rating:</label>
-                    <input type="number" min="1" max="6" value={rating ?? ''}
-                           onChange={(e) => setRating(parseInt(e.target.value))}/>
-                </div>
-                <div className="form-group">
-                    <label>Wine tips:</label>
-                    <input type="text" value={wineTips ?? ''} onChange={(e) => setWineTips(e.target.value)}/>
-                </div>
-                <div className="form-group">
-                    <label>Good match for:</label>
-                    <input type="text" value={matchFor ?? ''} onChange={(e) => setMatchFor(e.target.value)}/>
-                </div>
-                <div className="form-group">
-                    <label>Notes:</label>
-                    <textarea value={notes} onChange={(e) => setNotes(e.target.value)}/>
-                </div>
-                {recipe && (
-                    <div id="attachments" className="form-group">
-                        <label>Attachments</label>
-                        <input type="file" onChange={handleFileChange}/>
-                        <ul>
-                            {attachments.map(attachment => (
-                                <li key={attachment.id}>
-                                    {attachment.fileName}
-                                    &nbsp;
-                                    <button onClick={() => handleDeleteAttachment(attachment.id)} title="Delete">
-                                        <i className="fas fa-remove"></i>
-                                    </button>
-                                </li>
-                            ))}
-                        </ul>
-                    </div>
-                )}
+            )}
+            <div className="form-group">
+                <label>Subrecipes:</label>
+                <table className="subrecipe-table">
+                    <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th></th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    {subrecipes.map((subrecipe, index) => (
+                        <tr key={subrecipe.id}>
+                            <td>{subrecipe.name}</td>
+                            <td>
+                                <button type="button" onClick={() => handleRemoveSubrecipe(index)} title="Remove">
+                                    <i className="fas fa-remove"></i>
+                                </button>
+                            </td>
+                        </tr>
+                    ))}
+                    </tbody>
+                </table>
                 <div className="form-group">
                     <label>Select Subrecipe:</label>
-                    <select value={selectedSubrecipeId ?? ''}
-                            onChange={(e) => setSelectedSubrecipeId(e.target.value ? parseInt(e.target.value) : null)}>
+                    <select
+                        value={selectedSubrecipeId ?? ''}
+                        onChange={(e) => setSelectedSubrecipeId(e.target.value ? parseInt(e.target.value) : null)}
+                    >
                         <option value="">Select a subrecipe</option>
                         {availableRecipes.map((recipe) => (
                             <option key={recipe.id} value={recipe.id}>
@@ -447,117 +432,107 @@ function RecipeForm({ recipe, onCancel, onRecipeSaved }: RecipeFormProps) {
                     </select>
                     <button type="button" onClick={handleAddSubrecipe}>Add Subrecipe</button>
                 </div>
+            </div>
+            {recipe?.subrecipe && mainRecipes.length > 0 && (
                 <div className="form-group">
-                    {subrecipes.map((subrecipe, index) => (
-                        <DraggableSubrecipe
-                            key={subrecipe.id}
-                            index={index}
-                            subrecipe={subrecipe}
-                            moveSubrecipe={moveSubrecipe}
-                        />
-                    ))}
-                </div>
-                {recipe?.subrecipe && mainRecipes.length > 0 && (
-                    <div className="form-group">
-                        <h3>Referenced by</h3>
-                        <ul>
-                            {mainRecipes.map(mainRecipe => (
-                                <li key={mainRecipe.id}>{mainRecipe.name}</li>
-                            ))}
-                        </ul>
-                    </div>
-                )}
-                <div className="form-group">
-                    <label>Ingredients:</label>
-                    <table className="ingredient-table">
-                        <thead>
-                        <tr>
-                            <th>Prefix</th>
-                            <th>Amount</th>
-                            <th>Measure</th>
-                            <th>Name</th>
-                            <th>Instruction</th>
-                            <th>!</th>
-                        </tr>
-                        </thead>
-                        <tbody>
-                        {ingredients.map((ingredient, index) => (
-                            <tr key={index}>
-                                <td>
-                                    <input
-                                        type="text"
-                                        placeholder="Prefix"
-                                        value={ingredient.prefix}
-                                        onChange={(e) => handleIngredientChange(index, 'prefix', e.target.value)}
-                                    />
-                                    {errors[`ingredient-${index}-prefix`] &&
-                                        <p className="error">{errors[`ingredient-${index}-prefix`]}</p>}
-                                </td>
-                                <td>
-                                    <input
-                                        type="number"
-                                        placeholder="Amount"
-                                        value={ingredient.amount ?? ''}
-                                        onChange={(e) => handleIngredientChange(index, 'amount', parseFloat(e.target.value))}
-                                    />
-                                    {errors[`ingredient-${index}-amount`] &&
-                                        <p className="error">{errors[`ingredient-${index}-amount`]}</p>}
-                                </td>
-                                <td>
-                                    <select
-                                        value={ingredient.measure ?? ''}
-                                        onChange={(e) => handleIngredientChange(index, 'measure', e.target.value)}
-                                    >
-                                        {measureOptions.map(option => (
-                                            <option key={option} value={option}>{option}</option>
-                                        ))}
-                                    </select>
-                                    {errors[`ingredient-${index}-measure`] &&
-                                        <p className="error">{errors[`ingredient-${index}-measure`]}</p>}
-                                </td>
-                                <td>
-                                    <input
-                                        type="text"
-                                        placeholder="Name"
-                                        value={ingredient.name}
-                                        onChange={(e) => handleIngredientChange(index, 'name', e.target.value)}
-                                    />
-                                    {errors[`ingredient-${index}-name`] &&
-                                        <p className="error">{errors[`ingredient-${index}-name`]}</p>}
-                                </td>
-                                <td>
-                                    <input
-                                        type="text"
-                                        placeholder="Instruction"
-                                        value={ingredient.instruction ?? ''}
-                                        onChange={(e) => handleIngredientChange(index, 'instruction', e.target.value)}
-                                    />
-                                </td>
-                                <td>
-                                    <button type="button" onClick={() => removeIngredient(index)} title="Remove">
-                                        <i className="fas fa-remove"></i>
-                                    </button>
-                                </td>
-                            </tr>
+                    <h3>Referenced by</h3>
+                    <ul>
+                        {mainRecipes.map(mainRecipe => (
+                            <li key={mainRecipe.id}>{mainRecipe.name}</li>
                         ))}
-                        </tbody>
-                    </table>
-                    <button type="button" onClick={addIngredient}>Add Ingredient</button>
+                    </ul>
                 </div>
-                <div className="form-group">
-                    <label>Import Ingredients from CSV:</label>
-                    <input id="csvFileName" type="file" accept=".csv,.txt"
-                           onChange={(e) => setCsvFile(e.target.files[0])}/>
-                    <button type="button" onClick={handleImport}>Import</button>
-                </div>
+            )}
+            <div className="form-group">
+                <label>Ingredients:</label>
+                <table className="ingredient-table">
+                    <thead>
+                    <tr>
+                        <th>Prefix</th>
+                        <th>Amount</th>
+                        <th>Measure</th>
+                        <th>Name</th>
+                        <th>Instruction</th>
+                        <th>!</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    {ingredients.map((ingredient, index) => (
+                        <tr key={index}>
+                            <td>
+                                <input
+                                    type="text"
+                                    placeholder="Prefix"
+                                    value={ingredient.prefix}
+                                    onChange={(e) => handleIngredientChange(index, 'prefix', e.target.value)}
+                                />
+                                {errors[`ingredient-${index}-prefix`] &&
+                                    <p className="error">{errors[`ingredient-${index}-prefix`]}</p>}
+                            </td>
+                            <td>
+                                <input
+                                    type="number"
+                                    placeholder="Amount"
+                                    value={ingredient.amount ?? ''}
+                                    onChange={(e) => handleIngredientChange(index, 'amount', parseFloat(e.target.value))}
+                                />
+                                {errors[`ingredient-${index}-amount`] &&
+                                    <p className="error">{errors[`ingredient-${index}-amount`]}</p>}
+                            </td>
+                            <td>
+                                <select
+                                    value={ingredient.measure ?? ''}
+                                    onChange={(e) => handleIngredientChange(index, 'measure', e.target.value)}
+                                >
+                                    {measureOptions.map(option => (
+                                        <option key={option} value={option}>{option}</option>
+                                    ))}
+                                </select>
+                                {errors[`ingredient-${index}-measure`] &&
+                                    <p className="error">{errors[`ingredient-${index}-measure`]}</p>}
+                            </td>
+                            <td>
+                                <input
+                                    type="text"
+                                    placeholder="Name"
+                                    value={ingredient.name}
+                                    onChange={(e) => handleIngredientChange(index, 'name', e.target.value)}
+                                />
+                                {errors[`ingredient-${index}-name`] &&
+                                    <p className="error">{errors[`ingredient-${index}-name`]}</p>}
+                            </td>
+                            <td>
+                                <input
+                                    type="text"
+                                    placeholder="Instruction"
+                                    value={ingredient.instruction ?? ''}
+                                    onChange={(e) => handleIngredientChange(index, 'instruction', e.target.value)}
+                                />
+                            </td>
+                            <td>
+                                <button type="button" onClick={() => removeIngredient(index)} title="Remove">
+                                    <i className="fas fa-remove"></i>
+                                </button>
+                            </td>
+                        </tr>
+                    ))}
+                    </tbody>
+                </table>
+                <button type="button" onClick={addIngredient}>Add Ingredient</button>
+            </div>
+            <div className="form-group">
+                <label>Import Ingredients from CSV:</label>
+                <input id="csvFileName" type="file" accept=".csv,.txt"
+                       onChange={(e) => setCsvFile(e.target.files[0])}/>
+                <button type="button" onClick={handleImport}>Import</button>
+            </div>
 
-                {apiError && <p className="error">{apiError}</p>}
-                <div className="form-actions">
-                    <button type="submit">{recipe ? 'Save Recipe' : 'Add Recipe'}</button>
-                    <button type="button" onClick={onCancel}>Cancel</button>
-                </div>
-            </form>
-        </DndProvider>
+            {apiError && <p className="error">{apiError}</p>}
+            <div className="form-actions">
+                <button type="submit">{recipe ? 'Save Recipe' : 'Add Recipe'}</button>
+                <button type="button" onClick={onCancel}>Cancel</button>
+            </div>
+        </form>
     );
 }
 

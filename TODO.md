@@ -1,11 +1,10 @@
 # Bugs
 
-1. Order of sub recipes (drag/drop) is not saved in the database.
 
 
 # Features
 
-1. Make it possible to change order of ingredients
+1. Make it possible to change order of ingredients and subrecipes
 2. make it possible to group ingredients
 3. ESC to close dialogs (RecipeForm, do you want YES=ENter,ESC=no)
     1. check if dirty first, also for SourceModal
