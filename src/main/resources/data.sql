@@ -21,6 +21,7 @@ CREATE TABLE ingredient (
     prefix VARCHAR(255) NULL,
     instruction TEXT NULL,
     recipe_id BIGINT,
+    sortorder INT NOT NULL DEFAULT 0,
     CONSTRAINT fk_recipe
         FOREIGN KEY (recipe_id)
             REFERENCES Recipe(id)

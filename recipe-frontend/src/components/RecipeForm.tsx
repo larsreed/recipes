@@ -39,7 +39,7 @@ interface Source {
 }
 
 interface Ingredient {
-    prefix: string;
+    prefix?: string;
     amount?: number;
     name: string;
     instruction?: string;
@@ -67,7 +67,9 @@ function RecipeForm({ recipe, onCancel, onRecipeSaved }: RecipeFormProps) {
     const [wineTips, setWineTips] = useState(recipe?.wineTips || null);
     const [matchFor, setMatchFor] = useState(recipe?.matchFor || null);
     const [notes, setNotes] = useState(recipe?.notes || '');
-    const [ingredients, setIngredients] = useState<Ingredient[]>(recipe?.ingredients || [{ name: '' }]);
+    const [ingredients, setIngredients] = useState<Ingredient[]>(
+        recipe?.ingredients || [{ prefix: undefined, amount: undefined, name: '', instruction: undefined, measure: undefined }]
+    );
     const [attachments, setAttachments] = useState<Attachment[]>(recipe?.attachments || []);
 
     const [errors, setErrors] = useState<{ [key: string]: string }>({});
@@ -176,12 +178,20 @@ function RecipeForm({ recipe, onCancel, onRecipeSaved }: RecipeFormProps) {
     };
 
     const addIngredient = () => {
-        setIngredients([...ingredients, { name: '' }]);
+        setIngredients([...ingredients, { prefix: undefined, amount: undefined, name: '', instruction: undefined, measure: undefined }]);
     };
 
     const removeIngredient = (index: number) => {
         const newIngredients = ingredients.filter((_, i) => i !== index);
         setIngredients(newIngredients);
+    };
+
+    const moveIngredient = (fromIndex: number, toIndex: number) => {
+        if (toIndex < 0 || toIndex >= ingredients.length) return;
+        const updatedIngredients = [...ingredients];
+        const [movedIngredient] = updatedIngredients.splice(fromIndex, 1);
+        updatedIngredients.splice(toIndex, 0, movedIngredient);
+        setIngredients(updatedIngredients);
     };
 
     const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -205,10 +215,12 @@ function RecipeForm({ recipe, onCancel, onRecipeSaved }: RecipeFormProps) {
     };
 
     const handleDeleteAttachment = async (attachmentId: number) => {
+        // @ts-expect-error recipe won't be null
         const response = await axios.delete(`${config.backendUrl}/api/recipes/${recipe.id}/attachments/${attachmentId}`);
         setAttachments(response.data.attachments);
     };
 
+    // @ts-expect-error don't care
     const handleImport = async (event) => {
         event.preventDefault();
         if (!csvFile) {
@@ -280,7 +292,10 @@ function RecipeForm({ recipe, onCancel, onRecipeSaved }: RecipeFormProps) {
             served,
             wineTips,
             matchFor,
-            ingredients,
+            ingredients: ingredients.map((ingredient, index) => ({
+                ...ingredient,
+                sortorder: index
+            })),
             sourceId,
             pageRef,
             rating,
@@ -463,7 +478,7 @@ function RecipeForm({ recipe, onCancel, onRecipeSaved }: RecipeFormProps) {
                                 <input
                                     type="text"
                                     placeholder="Prefix"
-                                    value={ingredient.prefix}
+                                    value={ingredient.prefix ?? ''}
                                     onChange={(e) => handleIngredientChange(index, 'prefix', e.target.value)}
                                 />
                                 {errors[`ingredient-${index}-prefix`] &&
@@ -510,6 +525,17 @@ function RecipeForm({ recipe, onCancel, onRecipeSaved }: RecipeFormProps) {
                                 />
                             </td>
                             <td>
+                                <button type="button" onClick={() => moveIngredient(index, index - 1)}
+                                        disabled={index === 0}
+                                        title="Move Up">
+                                    <i className="fas fa-arrow-up"></i>
+                                </button>
+                                <button type="button" onClick={() => moveIngredient(index, index + 1)}
+                                        disabled={index === ingredients.length - 1}
+                                        title="Move Down">
+                                    <i className="fas fa-arrow-down"></i>
+                                </button>
+
                                 <button type="button" onClick={() => removeIngredient(index)} title="Remove">
                                     <i className="fas fa-remove"></i>
                                 </button>

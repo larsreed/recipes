@@ -1,5 +1,6 @@
 package net.kalars.recipes.service
 
+import net.kalars.recipes.model.Ingredient
 import net.kalars.recipes.model.Recipe
 import net.kalars.recipes.model.ShoppingListItem
 import net.kalars.recipes.model.Source
@@ -51,7 +52,20 @@ class RecipeService(
         existingRecipe.wineTips = recipe.wineTips
         existingRecipe.matchFor = recipe.matchFor
 
-        updateCollection(existingRecipe.ingredients, recipe.ingredients)
+        existingRecipe.ingredients.clear()
+        recipe.ingredients.forEachIndexed() { index, ingredientDto ->
+            val ing = Ingredient(
+                id = ingredientDto.id,
+                amount = ingredientDto.amount,
+                measure = ingredientDto.measure,
+                name = ingredientDto.name,
+                prefix = ingredientDto.prefix,
+                instruction = ingredientDto.instruction,
+                sortorder = index
+            )
+            existingRecipe.ingredients.add(ing)
+        }
+
         updateCollection(existingRecipe.attachments, recipe.attachments)
 
         existingRecipe.sourceId = recipe.sourceId
@@ -62,12 +76,12 @@ class RecipeService(
         }
 
         // Update subrecipes and preserve order
-        val subrecipes = recipe.subrecipes.map { subrecipe ->
-            recipeRepository.findById(subrecipe.id)
-                .orElseThrow { RuntimeException("Subrecipe not found") }
-        }
         existingRecipe.subrecipes.clear()
-        existingRecipe.subrecipes.addAll(subrecipes)
+        recipe.subrecipes.forEach { subrecipe ->
+            val subr = recipeRepository.findById(subrecipe.id)
+                .orElseThrow { RuntimeException("Subrecipe not found") }
+            existingRecipe.subrecipes.add(subr)
+        }
 
         return recipeRepository.save(existingRecipe)
     }

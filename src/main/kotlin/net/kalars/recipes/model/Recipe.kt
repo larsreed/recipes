@@ -31,6 +31,7 @@ data class Recipe(
 
     @OneToMany(cascade = [CascadeType.ALL], orphanRemoval = true, fetch = FetchType.LAZY)
     @JoinColumn(name = "recipe_id")
+    @OrderBy("sortorder ASC") // Ensures ingredients are ordered by sortorder
     var ingredients: MutableList<Ingredient> = mutableListOf(),
 
     @OneToMany(cascade = [CascadeType.ALL], orphanRemoval = true, fetch = FetchType.LAZY)

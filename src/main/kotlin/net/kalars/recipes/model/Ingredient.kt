@@ -11,7 +11,8 @@ data class Ingredient(
     var measure: String? = null,
     @Column(nullable = false)
     var name: String,
-    var instruction: String? = null
+    var instruction: String? = null,
+    var sortorder: Int = 0
 ) {
-    constructor() : this(0, null,null, null,"", null)
+    constructor() : this(0, null,null, null,"", null, 0)
 }
