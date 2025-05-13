@@ -82,6 +82,7 @@ class RecipeController(private val recipeService: RecipeService,
             pattern.matcher(recipe.matchFor ?: "").find() ||
             recipe.ingredients.any { ingredient ->
                 pattern.matcher(ingredient.name).find() ||
+                pattern.matcher(ingredient.prefix ?: "").find() ||
                 pattern.matcher(ingredient.instruction ?: "").find()
             }
         }
