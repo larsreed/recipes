@@ -15,7 +15,8 @@ class RecipeListDeserializer @Autowired constructor(
 
     override fun deserialize(p: JsonParser, ctxt: DeserializationContext): List<Recipe> {
         val node: JsonNode = p.codec.readTree(p)
-        val recipeIds = node.map { it.asLong() }
-        return recipeRepository.findAllById(recipeIds)
+        val res = node.map { it.asLong() }
+            .mapNotNull { recipeRepository.findById(it).orElse(null) }
+        return res
     }
 }

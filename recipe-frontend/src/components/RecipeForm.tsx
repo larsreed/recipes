@@ -170,6 +170,14 @@ function RecipeForm({ recipe, onCancel, onRecipeSaved }: RecipeFormProps) {
         setSubrecipes(newSubrecipes);
     };
 
+    const moveSubrecipe = (fromIndex: number, toIndex: number) => {
+        if (toIndex < 0 || toIndex >= subrecipes.length) return;
+        const updatedSubrecipes = [...subrecipes];
+        const [movedSubrecipe] = updatedSubrecipes.splice(fromIndex, 1);
+        updatedSubrecipes.splice(toIndex, 0, movedSubrecipe);
+        setSubrecipes(updatedSubrecipes);
+    };
+
 
     const handleIngredientChange = (index: number, field: string, value: string | number) => {
         const newIngredients = [...ingredients];
@@ -433,6 +441,16 @@ function RecipeForm({ recipe, onCancel, onRecipeSaved }: RecipeFormProps) {
                         <tr key={subrecipe.id}>
                             <td>{subrecipe.name}</td>
                             <td>
+                                <button type="button" onClick={() => moveSubrecipe(index, index - 1)}
+                                        disabled={index === 0}
+                                        title="Move Up">
+                                    <i className="fas fa-arrow-up"></i>
+                                </button>
+                                <button type="button" onClick={() => moveSubrecipe(index, index + 1)}
+                                        disabled={index === ingredients.length - 1}
+                                        title="Move Down">
+                                    <i className="fas fa-arrow-down"></i>
+                                </button>
                                 <button type="button" onClick={() => handleRemoveSubrecipe(index)} title="Remove">
                                     <i className="fas fa-remove"></i>
                                 </button>

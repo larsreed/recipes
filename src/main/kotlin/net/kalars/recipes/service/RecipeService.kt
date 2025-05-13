@@ -77,7 +77,7 @@ class RecipeService(
 
         // Update subrecipes and preserve order
         existingRecipe.subrecipes.clear()
-        recipe.subrecipes.forEach { subrecipe ->
+        recipe.subrecipes.forEachIndexed() { index, subrecipe ->
             val subr = recipeRepository.findById(subrecipe.id)
                 .orElseThrow { RuntimeException("Subrecipe not found") }
             existingRecipe.subrecipes.add(subr)

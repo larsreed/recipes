@@ -45,7 +45,7 @@ CREATE TABLE source (
 CREATE TABLE recipe_subrecipe (
     recipe_id BIGINT,
     subrecipe_id BIGINT,
-    subrecipe_order INT NOT NULL,
+    subrecipe_order INT NOT NULL default 0,
     PRIMARY KEY (recipe_id, subrecipe_id),
     CONSTRAINT fk_recipe FOREIGN KEY (recipe_id) REFERENCES recipe(id) ON DELETE CASCADE,
     CONSTRAINT fk_subrecipe FOREIGN KEY (subrecipe_id) REFERENCES recipe(id) ON DELETE CASCADE
