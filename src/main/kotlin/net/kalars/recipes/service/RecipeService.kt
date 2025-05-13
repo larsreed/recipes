@@ -30,13 +30,6 @@ class RecipeService(
         return recipeRepository.save(recipe)
     }
 
-    fun createRecipe(recipe: Recipe, sourceName: String?): Recipe {
-        if (sourceName.isNullOrBlank()) return createRecipe(recipe)
-        val source = sourceRepository.findByName(sourceName)
-            .orElseThrow { RuntimeException("Source $sourceName not found") }
-        return createRecipe(recipe.copy(sourceId = source.id))
-    }
-
     fun updateRecipe(id: Long, recipe: Recipe): Recipe {
         val existingRecipe = recipeRepository.findById(id)
             .orElseThrow { RuntimeException("Recipe not found") }
@@ -53,7 +46,7 @@ class RecipeService(
         existingRecipe.matchFor = recipe.matchFor
 
         existingRecipe.ingredients.clear()
-        recipe.ingredients.forEachIndexed() { index, ingredientDto ->
+        recipe.ingredients.forEachIndexed { index, ingredientDto ->
             val ing = Ingredient(
                 id = ingredientDto.id,
                 amount = ingredientDto.amount,
@@ -77,7 +70,7 @@ class RecipeService(
 
         // Update subrecipes and preserve order
         existingRecipe.subrecipes.clear()
-        recipe.subrecipes.forEachIndexed() { index, subrecipe ->
+        recipe.subrecipes.forEach { subrecipe ->
             val subr = recipeRepository.findById(subrecipe.id)
                 .orElseThrow { RuntimeException("Subrecipe not found") }
             existingRecipe.subrecipes.add(subr)

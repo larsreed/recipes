@@ -64,7 +64,6 @@ function RecipeList() {
     const [sortConfig, setSortConfig] = useState({ key: 'id', direction: 'ascending' });
     const [csvFile, setCsvFile] = useState<File | null>(null);
     const [apiError, setApiError] = useState<string | null>(null);
-    const [shoppingList, setShoppingList] = useState([]);
 
     const fetchRecipes = () => {
         axios.get(`${config.backendUrl}/api/recipes?includeSubrecipes=${includeSubrecipes}`)
