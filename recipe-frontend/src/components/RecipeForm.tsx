@@ -466,7 +466,9 @@ function RecipeForm({ recipe, onCancel, onRecipeSaved }: RecipeFormProps) {
                         onChange={(e) => setSelectedSubrecipeId(e.target.value ? parseInt(e.target.value) : null)}
                     >
                         <option value="">Select a subrecipe</option>
-                        {availableRecipes.map((recipe) => (
+                        {availableRecipes
+                            .filter((recipe) => recipe.subrecipe)
+                            .map((recipe) => (
                             <option key={recipe.id} value={recipe.id}>
                                 {recipe.name}
                             </option>
