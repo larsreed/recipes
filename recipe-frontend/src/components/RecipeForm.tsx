@@ -55,6 +55,7 @@ function RecipeForm({ recipe, onCancel, onRecipeSaved }: RecipeFormProps) {
     const [subrecipe, setSubrecipe] = useState(recipe?.subrecipe || false);
     const [subrecipes, setSubrecipes] = useState<Recipe[]>([]);
     const [mainRecipes, setMainRecipes] = useState<Recipe[]>([]);
+    const [isDirty, setIsDirty] = useState(false);
     const [availableRecipes, setAvailableRecipes] = useState<Recipe[]>([]);
     const [selectedSubrecipeId, setSelectedSubrecipeId] = useState<number | null>(null);
     const [instructions, setInstructions] = useState(recipe?.instructions || '');
@@ -155,10 +156,36 @@ function RecipeForm({ recipe, onCancel, onRecipeSaved }: RecipeFormProps) {
         return newErrors;
     };
 
+    useEffect(() => {
+        const handleKeyDown = (e: KeyboardEvent) => {
+            if (e.key === 'Escape') {
+                if (isDirty) {
+                    const confirmClose = window.confirm('You have unsaved changes. Do you really want to close?');
+                    if (confirmClose) {
+                        onCancel();
+                    }
+                } else {
+                    onCancel();
+                }
+            }
+        };
+
+        window.addEventListener('keydown', handleKeyDown);
+        return () => {
+            window.removeEventListener('keydown', handleKeyDown);
+        };
+    }, [isDirty, onCancel]);
+
+    const handleChange = (setter: React.Dispatch<React.SetStateAction<any>>, value: any) => {
+        setter(value);
+        setIsDirty(true);
+    };
+
     const handleAddSubrecipe = () => {
         if (selectedSubrecipeId !== null) {
             const selectedSubrecipe = availableRecipes.find(recipe => recipe.id === selectedSubrecipeId);
             if (selectedSubrecipe) {
+                setIsDirty(true);
                 setSubrecipes([...subrecipes, selectedSubrecipe]);
             }
         }
@@ -167,6 +194,7 @@ function RecipeForm({ recipe, onCancel, onRecipeSaved }: RecipeFormProps) {
     const handleRemoveSubrecipe = (index: number) => {
         const newSubrecipes = [...subrecipes];
         newSubrecipes.splice(index, 1);
+        setIsDirty(true);
         setSubrecipes(newSubrecipes);
     };
 
@@ -175,6 +203,7 @@ function RecipeForm({ recipe, onCancel, onRecipeSaved }: RecipeFormProps) {
         const updatedSubrecipes = [...subrecipes];
         const [movedSubrecipe] = updatedSubrecipes.splice(fromIndex, 1);
         updatedSubrecipes.splice(toIndex, 0, movedSubrecipe);
+        setIsDirty(true);
         setSubrecipes(updatedSubrecipes);
     };
 
@@ -182,15 +211,18 @@ function RecipeForm({ recipe, onCancel, onRecipeSaved }: RecipeFormProps) {
     const handleIngredientChange = (index: number, field: string, value: string | number) => {
         const newIngredients = [...ingredients];
         newIngredients[index] = {...newIngredients[index], [field]: value };
+        setIsDirty(true);
         setIngredients(newIngredients);
     };
 
     const addIngredient = () => {
+        setIsDirty(true);
         setIngredients([...ingredients, { prefix: undefined, amount: undefined, name: '', instruction: undefined, measure: undefined }]);
     };
 
     const removeIngredient = (index: number) => {
         const newIngredients = ingredients.filter((_, i) => i !== index);
+        setIsDirty(true);
         setIngredients(newIngredients);
     };
 
@@ -199,6 +231,7 @@ function RecipeForm({ recipe, onCancel, onRecipeSaved }: RecipeFormProps) {
         const updatedIngredients = [...ingredients];
         const [movedIngredient] = updatedIngredients.splice(fromIndex, 1);
         updatedIngredients.splice(toIndex, 0, movedIngredient);
+        setIsDirty(true);
         setIngredients(updatedIngredients);
     };
 
@@ -214,6 +247,7 @@ function RecipeForm({ recipe, onCancel, onRecipeSaved }: RecipeFormProps) {
                     }
                 });
                 console.log(response);
+                setIsDirty(true);
                 setAttachments(response.data.attachments);
                 event.target.value = ''; // Clear the file input field
             } catch (error) {
@@ -225,6 +259,7 @@ function RecipeForm({ recipe, onCancel, onRecipeSaved }: RecipeFormProps) {
     const handleDeleteAttachment = async (attachmentId: number) => {
         // @ts-expect-error recipe won't be null
         const response = await axios.delete(`${config.backendUrl}/api/recipes/${recipe.id}/attachments/${attachmentId}`);
+        setIsDirty(true);
         setAttachments(response.data.attachments);
     };
 
@@ -278,6 +313,7 @@ function RecipeForm({ recipe, onCancel, onRecipeSaved }: RecipeFormProps) {
             setIngredients(response.data.ingredients || []);
             setSubrecipes(response.data.subrecipes || []);
             setAttachments(response.data.attachments || []);
+            setIsDirty(false);
         } catch (error) {
             console.error('Error importing ingredients:', error);
             setApiError('Failed to import ingredients. Please try again.');
@@ -332,6 +368,7 @@ function RecipeForm({ recipe, onCancel, onRecipeSaved }: RecipeFormProps) {
             setSubrecipes([]);
             setErrors({});
             setApiError(null);
+            setIsDirty(false);
             onRecipeSaved();
         } catch (error) {
             console.error('Error saving recipe:', error);
@@ -345,28 +382,41 @@ function RecipeForm({ recipe, onCancel, onRecipeSaved }: RecipeFormProps) {
             <h2>{recipe ? 'Edit Recipe' : 'Add a New Recipe'}</h2>
             <div className="form-line" style={{display: 'flex', gap: '1rem'}}>
                 <label>Name:</label>
-                <input type="text" value={name}
+                <input type="text"
+                       value={name}
                        style={{flexGrow: 1}}
-                       onChange={(e) => setName(e.target.value)}/>
+                       onChange={(e) => handleChange(setName, e.target.value)}
+                />
                 {errors.name && <p className="error">{errors.name}</p>}
+
                 <label style={{marginLeft: 'auto'}}>
-                    <input type="checkbox" checked={subrecipe} onChange={(e) => setSubrecipe(e.target.checked)}/>
+                    <input type="checkbox"
+                           checked={subrecipe}
+                           onChange={(e) => handleChange(setSubrecipe, e.target.checked)}
+                    />
                     Is subrecipe
                 </label>
+
                 <label>People:</label>
-                <input type="number" value={people} onChange={(e) => setPeople(parseInt(e.target.value))}/>
+                <input type="number"
+                       value={people}
+                       onChange={(e) => handleChange(setPeople, parseInt(e.target.value))}
+                />
                 {errors.people && <p className="error">{errors.people}</p>}
             </div>
+
             <div className="form-group">
                 <label>Instructions:</label>
-                <textarea value={instructions} onChange={(e) => setInstructions(e.target.value)}/>
+                <textarea value={instructions}
+                          onChange={(e) => handleChange(setInstructions, e.target.value)}/>
                 {errors.instructions && <p className="error">{errors.instructions}</p>}
             </div>
+
             <div className="form-line">
                 <label>Source:</label>
                 <select value={sourceId ?? ''}
                         style={{flexGrow: 0.8}}
-                        onChange={(e) => setSourceId(e.target.value ? parseInt(e.target.value) : null)}>
+                        onChange={(e) => handleChange(setSourceId, e.target.value ? parseInt(e.target.value) : null)}>
                     <option value="">No source</option>
                     {sources.map((source) => (
                         <option key={source.id} value={source.id}>
@@ -377,30 +427,33 @@ function RecipeForm({ recipe, onCancel, onRecipeSaved }: RecipeFormProps) {
                 <label>Page Reference:</label>
                 <input type="text" value={pageRef}
                        style={{flexGrow: 0.2}}
-                       onChange={(e) => setPageRef(e.target.value)}/>
+                       onChange={(e) => handleChange(setPageRef, e.target.value)}/>
             </div>
             <div className="form-line">
                 <label>Rating:</label>
                 <input type="number" min="1" max="6" value={rating ?? ''}
                        style={{flexGrow: 0.1}}
-                       onChange={(e) => setRating(parseInt(e.target.value))}/>
+                       onChange={(e) => handleChange(setRating, parseInt(e.target.value))}/>
                 <label>Served:</label>
                 <textarea value={served}
                           style={{flexGrow:  0.3}}
-                          onChange={(e) => setServed(e.target.value)}/>
+                          onChange={(e) => handleChange(setServed, e.target.value)}/>
                 <label>Wine tips:</label>
                 <input type="text"
                        style={{flexGrow: 0.3}}
-                       value={wineTips ?? ''} onChange={(e) => setWineTips(e.target.value)}/>
+                       value={wineTips ?? ''}
+                       onChange={(e) => handleChange(setWineTips, e.target.value)}/>
                 <label>Good match for:</label>
                 <input type="text" value={matchFor ?? ''}
                        style={{flexGrow: 0.3}}
-                       onChange={(e) => setMatchFor(e.target.value)}/>
+                       onChange={(e) => handleChange(setMatchFor, e.target.value)}/>
             </div>
+
             <div className="form-group">
                 <label>Notes:</label>
-                <textarea value={notes} onChange={(e) => setNotes(e.target.value)}/>
+                <textarea value={notes} onChange={(e) => handleChange(setNotes ,e.target.value)}/>
             </div>
+
             {recipe && (
                 <div id="attachments" className="form-group">
                     <label>Attachments</label>
@@ -427,6 +480,7 @@ function RecipeForm({ recipe, onCancel, onRecipeSaved }: RecipeFormProps) {
                     </table>
                 </div>
             )}
+
             <div className="form-group">
                 <label>Subrecipes:</label>
                 <table className="subrecipe-table">
@@ -459,11 +513,12 @@ function RecipeForm({ recipe, onCancel, onRecipeSaved }: RecipeFormProps) {
                     ))}
                     </tbody>
                 </table>
+
                 <div className="form-group">
                     <label>Select Subrecipe:</label>
                     <select
                         value={selectedSubrecipeId ?? ''}
-                        onChange={(e) => setSelectedSubrecipeId(e.target.value ? parseInt(e.target.value) : null)}
+                        onChange={(e) => handleChange(setSelectedSubrecipeId, e.target.value ? parseInt(e.target.value) : null)}
                     >
                         <option value="">Select a subrecipe</option>
                         {availableRecipes
@@ -477,6 +532,7 @@ function RecipeForm({ recipe, onCancel, onRecipeSaved }: RecipeFormProps) {
                     <button type="button" onClick={handleAddSubrecipe}>Add Subrecipe</button>
                 </div>
             </div>
+
             {recipe?.subrecipe && mainRecipes.length > 0 && (
                 <div className="form-group">
                     <h3>Referenced by</h3>
@@ -487,6 +543,7 @@ function RecipeForm({ recipe, onCancel, onRecipeSaved }: RecipeFormProps) {
                     </ul>
                 </div>
             )}
+
             <div className="form-group">
                 <label>Ingredients:</label>
                 <table className="ingredient-table">
@@ -575,6 +632,7 @@ function RecipeForm({ recipe, onCancel, onRecipeSaved }: RecipeFormProps) {
                 </table>
                 <button type="button" onClick={addIngredient}>Add Ingredient</button>
             </div>
+
             <div className="form-group">
                 <label>Import Ingredients from CSV:</label>
                 <input id="csvFileName" type="file" accept=".csv,.txt"
