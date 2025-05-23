@@ -257,6 +257,8 @@ function RecipeForm({ recipe, onCancel, onRecipeSaved }: RecipeFormProps) {
     };
 
     const handleDeleteAttachment = async (attachmentId: number) => {
+        const confirmDelete = window.confirm('Are you sure you want to delete this attachment?');
+        if (!confirmDelete) return;
         // @ts-expect-error recipe won't be null
         const response = await axios.delete(`${config.backendUrl}/api/recipes/${recipe.id}/attachments/${attachmentId}`);
         setIsDirty(true);
