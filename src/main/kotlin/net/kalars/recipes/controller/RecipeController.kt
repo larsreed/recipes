@@ -118,6 +118,12 @@ class RecipeController(private val recipeService: RecipeService,
         reader.lines().forEach { line ->
             val columns = line.split("\t")
             when {
+                line.isBlank() -> {
+                    // Skip empty lines
+                }
+                line.startsWith("#") -> {
+                    // Skip comment lines
+                }
                 line.startsWith("Source") -> {
                     // Create or fetch the source
                     val sourceName = columns[1]
@@ -202,14 +208,27 @@ class RecipeController(private val recipeService: RecipeService,
         } else {
             recipeService.getRecipesByIds(recipeIds)
         }
-        val sources = sourceService.getAllSources()
+        val sources =  sourceService.getAllSources().toMutableList()
 
         val csvContent = buildString {
-            sources.forEach { source ->
-                append("Source\t${source.name}\t${source.authors.replace("\n", "\\n")}\n")
-            }
+            append("# Exported on ${java.time.LocalDateTime.now()}\n")
+            append("# Total recipes: ${recipes.size}\n")
+            append("# Total sources: ${sources.size}\n")
+            append("# Format (\\n for newline, TAB-separated)\n")
+            append("# '#' Comment\n")
+            append("# 'Source'\tName\tAuthors\n")
+            append("# 'Recipe'\tName\tIsSubrecipe:bool\tPeople:int\tRating?:0-6\tServed?\tInstructions\tNotes?\tSource?\tPageRef?\n")
+            append("# '+Ingredient'\tPrefix?\tAmount?:float\tMeasure?\tName\tInstruction?\n")
+            append("# '+Subrecipe'\tName\n")
+            append("# '+Attachment'\tFileName\tBase64Content\n")
+            append("\n\n####################\n\n")
 
             recipes.forEach { recipe ->
+                append("\n")
+                sources.find { src -> src.id == recipe.sourceId }?.let { source ->
+                    append("Source\t${source.name}\t${source.authors.replace("\n", "\\n")}\n")
+                    sources.remove(source)
+                }
                 append(
                     "Recipe\t${recipe.name}\t${recipe.subrecipe}\t${recipe.people}\t${
                         recipe.rating ?: ""
@@ -250,6 +269,10 @@ class RecipeController(private val recipeService: RecipeService,
                     val base64Data = Base64.getEncoder().encodeToString(attachment.fileContent.toByteArray())
                     append("+Attachment\t${attachment.fileName.replace("\n", "\\n")}\t$base64Data\n")
                 }
+            }
+            append("\n\n####################\n\n")
+            sources.forEach { source ->
+                append("Source\t${source.name}\t${source.authors.replace("\n", "\\n")}\n")
             }
         }
 
