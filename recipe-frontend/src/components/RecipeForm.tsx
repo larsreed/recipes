@@ -639,7 +639,7 @@ function RecipeForm({ recipe, onCancel, onRecipeSaved }: RecipeFormProps) {
                 <label>Import Ingredients from CSV:</label>
                 <input id="csvFileName" type="file" accept=".csv,.txt"
                        onChange={(e) => setCsvFile(e.target.files[0])}/>
-                <button type="button" onClick={handleImport}>Import</button>
+                {csvFile && (<button type="button" onClick={handleImport}>Import</button>)}
             </div>
 
             {apiError && <p className="error">{apiError}</p>}
