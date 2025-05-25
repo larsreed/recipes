@@ -319,7 +319,7 @@ function RecipeList() {
             const recipesToExport = singleRecipe ? [singleRecipe] : (selectedRecipes.size > 0 ? recipes.filter(recipe => selectedRecipes.has(recipe.id)) : recipes);
 
             const generateRecipeHtml: (recipe: Recipe) => string = (recipe: Recipe) => `
-            <div class="recipe">
+            <div class="recipe" style="${recipe.subrecipe ? '' : 'page-break-after: always;'}">
                 ${recipe.subrecipe ? `<h3>» ${recipe.name}</h3>` : `<h2>${recipe.name}</h2>`}
                 <div class="attachments">
                     ${recipe.attachments.map(attachment => `
@@ -383,7 +383,6 @@ function RecipeList() {
                         border: 1px solid #ddd;
                         border-radius: 8px;
                         box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-                        page-break-after: always;
                     }
                     .recipe h2 {
                         margin-top: 0;

@@ -4,9 +4,6 @@
 
 # Features
 
-1. display attachments beside name in RecipeForm if picture types
-2. remove the current page break from print view, include a new marker on top level recipes only
-3. show error messages as banners, and remove after a while
 4. display \n as linebreaks in print view
 5. ability to use markdown in larger text fields
    1. \+ visual editor
@@ -16,6 +13,7 @@
 9. upgrade all frontend frameworks, latest React
 10. make it possible to group ingredients
 11. ESC to close SourceModal, check if dirty first, also for SourceModal
+3. show error messages as banners, and remove after a while
 
 # General improvements
 
