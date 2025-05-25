@@ -324,32 +324,40 @@ function RecipeList() {
                 <div class="attachments">
                     ${recipe.attachments.map(attachment => `
                         <div class="attachment">
-                            ${attachment.fileName.match(/\.(jpeg|jpg|gif|png)$/) ?
-                `<img src="data:image/jpeg;base64,${attachment.fileContent}" alt="${attachment.fileName}" />` :
-                `<p>Attachment: ${attachment.fileName}</p>`
-            }
+                            ${attachment.fileName.match(/\.(jpeg|jpg|gif|png|webp)$/) ?
+                                `<img src="data:image/jpeg;base64,${attachment.fileContent}" alt="${attachment.fileName}" />` :
+                                `<p>Attachment: ${attachment.fileName}</p>`
+                            }
                         </div>
                     `).join('')}
                 </div>
-                ${recipe.served ? `<p>Served: ${recipe.served}</p>` : ''}
+                ${recipe.served ? `<p>Served: ${recipe.served.replace(/\n/g, '<br />')}</p>` : ''}
                 ${recipe.source ? `<p>Source: ${recipe.source.name}${recipe.pageRef ? ` p.${recipe.pageRef}` : ''}</p>` : ''}
                 ${recipe.rating ? `<p>Rating: ${recipe.rating}</p>` : ''}
-                ${recipe.wineTips ? `<p>Wine tips: ${recipe.wineTips}</p>` : ''}
-                ${recipe.matchFor ? `<p>Match for: ${recipe.matchFor}</p>` : ''}
+                ${recipe.wineTips ? `<p>Wine tips: ${recipe.wineTips.replace(/\n/g, '<br />')}</p>` : ''}
+                ${recipe.matchFor ? `<p>Match for: ${recipe.matchFor.replace(/\n/g, '<br />')}</p>` : ''}
                 ${recipe.subrecipe ? `<h4>Ingredients</h4>` : `<h3>Ingredients</h3>`}
-                <ul>
+                <table class="noborder">
                     ${recipe.ingredients.map(ingredient => `
-                        <li class="ingredient">
-                            ${ingredient.prefix || ""}
-                            ${ingredient.amount ? ((ingredient.amount * guestsNumber) / recipe.people).toFixed(2) : ''} 
-                            ${ingredient.measure || ''} 
-                            ${ingredient.name}
-                            ${ingredient.instruction || ""}
-                        </li>
+                        <tr class="ingredient">
+                            <td class="ingredient-cell">
+                                ${ingredient.prefix ? ingredient.prefix.replace(/\n/g, '<br />') : ''}
+                            </td>
+                            <td class="ingredient-cell">
+                                ${ingredient.amount ? ((ingredient.amount * guestsNumber) / recipe.people).toFixed(2) : ''} 
+                                ${ingredient.measure || ''} 
+                            </td>
+                            <td class="ingredient-cell ingredient-name">
+                                ${ingredient.name}
+                            </td>
+                            <td class="ingredient-cell">
+                                ${ingredient.instruction ? ingredient.instruction.replace(/\n/g, '<br />') : ''}
+                            </td>
+                        </tr>
                     `).join('')}
-                </ul>
+                </table>
                 ${recipe.subrecipe ? `<h4>Instructions</h4>` : `<h3>Instructions</h3>`}
-                <p class="instructions">${recipe.instructions}</p>
+                <p class="instructions">${recipe.instructions.replace(/\n/g, '<br />')}</p>
                 ${recipe.subrecipes ? recipe.subrecipes.map(subrecipe => generateRecipeHtml(subrecipe)).join('') : ''}
             </div>
         `;
@@ -374,6 +382,10 @@ function RecipeList() {
                         box-sizing: border-box;
                         width: 210mm;
                         height: 296mm;
+                    }
+                    .noborder {
+                        border:none;
+                        border-collapse: collapse;
                     }
                     .recipe {
                         max-width: 800px;
@@ -403,10 +415,18 @@ function RecipeList() {
                         margin-bottom: 5px;
                     }
                     .ingredient {
-                        margin-bottom: 10px;
+                        margin-bottom: 20px;
+                        border-bottom: 1px dotted #16a085;
+                    }
+                    .ingredient-cell {
+                        vertical-align: top;
+                        padding: 0 8px;
+                    }
+                    .ingredient-name {
+                        color: chocolate;
                     }
                     .instructions {
-                        margin-top: 20px;
+                        margin-top: 60px;
                     }
                     .attachment {
                         margin-top: 20px;

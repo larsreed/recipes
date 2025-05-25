@@ -253,10 +253,7 @@ class RecipeController(private val recipeService: RecipeService,
                         }\t${
                             ingredient.measure ?: ""
                         }\t${ingredient.name.replace("\n", "\\n")}\t${
-                            ingredient.instruction?.replace(
-                                "\n",
-                                "\\n"
-                            )
+                            ingredient.instruction?.replace("\n", "\\n") ?: ""
                         }\n"
                     )
                 }
