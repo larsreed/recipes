@@ -159,7 +159,7 @@ function RecipeList() {
 
     const handleSearch = () => {
         const searchUrl = `${config.backendUrl}/api/recipes/search?query=${encodeURIComponent(searchQuery)}`
-        console.log(searchUrl);
+        // console.log(searchUrl);
         axios.get(searchUrl)
             .then(response => {
                 setRecipes(response.data);
@@ -239,9 +239,11 @@ function RecipeList() {
                 }
             }).catch(error => {
                 console.error("Error exporting recipes:", error);
+                setApiError('Failed to export recipes. Please try again.');
             });
         } catch (error) {
             console.error("Error exporting recipes:", error);
+            setApiError('Failed to export recipes. Please try again.');
         }
     };
 
@@ -263,7 +265,6 @@ function RecipeList() {
                     }
                 ).then(response => {
                     const shoppingContent = response.data; // Assuming the backend returns CSV content as plain text
-                    console.log(shoppingContent);
                     const newWindow = window.open("", "_blank");
                     if (newWindow) {
                         const htmlContent = `
@@ -305,9 +306,11 @@ function RecipeList() {
                     }
                 }).catch(error => {
                     console.error("Error exporting shopping list:", error);
+                    setApiError('Failed to export shopping list. Please try again.');
                 });
             } catch (error) {
                 console.error("Error exporting shopping list:", error);
+                setApiError('Failed to export shopping list. Please try again.');
             }
         }
     };

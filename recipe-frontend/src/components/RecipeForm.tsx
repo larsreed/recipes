@@ -84,6 +84,7 @@ function RecipeForm({ recipe, onCancel, onRecipeSaved }: RecipeFormProps) {
                 setSources(response.data);
             } catch (error) {
                 console.error('Error fetching sources:', error);
+                setApiError('Failed to fetch sources. Please try again.');
             }
         };
         fetchSources();
@@ -96,6 +97,7 @@ function RecipeForm({ recipe, onCancel, onRecipeSaved }: RecipeFormProps) {
                 setAvailableRecipes(response.data);
             } catch (error) {
                 console.error('Error fetching recipes:', error);
+                setApiError('Failed to fetch recipes. Please try again.');
             }
         };
         fetchRecipes();
@@ -140,6 +142,7 @@ function RecipeForm({ recipe, onCancel, onRecipeSaved }: RecipeFormProps) {
                 })
                 .catch(error => {
                     console.error('Error fetching main recipes:', error);
+                    setApiError('Failed to fetch main recipes. Please try again.');
                 });
         }
     }, [recipe]);
@@ -246,12 +249,12 @@ function RecipeForm({ recipe, onCancel, onRecipeSaved }: RecipeFormProps) {
                         'Content-Type': 'multipart/form-data'
                     }
                 });
-                console.log(response);
                 setIsDirty(true);
                 setAttachments(response.data.attachments);
                 event.target.value = ''; // Clear the file input field
             } catch (error) {
                 console.error('Error uploading file:', error);
+                setApiError('Failed to upload file.');
             }
         }
     };
@@ -349,11 +352,9 @@ function RecipeForm({ recipe, onCancel, onRecipeSaved }: RecipeFormProps) {
             attachments,
             subrecipes: subrecipes.map(subrecipe => subrecipe.id)
         };
-        console.log("Recipe is ", newRecipe)
         const apiUrl = recipe ? `${config.backendUrl}/api/recipes/${recipe.id}` : `${config.backendUrl}/api/recipes`;
         try {
             const response = recipe ? await axios.put(apiUrl, newRecipe) : await axios.post(apiUrl, newRecipe);
-            console.log("Recipe saved:", response.data);
             setName('');
             setSubrecipe(false);
             setInstructions('');
@@ -374,7 +375,6 @@ function RecipeForm({ recipe, onCancel, onRecipeSaved }: RecipeFormProps) {
             onRecipeSaved();
         } catch (error) {
             console.error('Error saving recipe:', error);
-            console.log(newRecipe);
             setApiError('Failed to save recipe. Please try again.');
         }
     };
