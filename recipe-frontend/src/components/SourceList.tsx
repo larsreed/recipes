@@ -12,13 +12,15 @@ interface Source {
 function SourceList() {
     const [sources, setSources] = useState<Source[]>([]);
     const [editingSource, setEditingSource] = useState<Source | null>(null);
+    const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
     const fetchSources = () => {
         axios.get(`${config.backendUrl}/api/sources`)
             .then(response => {
                 setSources(response.data);
+                setErrorMessage(null); // Clear errors on success
             })
-            .catch(error => console.error('Error fetching sources:', error));
+            .catch(error => setErrorMessage('Error fetching sources.'));
     };
 
     useEffect(() => {
@@ -31,19 +33,11 @@ function SourceList() {
                 await axios.put(`${config.backendUrl}/api/recipes/nullify-source/${id}`);
                 await axios.delete(`${config.backendUrl}/api/sources/${id}`);
                 setSources(sources.filter(source => source.id !== id));
+                setErrorMessage(null); // Clear errors on success
             } catch (error) {
-                console.error('Error deleting source:', error);
+                setErrorMessage('Error deleting source.');
             }
         }
-    };
-
-    const editSource = (source: Source) => {
-        setEditingSource(source);
-    };
-
-    const handleSourceCreated = () => {
-        setEditingSource(null);
-        fetchSources();
     };
 
 
@@ -52,14 +46,16 @@ function SourceList() {
             await axios.put(`${config.backendUrl}/api/sources/${source.id}`, source);
             setEditingSource(null);
             fetchSources();
+            setErrorMessage(null); // Clear errors on success
         } catch (error) {
-            console.error('Error saving source:', error);
+            setErrorMessage('Error saving source.');
         }
     };
 
     return (
         <div>
             <h2>Source List</h2>
+            {errorMessage && <p className="error">{errorMessage}</p>}
             <table>
                 <thead>
                 <tr>
@@ -76,7 +72,7 @@ function SourceList() {
                         <td>{source.name}</td>
                         <td>{source.authors}</td>
                         <td>
-                            <button onClick={() => editSource(source)} title="Edit">
+                            <button onClick={() => setEditingSource(source)} title="Edit">
                                 <i className="fas fa-edit"></i>
                             </button>
                             &nbsp;
@@ -94,13 +90,13 @@ function SourceList() {
                     source={editingSource}
                     onSave={saveSource}
                     onCancel={() => setEditingSource(null)}
-                    onSourceCreated={handleSourceCreated}
+                    onSourceCreated={fetchSources}
                 />
             ) : (
                 <SourceForm
                     onSave={(source) => saveSource(source)}
                     onCancel={() => setEditingSource(null)}
-                    onSourceCreated={handleSourceCreated}
+                    onSourceCreated={fetchSources}
                 />
             )}
         </div>

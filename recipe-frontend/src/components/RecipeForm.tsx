@@ -469,7 +469,7 @@ function RecipeForm({ recipe, onCancel, onRecipeSaved }: RecipeFormProps) {
                         </thead>
                         <tbody>
                         {attachments.map((attachment) => {
-                            const isImage = /\.(gif|png|jpg|jpeg)$/i.test(attachment.fileName);
+                            const isImage = /\.(gif|png|jpg|jpeg|webp)$/i.test(attachment.fileName);
                             return (
                                 <tr key={attachment.id}>
                                     <td>
