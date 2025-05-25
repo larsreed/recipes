@@ -459,25 +459,41 @@ function RecipeForm({ recipe, onCancel, onRecipeSaved }: RecipeFormProps) {
             {recipe && (
                 <div id="attachments" className="form-group">
                     <label>Attachments</label>
-                    <input type="file" onChange={handleFileChange}/>
+                    <input type="file" onChange={handleFileChange} />
                     <table className="attachment-table">
                         <thead>
                         <tr>
-                            <th>File Name</th>
+                            <th>File</th>
                             <th>!</th>
                         </tr>
                         </thead>
                         <tbody>
-                        {attachments.map((attachment) => (
-                            <tr key={attachment.id}>
-                                <td>{attachment.fileName}</td>
-                                <td>
-                                    <button onClick={() => handleDeleteAttachment(attachment.id)} title="Delete">
-                                        <i className="fas fa-remove"></i>
-                                    </button>
-                                </td>
-                            </tr>
-                        ))}
+                        {attachments.map((attachment) => {
+                            const isImage = /\.(gif|png|jpg|jpeg)$/i.test(attachment.fileName);
+                            return (
+                                <tr key={attachment.id}>
+                                    <td>
+                                        {attachment.fileName}
+                                        {isImage && (
+
+                                            <img
+                                                src={`data:image/*;base64,${attachment.fileContent}`}
+                                                alt={attachment.fileName}
+                                                className="thumbnail"
+                                            />
+                                        )}
+                                    </td>
+                                    <td>
+                                        <button
+                                            onClick={() => handleDeleteAttachment(attachment.id)}
+                                            title="Delete"
+                                        >
+                                            <i className="fas fa-remove"></i>
+                                        </button>
+                                    </td>
+                                </tr>
+                            );
+                        })}
                         </tbody>
                     </table>
                 </div>

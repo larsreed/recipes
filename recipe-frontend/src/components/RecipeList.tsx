@@ -525,6 +525,9 @@ function RecipeList() {
                 </label>
                 <p/>
             </div>
+            <div>
+                {apiError && <p className="error">{apiError}</p>}
+            </div>
             <table className="recipe-list-table">
                 <thead>
                 <tr>
@@ -608,7 +611,6 @@ function RecipeList() {
                 ))}
                 </tbody>
             </table>
-            {apiError && <p className="error">{apiError}</p>}
             {isDialogOpen && (
                 <PromptDialog
                     message="Do you want to export the recipes to a file?"
