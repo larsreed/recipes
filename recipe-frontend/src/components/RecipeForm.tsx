@@ -408,7 +408,7 @@ function RecipeForm({ recipe, onCancel, onRecipeSaved }: RecipeFormProps) {
             </div>
 
             <div className="form-group">
-                <label>Instructions:</label>
+                <label>Instructions (markdown):</label>
                 <textarea value={instructions}
                           onChange={(e) => handleChange(setInstructions, e.target.value)}/>
                 {errors.instructions && <p className="error">{errors.instructions}</p>}
@@ -452,7 +452,7 @@ function RecipeForm({ recipe, onCancel, onRecipeSaved }: RecipeFormProps) {
             </div>
 
             <div className="form-group">
-                <label>Notes:</label>
+                <label>Notes (markdown):</label>
                 <textarea value={notes} onChange={(e) => handleChange(setNotes ,e.target.value)}/>
             </div>
 
@@ -567,11 +567,11 @@ function RecipeForm({ recipe, onCancel, onRecipeSaved }: RecipeFormProps) {
                 <table className="ingredient-table">
                     <thead>
                     <tr>
-                        <th>Prefix</th>
+                        <th>Prefix (markdown)</th>
                         <th>Amount</th>
                         <th>Measure</th>
                         <th>Name</th>
-                        <th>Instruction</th>
+                        <th>Instructions (markdown)</th>
                         <th>!</th>
                     </tr>
                     </thead>

@@ -1,15 +1,15 @@
 # Bugs
 
+1. upgrade all frontend frameworks, latest React
+
 
 
 # Features
 
-1. upgrade all frontend frameworks, latest React
-2. ability to use markdown in larger text fields
-   1. \+ visual editor
-3. make it possible to group ingredients
-4. ESC to close SourceModal, check if dirty first, also for SourceModal
-5. show error messages as banners, and remove after a while
+1. ability to use visual editor in larger text fields
+2. make it possible to group ingredients
+3. ESC to close SourceModal, check if dirty first, also for SourceModal
+4. show error messages as banners, and remove after a while
 
 # General improvements
 

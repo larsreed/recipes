@@ -4,6 +4,7 @@ import axios from 'axios';
 import SourceModal from "./SourceModal.tsx";
 import RecipeModal from "./RecipeModal.tsx";
 import PromptDialog from "./PromptDialog.tsx";
+import { marked } from 'marked';
 import config from '../config';
 
 
@@ -19,6 +20,7 @@ interface Recipe {
     subrecipe: boolean;
     served?: string;
     source?: Source;
+    notes?: string;
     pageRef?: string;
     rating?: number;
     people: number;
@@ -46,6 +48,13 @@ interface Ingredient {
 }
 
 Modal.setAppElement('#root');
+
+// Configure marked to preserve line breaks
+marked.setOptions({
+    gfm: true,
+    breaks: true,
+});
+
 
 function RecipeList() {
     const [recipes, setRecipes] = useState<Recipe[]>([]);
@@ -340,28 +349,29 @@ function RecipeList() {
                 ${recipe.rating ? `<p>Rating: ${recipe.rating}</p>` : ''}
                 ${recipe.wineTips ? `<p>Wine tips: ${recipe.wineTips.replace(/\n/g, '<br />')}</p>` : ''}
                 ${recipe.matchFor ? `<p>Match for: ${recipe.matchFor.replace(/\n/g, '<br />')}</p>` : ''}
+                ${recipe.notes ? `<div>Notes: ${marked(recipe.notes)}</div>` : ''}
                 ${recipe.subrecipe ? `<h4>Ingredients</h4>` : `<h3>Ingredients</h3>`}
                 <table class="noborder">
                     ${recipe.ingredients.map(ingredient => `
                         <tr class="ingredient">
                             <td class="ingredient-cell">
-                                ${ingredient.prefix ? ingredient.prefix.replace(/\n/g, '<br />') : ''}
+                                ${ingredient.prefix ? marked(ingredient.prefix) : ''}
                             </td>
                             <td class="ingredient-cell">
-                                ${ingredient.amount ? ((ingredient.amount * guestsNumber) / recipe.people).toFixed(2) : ''} 
-                                ${ingredient.measure || ''} 
+                                ${ingredient.amount ? ((ingredient.amount * guestsNumber) / recipe.people).toFixed(2) : ''}
+                                ${ingredient.measure || ''}
                             </td>
                             <td class="ingredient-cell ingredient-name">
                                 ${ingredient.name}
                             </td>
                             <td class="ingredient-cell">
-                                ${ingredient.instruction ? ingredient.instruction.replace(/\n/g, '<br />') : ''}
+                                ${ingredient.instruction ? marked(ingredient.instruction) : ''}
                             </td>
                         </tr>
                     `).join('')}
                 </table>
                 ${recipe.subrecipe ? `<h4>Instructions</h4>` : `<h3>Instructions</h3>`}
-                <p class="instructions">${recipe.instructions.replace(/\n/g, '<br />')}</p>
+                <div class="instructions">${marked(recipe.instructions)}</div>
                 ${recipe.subrecipes ? recipe.subrecipes.map(subrecipe => generateRecipeHtml(subrecipe)).join('') : ''}
             </div>
         `;
