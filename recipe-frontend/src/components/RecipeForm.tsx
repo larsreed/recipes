@@ -579,9 +579,7 @@ function RecipeForm({ recipe, onCancel, onRecipeSaved }: RecipeFormProps) {
                     {ingredients.map((ingredient, index) => (
                         <tr key={index}>
                             <td>
-                                <input
-                                    type="text"
-                                    placeholder="Prefix"
+                                <textarea
                                     value={ingredient.prefix ?? ''}
                                     onChange={(e) => handleIngredientChange(index, 'prefix', e.target.value)}
                                 />
@@ -621,9 +619,7 @@ function RecipeForm({ recipe, onCancel, onRecipeSaved }: RecipeFormProps) {
                                     <p className="error">{errors[`ingredient-${index}-name`]}</p>}
                             </td>
                             <td>
-                                <input
-                                    type="text"
-                                    placeholder="Instruction"
+                                <textarea
                                     value={ingredient.instruction ?? ''}
                                     onChange={(e) => handleIngredientChange(index, 'instruction', e.target.value)}
                                 />
