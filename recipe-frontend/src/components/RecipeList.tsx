@@ -256,14 +256,14 @@ function RecipeList() {
         if (guests && parseInt(guests) > 0) {
 
             try {
-                axios.post(`${config.backendUrl}/api/recipes/shopping-list`,
-                    recipesToShop.length > 0 ? recipesToShop : null, // Send null for an empty body
-                    {
-                        headers: {
-                            'Content-Type': 'application/json',
-                        },
-                    }
-                ).then(response => {
+                axios.post(`${config.backendUrl}/api/recipes/shopping-list`, {
+                    recipeIds: recipesToShop.length > 0 ? recipesToShop : null,
+                    guests: parseInt(guests),
+                }, {
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                }).then(response => {
                     const shoppingContent = response.data; // Assuming the backend returns CSV content as plain text
                     const newWindow = window.open("", "_blank");
                     if (newWindow) {
@@ -280,6 +280,7 @@ function RecipeList() {
                         </head>
                         <body>
                             <h1>Shopping List</h1>
+                            <p>for ${guests} guests</p>
                             <table>
                                 <thead>
                                     <tr>
@@ -292,7 +293,7 @@ function RecipeList() {
                                     ${shoppingContent.map(item => `
                                         <tr>
                                             <td>${item.name}</td>
-                                            <td>${item.amount ? ((item.amount * guests) / item.people).toFixed(2) : ''} 
+                                            <td>${item.amount? item.amount.toFixed(2) : ''} 
                                             <td>${item.measure || ''}</td>
                                         </tr>
                                     `).join('')}

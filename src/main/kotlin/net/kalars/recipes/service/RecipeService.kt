@@ -99,25 +99,33 @@ class RecipeService(
 
     fun getRecipesByIds(recipeIds: List<Long>): List<Recipe> =  recipeRepository.findAllById(recipeIds)
 
-    fun generateShoppingList(recipeIds: List<Long>): List<ShoppingListItem> {
+    fun generateShoppingList(recipeIds: List<Long>, guests: Int): List<ShoppingListItem> {
         val ingredients = mutableListOf<ShoppingListItem>()
 
         recipeIds.forEach { recipeId ->
             val recipe = recipeRepository.findById(recipeId).orElseThrow {
                 IllegalArgumentException("Recipe not found: $recipeId")
             }
-            collectIngredients(recipe, ingredients)
+            collectIngredients(recipe, ingredients, guests)
         }
 
         return ingredients
             .sortedBy { it.name }
     }
 
-    private fun collectIngredients(recipe: Recipe, ingredients: MutableList<ShoppingListItem>) {
-        recipe.ingredients.forEach {
-            ingredients.add(ShoppingListItem(it.name, it.amount, it.measure,recipe.people))
+    private fun collectIngredients(recipe: Recipe, ingredients: MutableList<ShoppingListItem>, guests: Int) {
+        recipe.ingredients.forEach { ingredient ->
+            val existingItem = ingredients.find {
+                (it.name == ingredient.name) && (it.measure == ingredient.measure)
+            }
+            if (existingItem != null) {
+                existingItem.amount = (existingItem.amount ?: 0f) + (ingredient.amount ?: 0f) * (guests / recipe.people)
+            } else {
+                ingredients.add(ShoppingListItem(ingredient.name, ((ingredient.amount ?: 0f) * guests) / recipe.people,
+                    ingredient.measure))
+            }
         }
-        recipe.subrecipes.forEach { subrecipe -> collectIngredients(subrecipe, ingredients) }
+        recipe.subrecipes.forEach { subrecipe -> collectIngredients(subrecipe, ingredients, guests) }
     }
 
 }

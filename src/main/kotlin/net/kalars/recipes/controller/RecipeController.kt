@@ -279,8 +279,14 @@ class RecipeController(private val recipeService: RecipeService,
     }
 
     @PostMapping("/shopping-list")
-    fun createShoppingList(@RequestBody recipeIds: List<Long>): List<ShoppingListItem> {
-        return recipeService.generateShoppingList(recipeIds)
+    fun createShoppingList(@RequestBody request: ShoppingListRequest): List<ShoppingListItem> {
+        val recipeIds = request.recipeIds
+        val guests = request.guests
+        return recipeService.generateShoppingList(recipeIds, guests)
     }
 
+    data class ShoppingListRequest(
+        val recipeIds: List<Long>,
+        val guests: Int
+    )
 }
