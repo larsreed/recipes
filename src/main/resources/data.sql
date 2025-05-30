@@ -39,7 +39,8 @@ CREATE TABLE attachment (
 CREATE TABLE source (
      id BIGINT AUTO_INCREMENT PRIMARY KEY,
      name VARCHAR(128),
-     authors VARCHAR(255)
+     authors VARCHAR(255),
+     CONSTRAINT unique_source_name UNIQUE (name)
 );
 
 CREATE TABLE recipe_subrecipe (
@@ -51,6 +52,17 @@ CREATE TABLE recipe_subrecipe (
     CONSTRAINT fk_subrecipe FOREIGN KEY (subrecipe_id) REFERENCES recipe(id) ON DELETE CASCADE
 );
 
-ALTER TABLE source ADD CONSTRAINT unique_source_name UNIQUE (name);
-
 ALTER TABLE recipe ADD CONSTRAINT fk_source FOREIGN KEY (source_id) REFERENCES source(id);
+
+CREATE TABLE conversion (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    factor FLOAT NOT NULL,
+    from_measure VARCHAR(10) NOT NULL,
+    to_measure VARCHAR(10) NOT NULL
+);
+
+CREATE TABLE temperatures (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    temperature FLOAT NOT NULL,
+    meat VARCHAR(255) NULL
+);
