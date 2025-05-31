@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import config from '../config';
+import measureOptions from './measureOptions';
 
 interface RecipeFormProps {
     recipe?: Recipe;
@@ -46,9 +47,6 @@ interface Ingredient {
     measure?: string;
 }
 
-const measureOptions = [
-    '', 'ts', 'tsp', 'tbsp', 'ss', 'ml', 'cl', 'dl', 'l', 'mg', 'g', 'kg', 'stk', 'pcs', 'kopper', 'cups'
-];
 
 function RecipeForm({ recipe, onCancel, onRecipeSaved }: RecipeFormProps) {
     const [name, setName] = useState(recipe?.name || '');

@@ -103,7 +103,7 @@ function SourceForm({ source, onCancel, onSourceCreated }: SourceFormProps) {
             </div>
             <div className="form-actions">
                 <button type="submit">Save</button>
-                <button type="button" onClick={handleCancel}>Cancel</button>
+                <button type="button" onClick={handleCancel}>Clear</button>
             </div>
             {apiError && <p className="error">{apiError}</p>}
         </form>

@@ -63,6 +63,6 @@ CREATE TABLE conversion (
 
 CREATE TABLE temperatures (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
-    temperature FLOAT NOT NULL,
-    meat VARCHAR(255) NULL
+    tempe FLOAT NOT NULL,
+    meat VARCHAR(255) NOT NULL
 );

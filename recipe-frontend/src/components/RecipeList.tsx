@@ -1,7 +1,9 @@
 import React, {useState, useEffect} from 'react';
 import Modal from 'react-modal';
 import axios from 'axios';
+import ConversionsModal from "./ConversionsModal.tsx";
 import SourceModal from "./SourceModal.tsx";
+import TemperaturesModal from "./TemperaturesModal.tsx";
 import RecipeModal from "./RecipeModal.tsx";
 import PromptDialog from "./PromptDialog.tsx";
 import { marked } from 'marked';
@@ -61,7 +63,9 @@ function RecipeList() {
     const [selectedRecipes, setSelectedRecipes] = useState<Set<number>>(new Set());
     const [selectAll, setSelectAll] = useState(false);
     const [editingRecipe, setEditingRecipe] = useState<Recipe | null>(null);
+    const [isConversionsModalOpen, setIsConversionsModalOpen] = useState(false);
     const [isSourceModalOpen, setIsSourceModalOpen] = useState(false);
+    const [isTemperatureModalOpen, setIsTemperatureModalOpen] = useState(false);
     const [isRecipeModalOpen, setIsRecipeModalOpen] = useState(false);
     const [isSearchPanelOpen, setIsSearchPanelOpen] = useState(false);
     const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -146,6 +150,24 @@ function RecipeList() {
 
     const handleCloseSourceModal = () => {
         setIsSourceModalOpen(false);
+        window.location.reload(); // Refresh the entire application
+    };
+
+    const handleOpenTemperatureModal = () => {
+        setIsTemperatureModalOpen(true);
+    };
+
+    const handleCloseTemperatureModal = () => {
+        setIsTemperatureModalOpen(false);
+        window.location.reload(); // Refresh the entire application
+    };
+
+    const handleOpenConversionsModal = () => {
+        setIsConversionsModalOpen(true);
+    };
+
+    const handleCloseConversionsModal = () => {
+        setIsConversionsModalOpen(false);
         window.location.reload(); // Refresh the entire application
     };
 
@@ -263,7 +285,6 @@ function RecipeList() {
 
         const guests = prompt("Guests", "4");
         if (guests && parseInt(guests) > 0) {
-
             try {
                 axios.post(`${config.backendUrl}/api/recipes/shopping-list`, {
                     recipeIds: recipesToShop.length > 0 ? recipesToShop : null,
@@ -272,10 +293,26 @@ function RecipeList() {
                     headers: {
                         'Content-Type': 'application/json',
                     },
-                }).then(response => {
+                }).then(async response => {
                     const shoppingContent = response.data; // Assuming the backend returns CSV content as plain text
+
+                    const conversionsResponse = await axios.get(`${config.backendUrl}/api/conversions`);
+                    const conversions = conversionsResponse.data;
+
+                    const usedMeasures = new Set<string>();
+                    shoppingContent.map(item => {
+                        if (item.measure) { usedMeasures.add(item.measure); }
+                    })
+
                     const newWindow = window.open("", "_blank");
                     if (newWindow) {
+
+                        const conversionLines = conversions
+                            .filter(conversion => usedMeasures.has(conversion.fromMeasure) || usedMeasures.has(conversion.toMeasure))
+                            .map(conversion => `To convert from ${conversion.fromMeasure} to ${conversion.toMeasure}: multiply by ${conversion.factor}`)
+                            .join('<br />');
+
+
                         const htmlContent = `
                         <html>
                         <head>
@@ -308,6 +345,9 @@ function RecipeList() {
                                     `).join('')}
                                 </tbody>
                             </table>
+
+                            <h2>Conversions</h2>
+                            <p>${conversionLines}</p>
                         </body>
                         </html>
                     `;
@@ -515,6 +555,10 @@ function RecipeList() {
         <div>
             <div className="standard-form">
                 <button onClick={handleOpenSourceModal}>Edit sources</button>
+                &nbsp;
+                <button onClick={handleOpenConversionsModal}>Edit conversions</button>
+                &nbsp;
+                <button onClick={handleOpenTemperatureModal}>Edit temperatures</button>
             </div>
             <div className="standard-form">
                 Import recipes: <input id="csvFileInput" type="file" accept=".csv,.txt"
@@ -529,6 +573,8 @@ function RecipeList() {
                 &nbsp;
                 {isSearchActive && <button onClick={handleShowAllRecipes}>All</button>}
                 {isSourceModalOpen && <SourceModal onClose={handleCloseSourceModal}/>}
+                {isTemperatureModalOpen && <TemperaturesModal onClose={handleCloseTemperatureModal}/>}
+                {isConversionsModalOpen && <ConversionsModal onClose={handleCloseConversionsModal}/>}
                 {isRecipeModalOpen && (
                     <RecipeModal
                         recipe={editingRecipe}

@@ -1,10 +1,9 @@
 package net.kalars.recipes.controller
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import net.kalars.recipes.model.Attachment
-import net.kalars.recipes.model.Ingredient
-import net.kalars.recipes.model.Recipe
-import net.kalars.recipes.model.ShoppingListItem
+import net.kalars.recipes.model.*
+import net.kalars.recipes.repository.ConversionRepository
+import net.kalars.recipes.repository.TemperatureRepository
 import net.kalars.recipes.service.RecipeService
 import net.kalars.recipes.service.SourceService
 import org.springframework.http.ResponseEntity
@@ -19,8 +18,11 @@ import java.util.stream.Collectors
 @RestController
 @RequestMapping("/api/recipes")
 @CrossOrigin(origins = ["\${frontend.url}"])
-class RecipeController(private val recipeService: RecipeService,
-                       private val sourceService: SourceService
+class RecipeController(
+    private val recipeService: RecipeService,
+    private val sourceService: SourceService,
+    private val conversionRepository: ConversionRepository,
+    private val temperatureRepository: TemperatureRepository
 ) {
 
     @GetMapping
@@ -180,6 +182,17 @@ class RecipeController(private val recipeService: RecipeService,
                         )
                     )
                 }
+                line.startsWith("Conversion") -> {
+                    val fromMeasure = columns[1]
+                    val toMeasure = columns[2]
+                    val factor = columns[3].toFloat()
+                    conversionRepository.save(Conversion(fromMeasure = fromMeasure, toMeasure = toMeasure, factor = factor))
+                }
+                line.startsWith("Temperature") -> {
+                    val temp = columns[1].toFloat()
+                    val meat = columns[2]
+                    temperatureRepository.save(Temperature(temp = temp, meat = meat))
+                }
             }
         }
 
@@ -221,6 +234,8 @@ class RecipeController(private val recipeService: RecipeService,
             append("# '+Ingredient'\tPrefix?\tAmount?:float\tMeasure?\tName\tInstruction?\n")
             append("# '+Subrecipe'\tName\n")
             append("# '+Attachment'\tFileName\tBase64Content\n")
+            append("# 'Conversion'\tFrom\tTo\tFactor\n")
+            append("# 'Temperature'\tTemp (C)\tMeat\n")
             append("\n\n####################\n\n")
 
             recipes.forEach { recipe ->
@@ -270,6 +285,14 @@ class RecipeController(private val recipeService: RecipeService,
             append("\n\n####################\n\n")
             sources.forEach { source ->
                 append("Source\t${source.name}\t${source.authors.replace("\n", "\\n")}\n")
+            }
+            append("\n\n####################\n\n")
+            conversionRepository.findAll().forEach { conversion ->
+                append("Conversion\t${conversion.fromMeasure}\t${conversion.toMeasure}\t${conversion.factor}\n")
+            }
+            append("\n\n####################\n\n")
+            temperatureRepository.findAll().forEach { temperature ->
+                append("Temperature\t${temperature.temp}\t${temperature.meat}\n")
             }
         }
 
