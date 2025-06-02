@@ -24,6 +24,10 @@ class RecipeController(
     private val conversionRepository: ConversionRepository,
     private val temperatureRepository: TemperatureRepository
 ) {
+    private fun report(message: String): ResponseEntity<String> {
+        System.err.println(message)
+        return ResponseEntity.badRequest().body(message)
+    }
 
     @GetMapping
     fun getRecipes(@RequestParam includeSubrecipes: Boolean): List<Recipe> {
@@ -46,13 +50,11 @@ class RecipeController(
 
     @PostMapping("/{id}/attachments")
     fun addAttachment(@PathVariable id: Long, @RequestParam("file") file: MultipartFile): Recipe {
-        println(id.toString())
         val recipe = recipeService.getRecipeById(id)
         val attachment = Attachment(
             fileName = file.originalFilename ?: "unknown",
             fileContent = Base64.getEncoder().encodeToString(file.bytes)
         )
-        println("Attachment $attachment")
         recipe.attachments.add(attachment)
         return recipeService.updateRecipe(id, recipe)
     }
@@ -94,16 +96,20 @@ class RecipeController(
     fun importIngredients(@RequestParam("file") file: MultipartFile, @RequestParam("recipe") recipeJson: String): Recipe {
         val recipe = ObjectMapper().readValue(recipeJson, Recipe::class.java)
         val reader = BufferedReader(InputStreamReader(file.inputStream))
-        val ingredientList = reader.lines().skip(1).map { line ->
+        val ingredientList = mutableListOf<Ingredient>()
+
+        reader.lines().skip(1).forEach { line ->
             val columns = line.split(",", ";", "\t")
-            Ingredient(
-                prefix = columns[0],
-                amount = columns[1].toFloatOrNull(),
-                measure = columns[2],
-                name = columns[3],
-                instruction = columns[4]
-            )
-        }.collect(Collectors.toList())
+            if (columns.size != 5) report("Invalid ingredient line: $line")
+            else ingredientList.add(
+                Ingredient(
+                    prefix = columns[0],
+                    amount = columns[1].toFloatOrNull(),
+                    measure = columns[2],
+                    name = columns[3],
+                    instruction = columns[4]
+            ))
+        }
         recipe.ingredients.addAll(ingredientList)
 
         return recipeService.updateRecipe(recipe.id, recipe)
@@ -123,21 +129,32 @@ class RecipeController(
                 line.isBlank() -> {
                     // Skip empty lines
                 }
+
                 line.startsWith("#") -> {
                     // Skip comment lines
                 }
+
                 line.startsWith("Source") -> {
                     // Create or fetch the source
+                    if (columns.size != 3) {
+                        report("Invalid Source line: $line")
+                        return@forEach
+                    }
                     val sourceName = columns[1]
                     val authors = columns[2].replace("\\n", "\n")
                     val source = sourceService.createOrGetSource(sourceName, authors)
                     sources[sourceName] = source.id
                 }
+
                 line.startsWith("Recipe") -> {
                     // Save the previous recipe if it exists
                     currentRecipe?.let { recipes.add(recipeService.createRecipe(it)) }
 
                     // Create a new recipe
+                    if (columns.size != 10) {
+                        report("Invalid Recipe line: $line")
+                        return@forEach
+                    }
                     currentRecipe = Recipe(
                         name = columns[1],
                         subrecipe = columns[2].toBoolean(),
@@ -151,8 +168,17 @@ class RecipeController(
                     val sourceId = sources[columns[8]]
                     currentRecipe?.sourceId = sourceId
                 }
+
                 line.startsWith("+Ingredient") -> {
                     // Add an ingredient to the current recipe
+                    if (columns.size != 6) {
+                        report("Invalid Ingredient line: $line")
+                        return@forEach
+                    }
+                    if (currentRecipe==null) {
+                        report("Ingredient without Recipe: $line")
+                        return@forEach
+                    }
                     currentRecipe?.ingredients?.add(
                         Ingredient(
                             prefix = columns[1].replace("\\n", "\n"),
@@ -163,16 +189,34 @@ class RecipeController(
                         )
                     )
                 }
-                line.startsWith("+Subrecipe") && currentRecipe!=null -> {
+
+                line.startsWith("+Subrecipe") -> {
                     // Remember a subrecipe to add later
+                    if (columns.size != 2) {
+                        report("Invalid Subrecipe line: $line")
+                        return@forEach
+                    }
+                    if (currentRecipe==null) {
+                        report("Subrecipe without Recipe: $line")
+                        return@forEach
+                    }
                     val subName = mutableListOf(columns[1].replace("\\n", "\n"))
                     subrecipesToAdd.merge(
                         currentRecipe!!.name,
                         subName
                     ) { oldMapping, subs -> (oldMapping + subs).distinct() }
                 }
+
                 line.startsWith("+Attachment") -> {
                     // Add an attachment to the current recipe
+                    if (columns.size != 3) {
+                        report("Invalid Attachment line: $line")
+                        return@forEach
+                    }
+                    if (currentRecipe==null) {
+                        report("Attachment without Recipe: $line")
+                        return@forEach
+                    }
                     val fileName = columns[1].replace("\\n", "\n")
                     val fileContent = String(Base64.getDecoder().decode(columns[2]))
                     currentRecipe?.attachments?.add(
@@ -182,13 +226,23 @@ class RecipeController(
                         )
                     )
                 }
+
                 line.startsWith("Conversion") -> {
+                    if (columns.size != 4) {
+                        report("Invalid Conversion line: $line")
+                        return@forEach
+                    }
                     val fromMeasure = columns[1]
                     val toMeasure = columns[2]
                     val factor = columns[3].toFloat()
                     conversionRepository.save(Conversion(fromMeasure = fromMeasure, toMeasure = toMeasure, factor = factor))
                 }
+
                 line.startsWith("Temperature") -> {
+                    if (columns.size != 3) {
+                        report("Invalid Temperature line: $line")
+                        return@forEach
+                    }
                     val temp = columns[1].toFloat()
                     val meat = columns[2]
                     temperatureRepository.save(Temperature(temp = temp, meat = meat))
@@ -244,32 +298,23 @@ class RecipeController(
                     append("Source\t${source.name}\t${source.authors.replace("\n", "\\n")}\n")
                     sources.remove(source)
                 }
-                append(
-                    "Recipe\t${recipe.name}\t${recipe.subrecipe}\t${recipe.people}\t${
-                        recipe.rating ?: ""
-                    }\t${
-                        recipe.served?.replace("\n", "\\n") ?: ""
-                    }\t${recipe.instructions.replace("\n", "\\n")}\t${
-                        recipe.notes?.replace(
-                            "\n",
-                            "\\n"
-                        ) ?: ""
-                    }\t${
-                        recipe.source?.name ?: ""
-                    }\t${recipe.pageRef ?: ""}\n"
+                append("Recipe\t${recipe.name
+                    }\t${recipe.subrecipe
+                    }\t${recipe.people
+                    }\t${recipe.rating ?: ""
+                    }\t${recipe.served?.replace("\n", "\\n") ?: ""
+                    }\t${recipe.instructions.replace("\n", "\\n")
+                    }\t${recipe.notes?.replace("\n",  "\\n") ?: ""
+                    }\t${recipe.source?.name ?: ""
+                    }\t${recipe.pageRef?.replace("\n", "\\n") ?: ""}\n"
                 )
 
                 recipe.ingredients.forEach { ingredient ->
-                    append(
-                        "+Ingredient\t${
-                            ingredient.prefix ?: ""
-                        }\t${
-                            ingredient.amount ?: ""
-                        }\t${
-                            ingredient.measure ?: ""
-                        }\t${ingredient.name.replace("\n", "\\n")}\t${
-                            ingredient.instruction?.replace("\n", "\\n") ?: ""
-                        }\n"
+                    append("+Ingredient\t${ingredient.prefix?.replace("\n", "\\n")  ?: ""
+                        }\t${ingredient.amount ?: ""
+                        }\t${ingredient.measure?.replace("\n", "\\n") ?: ""
+                        }\t${ingredient.name.replace("\n", "\\n")
+                        }\t${ingredient.instruction?.replace("\n", "\\n") ?: ""}\n"
                     )
                 }
 
