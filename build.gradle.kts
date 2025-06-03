@@ -3,9 +3,9 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 plugins {
     id("org.springframework.boot") version "3.4.4"
     id("io.spring.dependency-management") version "1.1.7"
-    kotlin("jvm") version "1.7.10"
-    kotlin("plugin.spring") version "1.7.10"
-    kotlin("kapt") version "1.7.10"
+    kotlin("jvm") version "1.9.22"
+    kotlin("plugin.spring") version "1.9.22"
+    kotlin("kapt") version "1.9.22"
 }
 
 group = "net.kalars"
@@ -26,6 +26,10 @@ dependencies {
     runtimeOnly("com.h2database:h2") // org.postgresql:postgresql
     testImplementation("org.springframework.boot:spring-boot-starter-test")
     testImplementation("com.fasterxml.jackson.module:jackson-module-kotlin")
+    testImplementation("io.rest-assured:rest-assured")
+    testImplementation("org.hamcrest:hamcrest")
+    testImplementation("com.h2database:h2")
+    testImplementation("org.mockito.kotlin:mockito-kotlin:5.2.1")
 }
 
 tasks.withType<KotlinCompile>().all {

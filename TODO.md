@@ -13,5 +13,4 @@
 
 # General improvements
 
-1. Add tests...
-2. Styling & layout
+1. Styling & layout

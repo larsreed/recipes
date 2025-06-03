@@ -1,7 +1,7 @@
 CREATE TABLE recipe (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
     name VARCHAR(128) NOT NULL,
-    subrecipe BOOLEAN DEFAULT FALSE;
+    subrecipe BOOLEAN DEFAULT FALSE,
     people INT NOT NULL,
     instructions TEXT NOT NULL,
     source_id BIGINT NULL,
@@ -22,7 +22,7 @@ CREATE TABLE ingredient (
     instruction TEXT NULL,
     recipe_id BIGINT,
     sortorder INT NOT NULL DEFAULT 0,
-    CONSTRAINT fk_recipe
+    CONSTRAINT fk_ingredient_recipe
         FOREIGN KEY (recipe_id)
             REFERENCES Recipe(id)
             ON DELETE CASCADE
@@ -48,8 +48,8 @@ CREATE TABLE recipe_subrecipe (
     subrecipe_id BIGINT,
     subrecipe_order INT NOT NULL default 0,
     PRIMARY KEY (recipe_id, subrecipe_id),
-    CONSTRAINT fk_recipe FOREIGN KEY (recipe_id) REFERENCES recipe(id) ON DELETE CASCADE,
-    CONSTRAINT fk_subrecipe FOREIGN KEY (subrecipe_id) REFERENCES recipe(id) ON DELETE CASCADE
+    CONSTRAINT fk_recipe_subrecipe_recipe FOREIGN KEY (recipe_id) REFERENCES recipe(id) ON DELETE CASCADE,
+    CONSTRAINT fk_recipe_subrecipe_subrecipe FOREIGN KEY (subrecipe_id) REFERENCES recipe(id) ON DELETE CASCADE
 );
 
 ALTER TABLE recipe ADD CONSTRAINT fk_source FOREIGN KEY (source_id) REFERENCES source(id);
@@ -63,6 +63,6 @@ CREATE TABLE conversion (
 
 CREATE TABLE temperatures (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
-    tempe FLOAT NOT NULL,
+    temp FLOAT NOT NULL,
     meat VARCHAR(255) NOT NULL
 );
