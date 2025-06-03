@@ -91,7 +91,7 @@ function RecipeList() {
 
     useEffect(() => {
         fetchRecipes();
-    }, [includeSubrecipes]);
+    }, [fetchRecipes, includeSubrecipes]);
 
     const sortedRecipes = [...recipes].sort((a, b) => {
         if (a[sortConfig.key] < b[sortConfig.key]) {

@@ -57,6 +57,7 @@ function ConversionForm({ conversion, onCancel, onConversionCreated }: Conversio
         console.log(newConversion); //FIXME
         const apiUrl = conversion ? `${config.backendUrl}/api/conversions/${conversion.id}` : `${config.backendUrl}/api/conversions`;
         try {
+            // eslint-disable-next-line @typescript-eslint/no-unused-vars
             const response = conversion ? await axios.put(apiUrl, newConversion) : await axios.post(apiUrl, newConversion);
             setFromMeasure('');
             setToMeasure('');

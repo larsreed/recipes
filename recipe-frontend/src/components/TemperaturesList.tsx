@@ -20,7 +20,10 @@ function TemperaturesList() {
                 setTemperatures(response.data);
                 setErrorMessage(null); // Clear errors on success
             })
-            .catch(error => setErrorMessage('Error fetching temperatures.'));
+            .catch(error => {
+                setErrorMessage('Error fetching temperatures.');
+                console.error('Error fetching temperatures:', error);
+            });
     };
 
     useEffect(() => {
@@ -35,6 +38,7 @@ function TemperaturesList() {
                 setErrorMessage(null); // Clear errors on success
             } catch (error) {
                 setErrorMessage('Error deleting temperature.');
+                console.error('Error deleting temperature:', error);
             }
         }
     };
@@ -48,6 +52,7 @@ function TemperaturesList() {
             setErrorMessage(null); // Clear errors on success
         } catch (error) {
             setErrorMessage('Error saving temperature.');
+            console.error('Error saving temperature:', error);
         }
     };
 

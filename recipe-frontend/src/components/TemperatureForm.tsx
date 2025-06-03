@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import config from '../config';
-import measureOptions from './measureOptions';
 
 interface Temperature {
     id: number;
@@ -51,6 +50,7 @@ function TemperatureForm({ temperature, onCancel, onTemperatureCreated }: Temper
         console.log(newTemperature); //FIXME
         const apiUrl = temperature ? `${config.backendUrl}/api/temperatures/${temperature.id}` : `${config.backendUrl}/api/temperatures`;
         try {
+            // eslint-disable-next-line @typescript-eslint/no-unused-vars
             const response = temperature ? await axios.put(apiUrl, newTemperature) : await axios.post(apiUrl, newTemperature);
             setMeat('');
             setTemp(0.0);

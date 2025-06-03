@@ -21,7 +21,11 @@ function ConversionsList() {
                 setConversions(response.data);
                 setErrorMessage(null); // Clear errors on success
             })
-            .catch(error => setErrorMessage('Error fetching conversions.'));
+            .catch(error => {
+                    setErrorMessage('Error fetching conversions.');
+                    console.error('Error fetching conversions:', error);
+                }
+            );
     };
 
     useEffect(() => {
@@ -35,6 +39,7 @@ function ConversionsList() {
                 setConversions(conversions.filter(conversion => conversion.id !== id));
                 setErrorMessage(null); // Clear errors on success
             } catch (error) {
+                console.error('Error deleting conversion:', error);
                 setErrorMessage('Error deleting conversion.');
             }
         }
@@ -48,6 +53,7 @@ function ConversionsList() {
             fetchConversions();
             setErrorMessage(null); // Clear errors on success
         } catch (error) {
+            console.error('Error deleting conversion:', error);
             setErrorMessage('Error saving conversion.');
         }
     };

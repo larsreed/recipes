@@ -3,7 +3,7 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 plugins {
     id("org.springframework.boot") version "3.4.4"
     id("io.spring.dependency-management") version "1.1.7"
-    kotlin("jvm") version "1.9.22"
+    kotlin("jvm") version "1.9.24"
     kotlin("plugin.spring") version "1.9.22"
     kotlin("kapt") version "1.9.22"
 }
@@ -29,7 +29,7 @@ dependencies {
     testImplementation("io.rest-assured:rest-assured")
     testImplementation("org.hamcrest:hamcrest")
     testImplementation("com.h2database:h2")
-    testImplementation("org.mockito.kotlin:mockito-kotlin:5.2.1")
+    testImplementation("org.mockito.kotlin:mockito-kotlin:5.3.1")
 }
 
 tasks.withType<KotlinCompile>().all {

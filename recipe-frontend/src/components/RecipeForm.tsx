@@ -101,6 +101,21 @@ function RecipeForm({ recipe, onCancel, onRecipeSaved }: RecipeFormProps) {
         fetchRecipes();
     }, []);
 
+    function blankRecipe() {
+        setName('');
+        setSubrecipe(false);
+        setInstructions('');
+        setPeople(4);
+        setServed('');
+        setSourceId(null);
+        setPageRef('');
+        setRating(null);
+        setWineTips(null);
+        setMatchFor(null)
+        setNotes('');
+        setIngredients([]);
+    }
+
     useEffect(() => {
         if (recipe) {
             setName(recipe.name);
@@ -117,18 +132,7 @@ function RecipeForm({ recipe, onCancel, onRecipeSaved }: RecipeFormProps) {
             setIngredients(recipe.ingredients || []);
             setSubrecipes(recipe.subrecipes || []);
         } else {
-            setName('');
-            setSubrecipe(false);
-            setInstructions('');
-            setPeople(4);
-            setServed('');
-            setSourceId(null);
-            setPageRef('');
-            setRating(null);
-            setWineTips(null);
-            setMatchFor(null)
-            setNotes('');
-            setIngredients([]);
+            blankRecipe();
         }
     }, [recipe]);
 
@@ -352,19 +356,9 @@ function RecipeForm({ recipe, onCancel, onRecipeSaved }: RecipeFormProps) {
         };
         const apiUrl = recipe ? `${config.backendUrl}/api/recipes/${recipe.id}` : `${config.backendUrl}/api/recipes`;
         try {
+            // eslint-disable-next-line @typescript-eslint/no-unused-vars
             const response = recipe ? await axios.put(apiUrl, newRecipe) : await axios.post(apiUrl, newRecipe);
-            setName('');
-            setSubrecipe(false);
-            setInstructions('');
-            setPeople(4);
-            setServed('');
-            setSourceId(null);
-            setPageRef('');
-            setRating(null);
-            setWineTips(null);
-            setMatchFor(null)
-            setNotes('');
-            setIngredients([]);
+            blankRecipe();
             setAttachments([]);
             setSubrecipes([]);
             setErrors({});

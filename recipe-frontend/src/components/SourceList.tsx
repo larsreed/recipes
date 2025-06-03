@@ -20,7 +20,10 @@ function SourceList() {
                 setSources(response.data);
                 setErrorMessage(null); // Clear errors on success
             })
-            .catch(error => setErrorMessage('Error fetching sources.'));
+            .catch(error => {
+                setErrorMessage('Error fetching sources.')
+                console.error('Error fetching sources:', error);
+            });
     };
 
     useEffect(() => {
@@ -36,6 +39,7 @@ function SourceList() {
                 setErrorMessage(null); // Clear errors on success
             } catch (error) {
                 setErrorMessage('Error deleting source.');
+                console.error('Error deleting source:', error);
             }
         }
     };
@@ -49,6 +53,7 @@ function SourceList() {
             setErrorMessage(null); // Clear errors on success
         } catch (error) {
             setErrorMessage('Error saving source.');
+            console.error('Error saving source:', error);
         }
     };
 

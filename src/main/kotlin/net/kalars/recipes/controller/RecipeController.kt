@@ -13,7 +13,6 @@ import java.io.BufferedReader
 import java.io.InputStreamReader
 import java.util.Base64
 import java.util.regex.Pattern
-import java.util.stream.Collectors
 
 @RestController
 @RequestMapping("/api/recipes")

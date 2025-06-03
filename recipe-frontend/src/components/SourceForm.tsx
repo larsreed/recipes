@@ -56,6 +56,7 @@ function SourceForm({ source, onCancel, onSourceCreated }: SourceFormProps) {
                 setApiError('Source name must be unique');
                 return;
             }
+            // eslint-disable-next-line @typescript-eslint/no-unused-vars
             const response = source ? await axios.put(apiUrl, newSource) : await axios.post(apiUrl, newSource);
             setName('');
             setAuthors('');
