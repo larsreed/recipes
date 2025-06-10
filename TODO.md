@@ -1,9 +1,10 @@
 # TODO
 
 1. Bug: Winetips + matchFor missing in import/export
-3. Styling & layout
-4. ability to use visual editor in larger text fields
-5. make it possible to group ingredients
-6. ESC to close SourceModal, check if dirty first, also for SourceModal
-7. show error messages as banners, and remove after a while
-8. Change to Postgresql
+2. measurements: allow leaves/blader and basket/kurv
+4. Styling & layout
+5. ability to use visual editor in larger text fields
+6. make it possible to group ingredients
+7. ESC to close SourceModal, check if dirty first, also for SourceModal
+8. show error messages as banners, and remove after a while
+9. Change to Postgresql
