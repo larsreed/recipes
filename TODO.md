@@ -1,7 +1,7 @@
 # TODO
 
 1. Bug: Winetips + matchFor missing in import/export
-2. measurements: allow leaves/blader and basket/kurv
+2. measurements: allow leaves/blader and basket/kurv and klyper/pinches
 3. ad picture on recipe, including imp/exp & print
 4. allow people==0 for a recipe, in that case assume people==#guests when creating exports 
 5. Styling & layout
