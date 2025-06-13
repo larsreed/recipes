@@ -3,8 +3,8 @@
 1. Bug: Winetips + matchFor missing in import/export
 2. measurements: allow leaves/blader and basket/kurv and klyper/pinches
 3. recipe.instructions is not mandatory
-4. add finallly to recipes 
-5. ad picture on recipe, including imp/exp & print
+4. add finallly to recipes  -- rich text, searchable, imp/exp, print
+5. add picture on recipe, including imp/exp & print
 6. allow people==0 for a recipe, in that case assume people==#guests when creating exports 
 7. Styling & layout
 8. ability to use visual editor in larger text fields
