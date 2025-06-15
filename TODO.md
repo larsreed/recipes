@@ -1,6 +1,5 @@
 # TODO
 
-1. measurements: allow leaves/blader and basket/kurv and klyper/pinches
 2. recipe.instructions should not be mandatory
 3. add finallly to recipes  -- rich text, searchable, imp/exp, print
 4. rename prefix to preamble, then add a new prefix between measurement and name in Ingredient
