@@ -31,6 +31,7 @@ interface Recipe {
     ingredients: Ingredient[];
     attachments: Attachment[];
     instructions?: string;
+    closing?: string;
     subrecipes?: Recipe[];
 }
 
@@ -391,6 +392,8 @@ function RecipeList() {
                 ${recipe.matchFor ? `<p>Match for: ${recipe.matchFor.replace(/\n/g, '<br />')}</p>` : ''}
                 ${recipe.notes ? `<div>Notes: ${marked(recipe.notes)}</div>` : ''}
                 ${recipe.subrecipe ? `<h4>Ingredients</h4>` : `<h3>Ingredients</h3>`}
+                ${recipe.subrecipe ? `<h4>Instructions</h4>` : `<h3>Instructions</h3>`}
+                <div class="instructions">${marked(recipe.instructions ?? '')}</div>
                 <table class="noborder">
                     ${recipe.ingredients.map(ingredient => `
                         <tr class="ingredient">
@@ -410,8 +413,7 @@ function RecipeList() {
                         </tr>
                     `).join('')}
                 </table>
-                ${recipe.subrecipe ? `<h4>Instructions</h4>` : `<h3>Instructions</h3>`}
-                <div class="instructions">${marked(recipe.instructions ?? '')}</div>
+                <div class="instructions">${marked(recipe.closing ?? '')}</div>
                 ${recipe.subrecipes ? recipe.subrecipes.map(subrecipe => generateRecipeHtml(subrecipe)).join('') : ''}
             </div>
         `;

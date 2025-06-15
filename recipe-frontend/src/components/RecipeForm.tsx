@@ -15,6 +15,7 @@ interface Recipe {
     subrecipe: boolean;
     people: number;
     instructions?: string;
+    closing? : string;
     served?: string;
     sourceId?: number;
     pageRef?: string;
@@ -56,7 +57,8 @@ function RecipeForm({ recipe, onCancel, onRecipeSaved }: RecipeFormProps) {
     const [isDirty, setIsDirty] = useState(false);
     const [availableRecipes, setAvailableRecipes] = useState<Recipe[]>([]);
     const [selectedSubrecipeId, setSelectedSubrecipeId] = useState<number | null>(null);
-    const [instructions, setInstructions] = useState(recipe?.instructions || '');
+    const [instructions, setInstructions] = useState(recipe?.instructions || null);
+    const [closing, setClosing] = useState(recipe?.closing || null);
     const [people, setPeople] = useState(recipe?.people || 4);
     const [served, setServed] = useState(recipe?.served || '');
     const [sourceId, setSourceId] = useState<number | null>(recipe?.source?.id || null);
@@ -105,6 +107,7 @@ function RecipeForm({ recipe, onCancel, onRecipeSaved }: RecipeFormProps) {
         setName('');
         setSubrecipe(false);
         setInstructions('');
+        setClosing('')
         setPeople(4);
         setServed('');
         setSourceId(null);
@@ -120,7 +123,8 @@ function RecipeForm({ recipe, onCancel, onRecipeSaved }: RecipeFormProps) {
         if (recipe) {
             setName(recipe.name);
             setSubrecipe(recipe.subrecipe);
-            setInstructions(recipe.instructions || '');
+            setInstructions(recipe.instructions || null);
+            setClosing(recipe.closing || null);
             setPeople(recipe.people);
             setServed(recipe.served || '');
             setSourceId(recipe.source?.id || null);
@@ -283,6 +287,7 @@ function RecipeForm({ recipe, onCancel, onRecipeSaved }: RecipeFormProps) {
             name,
             subrecipe,
             instructions,
+            closing,
             people,
             served,
             wineTips,
@@ -307,7 +312,8 @@ function RecipeForm({ recipe, onCancel, onRecipeSaved }: RecipeFormProps) {
             document.getElementById('csvFileName').value = '';
             setName(response.data.name);
             setSubrecipe(response.data.subrecipe);
-            setInstructions(response.data.instructions || '');
+            setInstructions(response.data.instructions || null);
+            setClosing(response.data.closing || null);
             setPeople(response.data.people);
             setServed(response.data.served || '');
             setSourceId(response.data.source?.id || null);
@@ -338,6 +344,7 @@ function RecipeForm({ recipe, onCancel, onRecipeSaved }: RecipeFormProps) {
             name,
             subrecipe,
             instructions,
+            closing,
             people,
             served,
             wineTips,
@@ -400,9 +407,16 @@ function RecipeForm({ recipe, onCancel, onRecipeSaved }: RecipeFormProps) {
 
             <div className="form-group">
                 <label>Instructions (markdown):</label>
-                <textarea value={instructions}
+                <textarea value={instructions ?? ''}
                           onChange={(e) => handleChange(setInstructions, e.target.value)}/>
                 {errors.instructions && <p className="error">{errors.instructions}</p>}
+            </div>
+
+            <div className="form-group">
+                <label>Closing instructions (markdown):</label>
+                <textarea value={closing ?? ''}
+                          onChange={(e) => handleChange(setClosing, e.target.value)}/>
+                {errors.closing && <p className="error">{errors.closing}</p>}
             </div>
 
             <div className="form-line">
@@ -429,7 +443,7 @@ function RecipeForm({ recipe, onCancel, onRecipeSaved }: RecipeFormProps) {
                        onChange={(e) => handleChange(setRating, parseInt(e.target.value))}/>
                 <label>Served:</label>
                 <textarea value={served}
-                          style={{flexGrow:  0.3}}
+                          style={{flexGrow: 0.3}}
                           onChange={(e) => handleChange(setServed, e.target.value)}/>
                 <label>Wine tips:</label>
                 <input type="text"
@@ -444,13 +458,13 @@ function RecipeForm({ recipe, onCancel, onRecipeSaved }: RecipeFormProps) {
 
             <div className="form-group">
                 <label>Notes (markdown):</label>
-                <textarea value={notes} onChange={(e) => handleChange(setNotes ,e.target.value)}/>
+                <textarea value={notes} onChange={(e) => handleChange(setNotes, e.target.value)}/>
             </div>
 
             {recipe && (
                 <div id="attachments" className="form-group">
                     <label>Attachments</label>
-                    <input type="file" onChange={handleFileChange} />
+                    <input type="file" onChange={handleFileChange}/>
                     <table className="attachment-table">
                         <thead>
                         <tr>
@@ -533,10 +547,10 @@ function RecipeForm({ recipe, onCancel, onRecipeSaved }: RecipeFormProps) {
                         {availableRecipes
                             .filter((recipe) => recipe.subrecipe)
                             .map((recipe) => (
-                            <option key={recipe.id} value={recipe.id}>
-                                {recipe.name}
-                            </option>
-                        ))}
+                                <option key={recipe.id} value={recipe.id}>
+                                    {recipe.name}
+                                </option>
+                            ))}
                     </select>
                     <button type="button" onClick={handleAddSubrecipe}>Add Subrecipe</button>
                 </div>

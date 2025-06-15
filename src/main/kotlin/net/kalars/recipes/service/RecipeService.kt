@@ -37,6 +37,7 @@ class RecipeService(
         existingRecipe.name = recipe.name
         existingRecipe.subrecipe = recipe.subrecipe
         existingRecipe.instructions = recipe.instructions
+        existingRecipe.closing = recipe.closing
         existingRecipe.people = recipe.people
         existingRecipe.served = recipe.served
         existingRecipe.pageRef = recipe.pageRef

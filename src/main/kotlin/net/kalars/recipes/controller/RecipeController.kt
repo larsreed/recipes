@@ -80,6 +80,7 @@ class RecipeController(
         return recipeService.getAllRecipes().filter { recipe ->
             pattern.matcher(recipe.name).find() ||
             pattern.matcher(recipe.instructions ?: "").find() ||
+            pattern.matcher(recipe.closing ?: "").find() ||
             pattern.matcher(recipe.served ?: "").find() ||
             pattern.matcher(recipe.wineTips ?: "").find() ||
             pattern.matcher(recipe.matchFor ?: "").find() ||
@@ -150,7 +151,7 @@ class RecipeController(
                     currentRecipe?.let { recipes.add(recipeService.createRecipe(it)) }
 
                     // Create a new recipe
-                    if (columns.size != 12) {
+                    if (columns.size != 13) {
                         report("Invalid Recipe line: $line")
                         return@forEach
                     }
@@ -161,12 +162,13 @@ class RecipeController(
                         rating = columns[4].toIntOrNull(),
                         served = columns[5].replace("\\n", "\n"),
                         instructions = columns[6].replace("\\n", "\n"),
-                        notes = columns[7].replace("\\n", "\n"),
-                        pageRef = columns[9],
-                        wineTips = columns[10].replace("\\n", "\n"),
-                        matchFor = columns[11].replace("\\n", "\n")
+                        closing = columns[7].replace("\\n", "\n"),
+                        notes = columns[8].replace("\\n", "\n"),
+                        pageRef = columns[10],
+                        wineTips = columns[11].replace("\\n", "\n"),
+                        matchFor = columns[12].replace("\\n", "\n")
                     )
-                    val sourceId = sources[columns[8]]
+                    val sourceId = sources[columns[9]]
                     currentRecipe?.sourceId = sourceId
                 }
 
@@ -285,7 +287,7 @@ class RecipeController(
             append("# Format (\\n for newline, TAB-separated)\n")
             append("# '#' Comment\n")
             append("# 'Source'\tName\tAuthors\n")
-            append("# 'Recipe'\tName\tIsSubrecipe:bool\tPeople:int\tRating?:0-6\tServed?\tInstructions\tNotes?\tSource?\tPageRef?\tWineTips?\tMatchFor?\n")
+            append("# 'Recipe'\tName\tIsSubrecipe:bool\tPeople:int\tRating?:0-6\tServed?\tInstructions?\tClosing=\tNotes?\tSource?\tPageRef?\tWineTips?\tMatchFor?\n")
             append("# '+Ingredient'\tPrefix?\tAmount?:float\tMeasure?\tName\tInstruction?\n")
             append("# '+Subrecipe'\tName\n")
             append("# '+Attachment'\tFileName\tBase64Content\n")
@@ -305,6 +307,7 @@ class RecipeController(
                     }\t${recipe.rating ?: ""
                     }\t${recipe.served?.replace("\n", "\\n") ?: ""
                     }\t${recipe.instructions?.replace("\n", "\\n") ?: ""
+                    }\t${recipe.closing?.replace("\n",  "\\n") ?: ""
                     }\t${recipe.notes?.replace("\n",  "\\n") ?: ""
                     }\t${recipe.source?.name ?: ""
                     }\t${recipe.pageRef?.replace("\n", "\\n") ?: ""

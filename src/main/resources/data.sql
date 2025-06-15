@@ -4,6 +4,7 @@ CREATE TABLE recipe (
     subrecipe BOOLEAN DEFAULT FALSE,
     people INT NOT NULL,
     instructions TEXT NULL,
+    closing TEXT NULL,
     source_id BIGINT NULL,
     served TEXT NULL,
     page_ref VARCHAR(64) NULL,

@@ -1,6 +1,5 @@
 # TODO
 
-3. add finallly to recipes  -- rich text, searchable, imp/exp, print
 4. rename prefix to preamble, then add a new prefix between measurement and name in Ingredient
 5. add picture on recipe, including imp/exp & print
 6. allow people==0 for a recipe, in that case assume people==#guests when creating exports 

@@ -11,6 +11,7 @@ data class Recipe(
     var people: Int,
     @Column(columnDefinition = "TEXT")
     var instructions: String? = null,
+    var closing: String? = null,
     var served: String? = null,
     var pageRef: String? = null,
     var rating: Int? = null,
@@ -42,6 +43,6 @@ data class Recipe(
     @ManyToOne @JoinColumn(name = "sourceId", insertable = false, updatable = false)
     var source: Source? = null
 
-    constructor() : this(0, "", 0, "", null, null, null,
+    constructor() : this(0, "", 0, null, null, null, null, null,
         null, false, null, null, mutableListOf(), mutableListOf(), mutableListOf(), null)
 }
