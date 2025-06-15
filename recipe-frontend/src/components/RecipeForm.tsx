@@ -14,7 +14,7 @@ interface Recipe {
     name: string;
     subrecipe: boolean;
     people: number;
-    instructions: string;
+    instructions?: string;
     served?: string;
     sourceId?: number;
     pageRef?: string;
@@ -120,7 +120,7 @@ function RecipeForm({ recipe, onCancel, onRecipeSaved }: RecipeFormProps) {
         if (recipe) {
             setName(recipe.name);
             setSubrecipe(recipe.subrecipe);
-            setInstructions(recipe.instructions);
+            setInstructions(recipe.instructions || '');
             setPeople(recipe.people);
             setServed(recipe.served || '');
             setSourceId(recipe.source?.id || null);
@@ -152,7 +152,6 @@ function RecipeForm({ recipe, onCancel, onRecipeSaved }: RecipeFormProps) {
     const validate = () => {
         const newErrors: { [key: string]: string } = {};
         if (!name) newErrors.name = 'Name is required';
-        if (!instructions) newErrors.instructions = 'Instructions are required';
         if (people <= 0) newErrors.people = 'People must be greater than 0';
         ingredients.forEach((ingredient, index) => {
             if (!ingredient.name) newErrors[`ingredient-${index}-name`] = 'Ingredient name is required';
@@ -308,7 +307,7 @@ function RecipeForm({ recipe, onCancel, onRecipeSaved }: RecipeFormProps) {
             document.getElementById('csvFileName').value = '';
             setName(response.data.name);
             setSubrecipe(response.data.subrecipe);
-            setInstructions(response.data.instructions);
+            setInstructions(response.data.instructions || '');
             setPeople(response.data.people);
             setServed(response.data.served || '');
             setSourceId(response.data.source?.id || null);

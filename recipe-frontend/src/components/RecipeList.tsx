@@ -30,7 +30,7 @@ interface Recipe {
     matchFor?: string;
     ingredients: Ingredient[];
     attachments: Attachment[];
-    instructions: string;
+    instructions?: string;
     subrecipes?: Recipe[];
 }
 
@@ -411,7 +411,7 @@ function RecipeList() {
                     `).join('')}
                 </table>
                 ${recipe.subrecipe ? `<h4>Instructions</h4>` : `<h3>Instructions</h3>`}
-                <div class="instructions">${marked(recipe.instructions)}</div>
+                <div class="instructions">${marked(recipe.instructions ?? '')}</div>
                 ${recipe.subrecipes ? recipe.subrecipes.map(subrecipe => generateRecipeHtml(subrecipe)).join('') : ''}
             </div>
         `;

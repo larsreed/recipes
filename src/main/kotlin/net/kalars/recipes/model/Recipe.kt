@@ -10,7 +10,7 @@ data class Recipe(
     var name: String,
     var people: Int,
     @Column(columnDefinition = "TEXT")
-    var instructions: String,
+    var instructions: String? = null,
     var served: String? = null,
     var pageRef: String? = null,
     var rating: Int? = null,

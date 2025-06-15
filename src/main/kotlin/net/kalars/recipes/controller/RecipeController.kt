@@ -79,8 +79,8 @@ class RecipeController(
         val pattern = Pattern.compile(query, Pattern.CASE_INSENSITIVE)
         return recipeService.getAllRecipes().filter { recipe ->
             pattern.matcher(recipe.name).find() ||
-            pattern.matcher(recipe.instructions).find() ||
-            pattern.matcher(recipe.served ?: "" ).find() ||
+            pattern.matcher(recipe.instructions ?: "").find() ||
+            pattern.matcher(recipe.served ?: "").find() ||
             pattern.matcher(recipe.wineTips ?: "").find() ||
             pattern.matcher(recipe.matchFor ?: "").find() ||
             recipe.ingredients.any { ingredient ->
@@ -285,7 +285,7 @@ class RecipeController(
             append("# Format (\\n for newline, TAB-separated)\n")
             append("# '#' Comment\n")
             append("# 'Source'\tName\tAuthors\n")
-            append("# 'Recipe'\tName\tIsSubrecipe:bool\tPeople:int\tRating?:0-6\tServed?\tInstructions\tNotes?\tSource?\tPageRef?\n")
+            append("# 'Recipe'\tName\tIsSubrecipe:bool\tPeople:int\tRating?:0-6\tServed?\tInstructions\tNotes?\tSource?\tPageRef?\tWineTips?\tMatchFor?\n")
             append("# '+Ingredient'\tPrefix?\tAmount?:float\tMeasure?\tName\tInstruction?\n")
             append("# '+Subrecipe'\tName\n")
             append("# '+Attachment'\tFileName\tBase64Content\n")
@@ -304,7 +304,7 @@ class RecipeController(
                     }\t${recipe.people
                     }\t${recipe.rating ?: ""
                     }\t${recipe.served?.replace("\n", "\\n") ?: ""
-                    }\t${recipe.instructions.replace("\n", "\\n")
+                    }\t${recipe.instructions?.replace("\n", "\\n") ?: ""
                     }\t${recipe.notes?.replace("\n",  "\\n") ?: ""
                     }\t${recipe.source?.name ?: ""
                     }\t${recipe.pageRef?.replace("\n", "\\n") ?: ""

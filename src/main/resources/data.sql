@@ -3,7 +3,7 @@ CREATE TABLE recipe (
     name VARCHAR(128) NOT NULL,
     subrecipe BOOLEAN DEFAULT FALSE,
     people INT NOT NULL,
-    instructions TEXT NOT NULL,
+    instructions TEXT NULL,
     source_id BIGINT NULL,
     served TEXT NULL,
     page_ref VARCHAR(64) NULL,
