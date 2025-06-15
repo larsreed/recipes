@@ -150,7 +150,7 @@ class RecipeController(
                     currentRecipe?.let { recipes.add(recipeService.createRecipe(it)) }
 
                     // Create a new recipe
-                    if (columns.size != 10) {
+                    if (columns.size != 12) {
                         report("Invalid Recipe line: $line")
                         return@forEach
                     }
@@ -162,7 +162,9 @@ class RecipeController(
                         served = columns[5].replace("\\n", "\n"),
                         instructions = columns[6].replace("\\n", "\n"),
                         notes = columns[7].replace("\\n", "\n"),
-                        pageRef = columns[9]
+                        pageRef = columns[9],
+                        wineTips = columns[10].replace("\\n", "\n"),
+                        matchFor = columns[11].replace("\\n", "\n")
                     )
                     val sourceId = sources[columns[8]]
                     currentRecipe?.sourceId = sourceId
@@ -305,7 +307,10 @@ class RecipeController(
                     }\t${recipe.instructions.replace("\n", "\\n")
                     }\t${recipe.notes?.replace("\n",  "\\n") ?: ""
                     }\t${recipe.source?.name ?: ""
-                    }\t${recipe.pageRef?.replace("\n", "\\n") ?: ""}\n"
+                    }\t${recipe.pageRef?.replace("\n", "\\n") ?: ""
+                    }\t${recipe.wineTips?.replace("\n", "\\n") ?: ""
+                    }\t${recipe.matchFor?.replace("\n", "\\n") ?: ""
+                    }\n"
                 )
 
                 recipe.ingredients.forEach { ingredient ->

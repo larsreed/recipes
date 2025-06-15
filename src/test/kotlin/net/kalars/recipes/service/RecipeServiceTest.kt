@@ -98,6 +98,8 @@ class RecipeServiceTest {
             name = "Test",
             people = 1,
             instructions = "Test instructions",
+            wineTips = "Chardonnay",
+            matchFor = "Fish",
             sourceId = 2
         ).apply { this.source = source }
         Mockito.`when`(recipeRepository.findBySourceId(2L)).thenReturn(listOf(recipe))
