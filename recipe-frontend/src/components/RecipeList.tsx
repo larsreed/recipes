@@ -1,4 +1,4 @@
-import React, {useState, useEffect} from 'react';
+import React, {useState, useEffect, useCallback } from 'react';
 import Modal from 'react-modal';
 import axios from 'axios';
 import ConversionsModal from "./ConversionsModal.tsx";
@@ -60,6 +60,7 @@ marked.setOptions({
 
 
 function RecipeList() {
+    const [allRecipes, setAllRecipes] = useState<Recipe[]>([]);
     const [recipes, setRecipes] = useState<Recipe[]>([]);
     const [selectedRecipes, setSelectedRecipes] = useState<Set<number>>(new Set());
     const [selectAll, setSelectAll] = useState(false);
@@ -79,16 +80,17 @@ function RecipeList() {
     const [csvFile, setCsvFile] = useState<File | null>(null);
     const [apiError, setApiError] = useState<string | null>(null);
 
-    const fetchRecipes = () => {
+    const fetchRecipes = useCallback(() => {
         axios.get(`${config.backendUrl}/api/recipes?includeSubrecipes=${includeSubrecipes}`)
             .then(response => {
+                setAllRecipes(response.data);
                 setRecipes(response.data);
             })
             .catch(error => {
-                console.error('Error fetching recipes:', error)
+                console.error('Error fetching recipes:', error);
                 setApiError('Failed to fetch recipes');
             });
-    };
+    }, [includeSubrecipes]);
 
     useEffect(() => {
         fetchRecipes();
@@ -194,7 +196,8 @@ function RecipeList() {
         // console.log(searchUrl);
         axios.get(searchUrl)
             .then(response => {
-                setRecipes(response.data);
+                console.log(response.data)
+                setRecipes(response.data); // Only update the filtered list
                 setIsSearchActive(true);
                 setIsSearchPanelOpen(false);
                 setApiError(null);
@@ -206,7 +209,7 @@ function RecipeList() {
     };
 
     const handleShowAllRecipes = () => {
-        fetchRecipes();
+        setRecipes(allRecipes); // Restore the full list
         setIsSearchActive(false);
     };
 
