@@ -50,6 +50,7 @@ class RecipeService(
         recipe.ingredients.forEachIndexed { index, ingredientDto ->
             val ing = Ingredient(
                 id = ingredientDto.id,
+                preamble = ingredientDto.preamble,
                 amount = ingredientDto.amount,
                 measure = ingredientDto.measure,
                 name = ingredientDto.name,

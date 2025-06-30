@@ -17,6 +17,7 @@ CREATE TABLE recipe (
 CREATE TABLE ingredient (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
     amount FLOAT NULL,
+    preamble VARCHAR(255) NULL,
     measure VARCHAR(10) NULL,
     name VARCHAR(128) NOT NULL,
     prefix VARCHAR(255) NULL,

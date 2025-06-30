@@ -5,7 +5,7 @@
 # '#' Comment
 # 'Source'	Name	Authors
 # 'Recipe'	Name	IsSubrecipe:bool	People:int	Rating?:0-6	Served?	Instructions	Notes?	Source?	PageRef?
-# '+Ingredient'	Prefix?	Amount?:float	Measure?	Name	Instruction?
+# '+Ingredient'	Preamble	Amount?:float	Measure?	Name	Instruction?
 # '+Subrecipe'	Name
 # '+Attachment'	FileName	Base64Content
 # 'Conversion'	From	To	Factor

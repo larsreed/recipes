@@ -15,5 +15,5 @@ data class Ingredient(
     var instruction: String? = null,
     var sortorder: Int = 0
 ) {
-    constructor() : this(0, null,null, null,"", null, 0)
+    constructor() : this(0, null,null, null,null, "",null, 0)
 }

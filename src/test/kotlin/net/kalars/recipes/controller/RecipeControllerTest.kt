@@ -211,7 +211,7 @@ class RecipeControllerTest {
         val recipe = Recipe(id = 1, name = "Soup", people = 2, instructions = "", ingredients = mutableListOf())
         Mockito.`when`(recipeService.updateRecipe(eq(1L), any(Recipe::class.java) ?: Recipe())).thenReturn(recipe)
 
-        val csv = "prefix,amount,measure,name,instruction\n,,g,Carrot,Chop"
+        val csv = "preamble,amount,measure,prefix,name,instruction\n,,g,Carrot,Chop"
         val recipeJson = """{"id":1,"name":"Soup","people":2,"instructions":"","ingredients":[]}"""
 
         RestAssured.given()
