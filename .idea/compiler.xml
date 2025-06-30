@@ -3,4 +3,11 @@
   <component name="CompilerConfiguration">
     <bytecodeTargetLevel target="17" />
   </component>
+  <component name="JavacSettings">
+    <option name="ADDITIONAL_OPTIONS_OVERRIDE">
+      <module name="recipes" options="-parameters -proc:none" />
+      <module name="recipes.main" options="-parameters -proc:none" />
+      <module name="recipes.test" options="-parameters -proc:none" />
+    </option>
+  </component>
 </project>
