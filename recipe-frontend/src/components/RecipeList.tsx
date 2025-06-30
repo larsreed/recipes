@@ -43,9 +43,10 @@ interface Source {
 
 interface Ingredient {
     id: number;
-    prefix: string;
+    preamble: string;
     amount: number;
     measure: string;
+    prefix: string;
     name: string;
     instruction: string;
 }
@@ -401,11 +402,14 @@ function RecipeList() {
                     ${recipe.ingredients.map(ingredient => `
                         <tr class="ingredient">
                             <td class="ingredient-cell">
-                                ${ingredient.prefix ? marked(ingredient.prefix) : ''}
+                                ${ingredient.preamble ? marked(ingredient.preamble) : ''}
                             </td>
                             <td class="ingredient-cell">
                                 ${ingredient.amount ? ((ingredient.amount * guestsNumber) / recipe.people).toFixed(2) : ''}
                                 ${ingredient.measure || ''}
+                            </td>
+                            <td class="ingredient-cell">
+                                ${ingredient.prefix || ''}
                             </td>
                             <td class="ingredient-cell ingredient-name">
                                 ${ingredient.name}

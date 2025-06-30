@@ -86,6 +86,7 @@ class RecipeController(
             pattern.matcher(recipe.matchFor ?: "").find() ||
             recipe.ingredients.any { ingredient ->
                 pattern.matcher(ingredient.name).find() ||
+                pattern.matcher(ingredient.preamble ?: "").find() ||
                 pattern.matcher(ingredient.prefix ?: "").find() ||
                 pattern.matcher(ingredient.instruction ?: "").find()
             }
@@ -100,14 +101,15 @@ class RecipeController(
 
         reader.lines().skip(1).forEach { line ->
             val columns = line.split(",", ";", "\t")
-            if (columns.size != 5) report("Invalid ingredient line: $line")
+            if (columns.size != 6) report("Invalid ingredient line: $line")
             else ingredientList.add(
                 Ingredient(
-                    prefix = columns[0],
+                    preamble = columns[0],
                     amount = columns[1].toFloatOrNull(),
                     measure = columns[2],
-                    name = columns[3],
-                    instruction = columns[4]
+                    prefix = columns[3],
+                    name = columns[4],
+                    instruction = columns[5]
             ))
         }
         recipe.ingredients.addAll(ingredientList)
@@ -174,7 +176,7 @@ class RecipeController(
 
                 line.startsWith("+Ingredient") -> {
                     // Add an ingredient to the current recipe
-                    if (columns.size != 6) {
+                    if (columns.size != 7) {
                         report("Invalid Ingredient line: $line")
                         return@forEach
                     }
@@ -184,11 +186,12 @@ class RecipeController(
                     }
                     currentRecipe?.ingredients?.add(
                         Ingredient(
-                            prefix = columns[1].replace("\\n", "\n"),
+                            preamble = columns[1].replace("\\n", "\n"),
                             amount = columns[2].toFloatOrNull(),
                             measure = columns[3],
-                            name = columns[4].replace("\\n", "\n"),
-                            instruction = columns[5].replace("\\n", "\n")
+                            prefix = columns[4].replace("\\n", "\n"),
+                            name = columns[5].replace("\\n", "\n"),
+                            instruction = columns[6].replace("\\n", "\n")
                         )
                     )
                 }
@@ -288,7 +291,7 @@ class RecipeController(
             append("# '#' Comment\n")
             append("# 'Source'\tName\tAuthors\n")
             append("# 'Recipe'\tName\tIsSubrecipe:bool\tPeople:int\tRating?:0-6\tServed?\tInstructions?\tClosing=\tNotes?\tSource?\tPageRef?\tWineTips?\tMatchFor?\n")
-            append("# '+Ingredient'\tPrefix?\tAmount?:float\tMeasure?\tName\tInstruction?\n")
+            append("# '+Ingredient'\tPreamble?\tAmount?:float\tMeasure?\tPrefix?\tName\tInstruction?\n")
             append("# '+Subrecipe'\tName\n")
             append("# '+Attachment'\tFileName\tBase64Content\n")
             append("# 'Conversion'\tFrom\tTo\tFactor\n")
@@ -317,9 +320,10 @@ class RecipeController(
                 )
 
                 recipe.ingredients.forEach { ingredient ->
-                    append("+Ingredient\t${ingredient.prefix?.replace("\n", "\\n")  ?: ""
+                    append("+Ingredient\t${ingredient.preamble?.replace("\n", "\\n")  ?: ""
                         }\t${ingredient.amount ?: ""
                         }\t${ingredient.measure?.replace("\n", "\\n") ?: ""
+                        }\t${ingredient.prefix?.replace("\n", "\\n") ?: ""
                         }\t${ingredient.name.replace("\n", "\\n")
                         }\t${ingredient.instruction?.replace("\n", "\\n") ?: ""}\n"
                     )

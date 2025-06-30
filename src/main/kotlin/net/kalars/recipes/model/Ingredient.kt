@@ -6,9 +6,10 @@ import jakarta.persistence.*
 data class Ingredient(
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     val id: Long = 0,
-    var prefix: String? = null,
+    var preamble: String? = null,
     var amount: Float? = null,
     var measure: String? = null,
+    var prefix: String? = null,
     @Column(nullable = false)
     var name: String,
     var instruction: String? = null,

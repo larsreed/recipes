@@ -41,8 +41,9 @@ interface Source {
 }
 
 interface Ingredient {
-    prefix?: string;
+    preamble?: string;
     amount?: number;
+    prefix?: string;
     name: string;
     instruction?: string;
     measure?: string;
@@ -69,7 +70,7 @@ function RecipeForm({ recipe, onCancel, onRecipeSaved }: RecipeFormProps) {
     const [matchFor, setMatchFor] = useState(recipe?.matchFor || null);
     const [notes, setNotes] = useState(recipe?.notes || '');
     const [ingredients, setIngredients] = useState<Ingredient[]>(
-        recipe?.ingredients || [{ prefix: undefined, amount: undefined, name: '', instruction: undefined, measure: undefined }]
+        recipe?.ingredients || [{ preamble: undefined, amount: undefined, prefix: undefined, name: '', instruction: undefined, measure: undefined }]
     );
     const [attachments, setAttachments] = useState<Attachment[]>(recipe?.attachments || []);
 
@@ -225,7 +226,7 @@ function RecipeForm({ recipe, onCancel, onRecipeSaved }: RecipeFormProps) {
 
     const addIngredient = () => {
         setIsDirty(true);
-        setIngredients([...ingredients, { prefix: undefined, amount: undefined, name: '', instruction: undefined, measure: undefined }]);
+        setIngredients([...ingredients, { preamble: undefined, amount: undefined, prefix: undefined, name: '', instruction: undefined, measure: undefined }]);
     };
 
     const removeIngredient = (index: number) => {
@@ -572,9 +573,10 @@ function RecipeForm({ recipe, onCancel, onRecipeSaved }: RecipeFormProps) {
                 <table className="ingredient-table">
                     <thead>
                     <tr>
-                        <th>Prefix (markdown)</th>
+                        <th>Preamble (markdown)</th>
                         <th>Amount</th>
                         <th>Measure</th>
+                        <th>Prefix</th>
                         <th>Name</th>
                         <th>Instructions (markdown)</th>
                         <th>!</th>
@@ -585,11 +587,11 @@ function RecipeForm({ recipe, onCancel, onRecipeSaved }: RecipeFormProps) {
                         <tr key={index}>
                             <td>
                                 <textarea
-                                    value={ingredient.prefix ?? ''}
-                                    onChange={(e) => handleIngredientChange(index, 'prefix', e.target.value)}
+                                    value={ingredient.preamble ?? ''}
+                                    onChange={(e) => handleIngredientChange(index, 'preamble', e.target.value)}
                                 />
-                                {errors[`ingredient-${index}-prefix`] &&
-                                    <p className="error">{errors[`ingredient-${index}-prefix`]}</p>}
+                                {errors[`ingredient-${index}-preamble`] &&
+                                    <p className="error">{errors[`ingredient-${index}-preamble`]}</p>}
                             </td>
                             <td>
                                 <input
@@ -612,6 +614,16 @@ function RecipeForm({ recipe, onCancel, onRecipeSaved }: RecipeFormProps) {
                                 </select>
                                 {errors[`ingredient-${index}-measure`] &&
                                     <p className="error">{errors[`ingredient-${index}-measure`]}</p>}
+                            </td>
+                            <td>
+                                <input
+                                    type="text"
+                                    placeholder="Prefix"
+                                    value={ingredient.prefix}
+                                    onChange={(e) => handleIngredientChange(index, 'prefix', e.target.value)}
+                                />
+                                {errors[`ingredient-${index}-prefix`] &&
+                                    <p className="error">{errors[`ingredient-${index}-prefix`]}</p>}
                             </td>
                             <td>
                                 <input
