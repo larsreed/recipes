@@ -405,7 +405,11 @@ function RecipeList() {
                                 ${ingredient.preamble ? marked(ingredient.preamble) : ''}
                             </td>
                             <td class="ingredient-cell">
-                                ${ingredient.amount ? ((ingredient.amount * guestsNumber) / recipe.people).toFixed(2) : ''}
+                                ${ingredient.amount ?
+                                     (recipe.people>0?
+                                        ((ingredient.amount * guestsNumber) / recipe.people).toFixed(2)
+                                        : ingredient.amount) 
+                                     : ''}
                                 ${ingredient.measure || ''}
                             </td>
                             <td class="ingredient-cell">

@@ -157,7 +157,7 @@ function RecipeForm({ recipe, onCancel, onRecipeSaved }: RecipeFormProps) {
     const validate = () => {
         const newErrors: { [key: string]: string } = {};
         if (!name) newErrors.name = 'Name is required';
-        if (people <= 0) newErrors.people = 'People must be greater than 0';
+        if (people < 0) newErrors.people = 'Number of people cannot be negative';
         ingredients.forEach((ingredient, index) => {
             if (!ingredient.name) newErrors[`ingredient-${index}-name`] = 'Ingredient name is required';
             if (ingredient.amount !== undefined && ingredient.amount < 0) newErrors[`ingredient-${index}-amount`] = 'Amount must be non-negative';
@@ -382,7 +382,7 @@ function RecipeForm({ recipe, onCancel, onRecipeSaved }: RecipeFormProps) {
         <form onSubmit={handleSubmit} className="recipe-form">
             <h2>{recipe ? 'Edit Recipe' : 'Add a New Recipe'}</h2>
             <div className="form-line" style={{display: 'flex', gap: '1rem'}}>
-                <label>Name:</label>
+                <label>Name:</label><br/>
                 <input type="text"
                        value={name}
                        style={{flexGrow: 1}}
@@ -402,7 +402,7 @@ function RecipeForm({ recipe, onCancel, onRecipeSaved }: RecipeFormProps) {
                 <input type="number"
                        value={people}
                        onChange={(e) => handleChange(setPeople, parseInt(e.target.value))}
-                />
+                /><span> (0 for fixed amounts)</span>
                 {errors.people && <p className="error">{errors.people}</p>}
             </div>
 
@@ -432,7 +432,7 @@ function RecipeForm({ recipe, onCancel, onRecipeSaved }: RecipeFormProps) {
                         </option>
                     ))}
                 </select>
-                <label>Page Reference:</label>
+                <label>Page ref.:</label>
                 <input type="text" value={pageRef}
                        style={{flexGrow: 0.2}}
                        onChange={(e) => handleChange(setPageRef, e.target.value)}/>

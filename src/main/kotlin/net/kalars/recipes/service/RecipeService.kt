@@ -116,14 +116,15 @@ class RecipeService(
     }
 
     private fun collectIngredients(recipe: Recipe, ingredients: MutableList<ShoppingListItem>, guests: Int) {
+        val people = if (recipe.people>0) recipe.people else guests // if 0, then fixed amount
         recipe.ingredients.forEach { ingredient ->
             val existingItem = ingredients.find {
                 (it.name == ingredient.name) && (it.measure == ingredient.measure)
             }
             if (existingItem != null) {
-                existingItem.amount = (existingItem.amount ?: 0f) + (ingredient.amount ?: 0f) * (guests / recipe.people)
+                existingItem.amount = (existingItem.amount ?: 0f) + (ingredient.amount ?: 0f) * (guests / people)
             } else {
-                ingredients.add(ShoppingListItem(ingredient.name, ((ingredient.amount ?: 0f) * guests) / recipe.people,
+                ingredients.add(ShoppingListItem(ingredient.name, ((ingredient.amount ?: 0f) * guests) / people,
                     ingredient.measure))
             }
         }
