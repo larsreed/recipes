@@ -1,0 +1,87 @@
+# Source	Name	Authors										
+# Recipe	Name	IsSubrecipe:bool	People:int	Rating?:0-6	Served?	Instructions	Finally	Notes?	Source?	PageRef?	WineTips?	MatchFor?
+# +Ingredient	Preamble	Amount?:float	Measure?	prefix?	Name	Instruction?						
+# +Subrecipe	Name											
+# +Attachment	FileName	Base64Content										
+# Conversion	From	To	Factor									
+# Temperature	Temp (C)	Meat										
+# -------------------------------------------------------------------------------------------------------------------------------------------------------------------												
+												
+Source	Usikker	?										
+Recipe	Fruktfat uten fat	FALSE	12	4	17.mai 2025\nL fam 2025\nLærere 2025				Usikker		Pet Nat Rosé by Toni Hartl 2022  https://www.vinmonopolet.no/Land/%C3%98sterrike/%C3%96sterreichischer-W-/Pet-Nat-Ros%C3%A9-by-Toni-Hartl-2022/p/17124101 (musserende rosé, Østerrike – polet #17124101) eller dens hvite søster	Forrett
++Ingredient		2	stk		melon (lys)	i terninger						
++Ingredient		3	stk		grapefrukt	i fileter						
++Ingredient	dynkes med	6	glass		Sauternes	skal stå et par timer, minst						
++Ingredient	eller alkofri				lake	erstatt sauternes med en lake av limesaft, vann, sukker og litt limeskall						
++Ingredient					-							
++Ingredient	Dekorer med	1	kurv		jordbær	oppskåret						
++Ingredient	og		blader		mynte							
+												
+Source	Ukjent											
+Recipe	Smør og brød	FALSE	12	5	Mange ganger							
++Subrecipe	Evabrød											
++Subrecipe	Halvbrunet urtesmør											
+Source	Brimistua	Eva på Brimi Fjellstugu										
+Recipe	Evabrød	TRUE	0	4	Mange ganger	Heves til dobbel størrelse.\nFormes til 4 runde brød\nPensle med olje og drysses med flaksalt	Etterheves ca 1/2 time\nStekes på 210° i ca 15 min		Brimistua			Tilbehør
++Ingredient		1	kg		hvetemel							
++Ingredient		1	dl		grov hvete							
++Ingredient		1	pakke		gjær							
++Ingredient		0,5	ss		salt							
++Ingredient		1	dl		olje							
++Ingredient					vann	til deigen er passe						
+Source	Egen	Lars R										
+Recipe	Halvbrunet urtesmør	TRUE	0	4	17.mai 2025\nLærere 2025	Ta ut smør så det blir romtemperert.\nBrun halvparten av smøret på medium varme, visp jevnlig, og sammenhengende på slutten – vær forsiktig så det ikke svir seg, ca 160° er passe (svir seg ved 180…). Avkjøl til romtemperatur.	Pisk sammen med resten av smøret – minst 5 minutter – luft er greia.		Egen			Brød
++Ingredient		150	g		rørossmør	"(du kan bruke vanlig smør også, men jeg er litt hekta ;)"						
++Ingredient	Rør inn finhakket				rosmarin							
++Ingredient	og finhakket				hvitløk							
+												
+Recipe	Sashimi i epletreet	FALSE	4	5	17.mai 2025\nL fam 2025\nLærere 2025				Usikker		Hexamer Schlossböckelheimer Porphyr Riesling 2023 (polet #416101) eller Kruger-Rumpf Phyllit Riesling Feinherb 2024 (polet #851901)	
++Subrecipe	Ponzusaus											
++Subrecipe	Eple- og avokadosalat											
++Ingredient		200	g		laksefilet							
++Ingredient		200	g		tunfiskfilet							
++Ingredient		200	g		kveitefilet	all fisken skjæres i tynne skiver						
++Ingredient	Serveres med 				wasabi							
++Ingredient	og				syltet ingefær							
+Recipe	Ponzusaus	FALSE	6	5	17.mai 2025\nL fam 2025\nLærere 2025				Usikker			Sushi
++Ingredient	bland	2	dl		saltredusert soyasaus							
++Ingredient		4	ss		sitronsaft							
++Ingredient		2	ss		limesaft							
++Ingredient		2	ts	revet	limeskall							
++Ingredient		8	ss		appelsinjuice							
++Ingredient		2			sitrongress							
++Ingredient		2	ts	finrevet	ingefær							
++Ingredient		2	ss		riseddik							
++Ingredient		4	ss		sukker							
++Ingredient		4	ss	finhakket	koriander							
++Ingredient		2	klyper		tørket chili							
+Recipe	Eple- og avokadosalat	TRUE	4	4	17.mai 2025\nL fam 2025\nLærere 2025				Usikker			Sushi
++Ingredient		2			grønne epler	i små terninger						
++Ingredient		2			avokado	i små terninger						
++Ingredient		2	ss		olivenolje							
++Ingredient		2	ss		limesaft							
++Ingredient		1	ts		sesamolje							
++Ingredient		4	ts		sesamfrø							
++Ingredient		6	ss	hakket	koriander							
+												
+Source	Hellstrøm hvit	Eyvind Hellstrøm										
+Recipe	Kamskjell Tian	FALSE	4	4	17.mai 2025\nLærere 2025		Bruk ringer, 1 lag squash, 1 lag tomat, 1 lag kamskjell,\nstek på grillvarme i ovn 2-3 minutter\nServeres gjerne i skjellene, hell over saus	SJEKK ORIGINAL	Hellstrøm hvit	?	Simpsons Gravel Castle Chardonnay 2023 (Engelsk – Kent, pol #11051501) eller Tissot Chardonnay Patchwork 2023 (Jura, pol#19372701)	
++Subrecipe	Bakte cherrytomater											
++Subrecipe	Squashkompott											
++Subrecipe	Saus til kamskjell Tian											
++Ingredient			15		kamskjell	skjæres rå i skiver						
++Ingredient	dryss over				limeskall							
+Recipe	Bakte cherrytomater	FALSE	4	4	Ofte		bakes på 150° i 40 min					kjøtt, fisk, nesten alt
++Ingredient		300	g		cherrytomater	deles i to, i smurt form						
++Ingredient	drysses med		olivenolje		+ salt& pepper							
+Recipe	Squashkompott	TRUE	4	3	17.mai 2025\nLærere 2025				Hellstrøm hvit	?		
++Ingredient		2			squash	små – skrelles, kutt i små terninger, freses i smør, tilsett						
++Ingredient		3	ss		kaldt vann	kok på sterk varme til vannet er fordampet, bland godt til kompottlignende, avkjøl						
++Ingredient	Riv skallet på	2			lime	(saft presses etterpå)						
+Recipe	Saus til kamskjell Tian	TRUE	4	4								
++Ingredient		2	ss	finhakket	sjalottløk	kokes inn med						
++Ingredient		2	dl		tørr hvitvin							
++Ingredient		100	g		kaldt smør	i terninger piskes inn, deretter						
++Ingredient		1	dl	lettpisket	kremfløte							
++Ingredient	saft av	2			lime							
++Ingredient	dryss av				salt							
