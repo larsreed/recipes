@@ -30,6 +30,10 @@ class RecipeService(
         return recipeRepository.save(recipe)
     }
 
+    fun saveRecipe(recipe: Recipe): Recipe {
+        return recipeRepository.save(recipe)
+    }
+
     fun updateRecipe(id: Long, recipe: Recipe): Recipe {
         val existingRecipe = recipeRepository.findById(id)
             .orElseThrow { RuntimeException("Recipe not found") }

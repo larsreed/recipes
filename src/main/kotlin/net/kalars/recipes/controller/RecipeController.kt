@@ -276,7 +276,7 @@ class RecipeController(
                     recipes.find { it.name == name }
                 }
                 recipe.subrecipes.addAll(subrecipes)
-                recipeService.updateRecipe(recipe.id, recipe)
+                recipeService.saveRecipe(recipe)
             }
         }
 
