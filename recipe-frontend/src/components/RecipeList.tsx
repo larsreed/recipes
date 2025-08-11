@@ -122,7 +122,6 @@ function RecipeList() {
         return 'fas fa-sort';
     };
 
-
     const deleteRecipe = (id: number) => {
         if (window.confirm('Are you sure you want to delete this recipe?')) {
             axios.delete(`${config.backendUrl}/api/recipes/${id}`)
@@ -133,6 +132,33 @@ function RecipeList() {
                 .catch(error => {
                     console.error('Error deleting recipe:', error)
                     setApiError('Failed to delete recipe');
+                });
+        }
+    };
+
+    const handleDeleteMany = () => {
+        const recipesToDelete = selectedRecipes.size === 0 ? [] : recipes
+            .filter(recipe => selectedRecipes.has(recipe.id))
+            .map(recipe => recipe.id); // Only include IDs
+        if (recipesToDelete.length === 0) {
+            alert('No recipes selected for deletion.');
+            return;
+        }
+        if (window.confirm(`Are you sure you want to delete ${recipesToDelete.length} recipe(s)?`)) {
+            axios.post(`${config.backendUrl}/api/recipes/delete-many`, recipesToDelete, {
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+            })
+                .then(() => {
+                    setRecipes(recipes.filter(recipe => !recipesToDelete.includes(recipe.id)));
+                    setSelectedRecipes(new Set());
+                    setSelectAll(false);
+                    setApiError(null);
+                })
+                .catch(error => {
+                    console.error('Error deleting recipes:', error);
+                    setApiError('Failed to delete recipes');
                 });
         }
     };
@@ -663,6 +689,10 @@ function RecipeList() {
                         &nbsp;
                         <button onClick={() => handleShoppingList()} title="Export shopping list">
                             <i className="fas fa-list"></i>
+                        </button>
+                        &nbsp;
+                        <button onClick={handleDeleteMany} title="Delete selected recipes">
+                            <i className="fas fa-trash"></i>
                         </button>
                     </th>
                 </tr>

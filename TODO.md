@@ -1,6 +1,6 @@
 # TODO
 
-1. add possibility to delete many recipes at once
+1. markdown fields should be larger
 2. add category (dinner, main course, dessert, etc.) to recipe
 3. add possibility to add a recipe to multiple categories
 4. add picture on recipe, including imp/exp & print

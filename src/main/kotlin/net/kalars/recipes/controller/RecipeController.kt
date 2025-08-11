@@ -71,6 +71,13 @@ class RecipeController(
     @DeleteMapping("/{id}")
     fun deleteRecipe(@PathVariable id: Long) = recipeService.deleteRecipe(id)
 
+    // RecipeController.kt
+    @PostMapping("/delete-many")
+    fun deleteRecipes(@RequestBody ids: List<Long>): ResponseEntity<Void> {
+        recipeService.deleteRecipesByIds(ids)
+        return ResponseEntity.noContent().build()
+    }
+
     @PutMapping("/nullify-source/{sourceId}")
     fun nullifySourceInRecipes(@PathVariable sourceId: Long) = recipeService.nullifySourceInRecipes(sourceId)
 
@@ -124,11 +131,11 @@ class RecipeController(
         val sources = mutableMapOf<String, Long>() // Map to store source names and their IDs
         val subrecipesToAdd = mutableMapOf<String, List<String>>() // Map to store links between main and subrecipes
         var currentRecipe: Recipe? = null
-        val lineNo: Int = 0
+        var lineNo: Int = 0
 
         reader.lines().forEach { line ->
-            val columns = line.split("\t")
-            lineNo.inc()
+            val columns = line.trim().split("\t").toMutableList().apply { while (size < 100) add("") }
+            lineNo++
             when {
                 line.isBlank() -> {
                     // Skip empty lines
@@ -140,8 +147,8 @@ class RecipeController(
 
                 line.startsWith("Source") -> {
                     // Create or fetch the source
-                    if (columns.size != 3) {
-                        report("Invalid Source line: $line")
+                    if (columns.size < 3) {
+                        report("Invalid Source line ($lineNo): $line")
                         return@forEach
                     }
                     val sourceName = columns[1]
@@ -155,7 +162,7 @@ class RecipeController(
                     currentRecipe?.let { recipes.add(recipeService.createRecipe(it)) }
 
                     // Create a new recipe
-                    if (columns.size != 13) {
+                    if (columns.size < 2) {
                         report("Invalid Recipe line ($lineNo): $line")
                         return@forEach
                     }
@@ -178,7 +185,7 @@ class RecipeController(
 
                 line.startsWith("+Ingredient") -> {
                     // Add an ingredient to the current recipe
-                    if (columns.size != 7) {
+                    if (columns.size <2) {
                         report("Invalid Ingredient line ($lineNo): $line")
                         return@forEach
                     }
@@ -200,7 +207,7 @@ class RecipeController(
 
                 line.startsWith("+Subrecipe") -> {
                     // Remember a subrecipe to add later
-                    if (columns.size != 2) {
+                    if (columns.size < 2) {
                         report("Invalid Subrecipe line ($lineNo): $line")
                         return@forEach
                     }
@@ -217,7 +224,7 @@ class RecipeController(
 
                 line.startsWith("+Attachment") -> {
                     // Add an attachment to the current recipe
-                    if (columns.size != 3) {
+                    if (columns.size < 3) {
                         report("Invalid Attachment line ($lineNo): $line")
                         return@forEach
                     }
@@ -236,7 +243,7 @@ class RecipeController(
                 }
 
                 line.startsWith("Conversion") -> {
-                    if (columns.size != 4) {
+                    if (columns.size < 4) {
                         report("Invalid Conversion line ($lineNo): $line")
                         return@forEach
                     }
@@ -247,7 +254,7 @@ class RecipeController(
                 }
 
                 line.startsWith("Temperature") -> {
-                    if (columns.size != 3) {
+                    if (columns.size < 3) {
                         report("Invalid Temperature line ($lineNo): $line")
                         return@forEach
                     }

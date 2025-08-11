@@ -91,6 +91,11 @@ class RecipeService(
 
     fun deleteRecipe(id: Long) = recipeRepository.deleteById(id)
 
+    // RecipeService.kt
+    fun deleteRecipesByIds(ids: List<Long>) {
+        recipeRepository.deleteAllById(ids)
+    }
+
     fun nullifySourceInRecipes(sourceId: Long) {
         val recipes = recipeRepository.findBySourceId(sourceId)
         recipes.forEach { it.source = null }
