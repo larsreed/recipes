@@ -1,6 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useRef, useState, useEffect } from 'react';
 import axios from 'axios';
 import config from '../config';
+import AutoGrowTextarea from './AutoGrowTextarea.tsx';
 import measureOptions from './measureOptions';
 
 interface RecipeFormProps {
@@ -408,14 +409,15 @@ function RecipeForm({ recipe, onCancel, onRecipeSaved }: RecipeFormProps) {
 
             <div className="form-group">
                 <label>Instructions (markdown):</label>
-                <textarea value={instructions ?? ''}
+
+                <AutoGrowTextarea value={instructions ?? ''}
                           onChange={(e) => handleChange(setInstructions, e.target.value)}/>
                 {errors.instructions && <p className="error">{errors.instructions}</p>}
             </div>
 
             <div className="form-group">
                 <label>Closing instructions (markdown):</label>
-                <textarea value={closing ?? ''}
+                <AutoGrowTextarea value={closing ?? ''}
                           onChange={(e) => handleChange(setClosing, e.target.value)}/>
                 {errors.closing && <p className="error">{errors.closing}</p>}
             </div>
@@ -443,7 +445,7 @@ function RecipeForm({ recipe, onCancel, onRecipeSaved }: RecipeFormProps) {
                        style={{flexGrow: 0.1}}
                        onChange={(e) => handleChange(setRating, parseInt(e.target.value))}/>
                 <label>Served:</label>
-                <textarea value={served}
+                <AutoGrowTextarea value={served}
                           style={{flexGrow: 0.3}}
                           onChange={(e) => handleChange(setServed, e.target.value)}/>
                 <label>Wine tips:</label>
@@ -459,7 +461,7 @@ function RecipeForm({ recipe, onCancel, onRecipeSaved }: RecipeFormProps) {
 
             <div className="form-group">
                 <label>Notes (markdown):</label>
-                <textarea value={notes} onChange={(e) => handleChange(setNotes, e.target.value)}/>
+                <AutoGrowTextarea value={notes} onChange={(e) => handleChange(setNotes, e.target.value)}/>
             </div>
 
             {recipe && (
@@ -586,7 +588,7 @@ function RecipeForm({ recipe, onCancel, onRecipeSaved }: RecipeFormProps) {
                     {ingredients.map((ingredient, index) => (
                         <tr key={index}>
                             <td>
-                                <textarea
+                                <AutoGrowTextarea
                                     value={ingredient.preamble ?? ''}
                                     onChange={(e) => handleIngredientChange(index, 'preamble', e.target.value)}
                                 />
@@ -636,7 +638,7 @@ function RecipeForm({ recipe, onCancel, onRecipeSaved }: RecipeFormProps) {
                                     <p className="error">{errors[`ingredient-${index}-name`]}</p>}
                             </td>
                             <td>
-                                <textarea
+                                <AutoGrowTextarea
                                     value={ingredient.instruction ?? ''}
                                     onChange={(e) => handleIngredientChange(index, 'instruction', e.target.value)}
                                 />
