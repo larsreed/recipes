@@ -31,7 +31,7 @@ Recipe	Evabrød	TRUE	0	4	Mange ganger	Heves til dobbel størrelse.\nFormes til 4
 +Ingredient					vann	til deigen er passe						
 Source	Egen	Lars R										
 Recipe	Halvbrunet urtesmør	TRUE	0	4	17.mai 2025\nLærere 2025	Ta ut smør så det blir romtemperert.\nBrun halvparten av smøret på medium varme, visp jevnlig, og sammenhengende på slutten – vær forsiktig så det ikke svir seg, ca 160° er passe (svir seg ved 180…). Avkjøl til romtemperatur.	Pisk sammen med resten av smøret – minst 5 minutter – luft er greia.		Egen			Brød
-+Ingredient		150	g		rørossmør	"(du kan bruke vanlig smør også, men jeg er litt hekta 	)"						
++Ingredient		150	g		rørossmør	(du kan bruke vanlig smør også, men jeg er litt hekta;)
 +Ingredient	Rør inn finhakket				rosmarin							
 +Ingredient	og finhakket				hvitløk							
 												
