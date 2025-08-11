@@ -433,7 +433,7 @@ function RecipeList() {
                             <td class="ingredient-cell">
                                 ${ingredient.amount ?
                                      (recipe.people>0?
-                                        ((ingredient.amount * guestsNumber) / recipe.people).toFixed(2)
+                                         parseFloat(((ingredient.amount * guestsNumber) / recipe.people).toFixed(2)).toString()
                                         : ingredient.amount) 
                                      : ''}
                                 ${ingredient.measure || ''}
