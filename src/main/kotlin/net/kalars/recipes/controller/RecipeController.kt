@@ -124,9 +124,11 @@ class RecipeController(
         val sources = mutableMapOf<String, Long>() // Map to store source names and their IDs
         val subrecipesToAdd = mutableMapOf<String, List<String>>() // Map to store links between main and subrecipes
         var currentRecipe: Recipe? = null
+        val lineNo: Int = 0
 
         reader.lines().forEach { line ->
             val columns = line.split("\t")
+            lineNo.inc()
             when {
                 line.isBlank() -> {
                     // Skip empty lines
@@ -154,7 +156,7 @@ class RecipeController(
 
                     // Create a new recipe
                     if (columns.size != 13) {
-                        report("Invalid Recipe line: $line")
+                        report("Invalid Recipe line ($lineNo): $line")
                         return@forEach
                     }
                     currentRecipe = Recipe(
@@ -177,11 +179,11 @@ class RecipeController(
                 line.startsWith("+Ingredient") -> {
                     // Add an ingredient to the current recipe
                     if (columns.size != 7) {
-                        report("Invalid Ingredient line: $line")
+                        report("Invalid Ingredient line ($lineNo): $line")
                         return@forEach
                     }
                     if (currentRecipe==null) {
-                        report("Ingredient without Recipe: $line")
+                        report("Ingredient without Recipe ($lineNo): $line")
                         return@forEach
                     }
                     currentRecipe?.ingredients?.add(
@@ -199,11 +201,11 @@ class RecipeController(
                 line.startsWith("+Subrecipe") -> {
                     // Remember a subrecipe to add later
                     if (columns.size != 2) {
-                        report("Invalid Subrecipe line: $line")
+                        report("Invalid Subrecipe line ($lineNo): $line")
                         return@forEach
                     }
                     if (currentRecipe==null) {
-                        report("Subrecipe without Recipe: $line")
+                        report("Subrecipe without Recipe ($lineNo): $line")
                         return@forEach
                     }
                     val subName = mutableListOf(columns[1].replace("\\n", "\n"))
@@ -216,11 +218,11 @@ class RecipeController(
                 line.startsWith("+Attachment") -> {
                     // Add an attachment to the current recipe
                     if (columns.size != 3) {
-                        report("Invalid Attachment line: $line")
+                        report("Invalid Attachment line ($lineNo): $line")
                         return@forEach
                     }
                     if (currentRecipe==null) {
-                        report("Attachment without Recipe: $line")
+                        report("Attachment without Recipe ($lineNo): $line")
                         return@forEach
                     }
                     val fileName = columns[1].replace("\\n", "\n")
@@ -235,7 +237,7 @@ class RecipeController(
 
                 line.startsWith("Conversion") -> {
                     if (columns.size != 4) {
-                        report("Invalid Conversion line: $line")
+                        report("Invalid Conversion line ($lineNo): $line")
                         return@forEach
                     }
                     val fromMeasure = columns[1]
@@ -246,7 +248,7 @@ class RecipeController(
 
                 line.startsWith("Temperature") -> {
                     if (columns.size != 3) {
-                        report("Invalid Temperature line: $line")
+                        report("Invalid Temperature line ($lineNo): $line")
                         return@forEach
                     }
                     val temp = columns[1].toFloat()

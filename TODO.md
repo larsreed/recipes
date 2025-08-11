@@ -1,9 +1,12 @@
 # TODO
 
-1. add picture on recipe, including imp/exp & print
-2. Styling & layout
-3. ability to use visual editor in larger text fields
-4. make it possible to group ingredients
-5. ESC to close SourceModal, check if dirty first, also for SourceModal
-6. show error messages as banners, and remove after a while
-7. Change to Postgresql
+1. add possibility to delete many recipes at once
+2. add category (dinner, main course, dessert, etc.) to recipe
+3. add possibility to add a recipe to multiple categories
+4. add picture on recipe, including imp/exp & print
+5. Styling & layout
+6. ability to use visual editor in larger text fields
+7. make it possible to group ingredients
+8. ESC to close SourceModal, check if dirty first, also for SourceModal
+9. show error messages as banners, and remove after a while
+10. Change to Postgresql
