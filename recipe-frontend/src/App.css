@@ -40,6 +40,10 @@ tr:hover {
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
 
+input, textarea {
+  vertical-align: top;
+}
+
 input[type="file"] {
   margin: 1rem 0;
   padding: 0.5rem;
@@ -223,7 +227,7 @@ label {
   gap: 16px;
 }
 
-ul li {
+ul li {x
   text-align: left;
 }
 
@@ -242,4 +246,8 @@ ul li {
 .attachment-table th {
   background-color: #4682b4; /* SteelBlue */
   color: white;
+}
+
+textarea {
+  font-family: inherit; /* Uses the parent element's font */
 }

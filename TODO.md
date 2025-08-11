@@ -1,8 +1,8 @@
 # TODO
 
-1. markdown fields should be larger
-2. add category (dinner, main course, dessert, etc.) to recipe
-3. add possibility to add a recipe to multiple categories
+1. add category (dinner, main course, dessert, etc.) to recipe
+2. add possibility to add a recipe to multiple categories
+3. in RecipeForm, add the ability to jump to a subrecipe by clicking on a button in the list
 4. add picture on recipe, including imp/exp & print
 5. Styling & layout
 6. ability to use visual editor in larger text fields

@@ -7,3 +7,4 @@ http://localhost:8080/h2-console
 # app
 http://localhost:5173/
 ```
+use URL from app config
