@@ -116,7 +116,7 @@ Recipe	Majones	TRUE	0	4	Ofte		Oppbevares kaldt		Hellstrøm blå	247
 +Ingredient	Visp sammen	2			eggeplommer
 +Ingredient	med 2-	3	ss		dijonsennep
 +Ingredient		1	ts		kajennepepper
-		1	ts		hvit pepper
-					salt
-	og saft fra	0,25			sitron
-	Spe litt og litt	3	dl	(solsikke/jordnøtt/oliven-)	olje	til passe tykk konsistens, bruk gjerne kjøkkenmaskin
++Ingredient		1	ts		hvit pepper
++Ingredient					salt
++Ingredient	og saft fra	0,25			sitron
++Ingredient	Spe litt og litt	3	dl	(solsikke/jordnøtt/oliven-)	olje	til passe tykk konsistens, bruk gjerne kjøkkenmaskin
