@@ -40,10 +40,6 @@ tr:hover {
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
 
-input, textarea {
-  vertical-align: top;
-}
-
 input[type="file"] {
   margin: 1rem 0;
   padding: 0.5rem;
