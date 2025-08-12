@@ -370,7 +370,7 @@ function RecipeList() {
                                     ${shoppingContent.map(item => `
                                         <tr>
                                             <td>${item.name}</td>
-                                            <td>${item.amount? item.amount.toFixed(2) : ''} 
+                                            <td>${item.amount? parseFloat(item.amount.toFixed(2)).toString() : ''}</td> 
                                             <td>${item.measure || ''}</td>
                                         </tr>
                                     `).join('')}
