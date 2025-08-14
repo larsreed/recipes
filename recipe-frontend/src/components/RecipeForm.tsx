@@ -581,6 +581,15 @@ function RecipeForm({ recipe, onCancel, onRecipeSaved }: RecipeFormProps) {
                                 <button type="button" onClick={() => handleRemoveSubrecipe(index)} title="Remove">
                                     <i className="fas fa-remove"></i>
                                 </button>
+                                <button
+                                    type="button"
+                                    title="View Subrecipe"
+                                    onClick={() => {
+                                        console.log("Subrecipe:", subrecipe);
+                                        window.alert('Not yet implemented!');
+                                    }}>
+                                    <i className="fas fa-eye"></i>
+                                </button>
                             </td>
                         </tr>
                     ))}
