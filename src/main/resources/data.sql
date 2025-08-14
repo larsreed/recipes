@@ -11,7 +11,8 @@ CREATE TABLE recipe (
     rating INT NULL,
     notes TEXT NULL,
     wine_tips TEXT null,
-    match_for TEXT NULL
+    match_for TEXT NULL,
+    categories VARCHAR(255) NULL
 );
 
 CREATE TABLE ingredient (

@@ -24,6 +24,7 @@ interface Recipe {
     notes?: string;
     wineTips?: string;
     matchFor?: string;
+    categories?: string;
     ingredients: Ingredient[];
     source?: Source;
     attachments: Attachment[];
@@ -69,6 +70,7 @@ function RecipeForm({ recipe, onCancel, onRecipeSaved }: RecipeFormProps) {
     const [rating, setRating] = useState<number | null>(recipe?.rating || null);
     const [wineTips, setWineTips] = useState(recipe?.wineTips || null);
     const [matchFor, setMatchFor] = useState(recipe?.matchFor || null);
+    const [categories, setCategories] = useState(recipe?.categories?.split('.').map(tag => tag.trim()).filter(tag => tag) || null);
     const [notes, setNotes] = useState(recipe?.notes || '');
     const [ingredients, setIngredients] = useState<Ingredient[]>(
         recipe?.ingredients || [{ preamble: undefined, amount: undefined, prefix: undefined, name: '', instruction: undefined, measure: undefined }]
@@ -117,6 +119,7 @@ function RecipeForm({ recipe, onCancel, onRecipeSaved }: RecipeFormProps) {
         setRating(null);
         setWineTips(null);
         setMatchFor(null)
+        setCategories(null);
         setNotes('');
         setIngredients([]);
     }
@@ -134,6 +137,7 @@ function RecipeForm({ recipe, onCancel, onRecipeSaved }: RecipeFormProps) {
             setRating(recipe.rating || null);
             setWineTips(recipe.wineTips || null);
             setMatchFor(recipe.matchFor || null);
+            setCategories(recipe.categories?.split(',').map(tag => tag.trim()).filter(tag => tag) || null);
             setNotes(recipe.notes || '');
             setIngredients(recipe.ingredients || []);
             setSubrecipes(recipe.subrecipes || []);
@@ -294,6 +298,7 @@ function RecipeForm({ recipe, onCancel, onRecipeSaved }: RecipeFormProps) {
             served,
             wineTips,
             matchFor,
+            categories,
             sourceId,
             pageRef,
             rating,
@@ -323,6 +328,7 @@ function RecipeForm({ recipe, onCancel, onRecipeSaved }: RecipeFormProps) {
             setRating(response.data.rating || null);
             setWineTips(response.data.wineTips || null);
             setMatchFor(response.data.matchFor || null);
+            setCategories(response.data.categories?.split(',').map(tag => tag.trim()).filter(tag => tag) || null);
             setNotes(response.data.notes || '');
             setIngredients(response.data.ingredients || []);
             setSubrecipes(response.data.subrecipes || []);
@@ -351,6 +357,7 @@ function RecipeForm({ recipe, onCancel, onRecipeSaved }: RecipeFormProps) {
             served,
             wineTips,
             matchFor,
+            categories: categories ? categories.join(',') : null,
             ingredients: ingredients.map((ingredient, index) => ({
                 ...ingredient,
                 sortorder: index
@@ -379,6 +386,19 @@ function RecipeForm({ recipe, onCancel, onRecipeSaved }: RecipeFormProps) {
         }
     };
 
+    const predefinedCategories = [
+        "Vegetar", "Forrett", "Hovedrett", "Dessert", "Tilbehør", "Bakverk", "Saus", "Drikke",
+        "Vegetarian", "Appetizer", "Main Course", "Side disk", "Pastry", "Sauce", "Drinks"
+    ];
+    const addCategory = (newCategory: string) => {
+        if (newCategory && !categories?.includes(newCategory)) {
+            handleChange(setCategories, [...(categories ?? []), newCategory]);
+        }
+    };
+    const removeCategory = (categoryToRemove: string) => {
+        handleChange(setCategories, (categories ?? []).filter(cat => cat !== categoryToRemove));
+    };
+
     return (
         <form onSubmit={handleSubmit} className="recipe-form">
             <h2>{recipe ? 'Edit Recipe' : 'Add a New Recipe'}</h2>
@@ -405,6 +425,33 @@ function RecipeForm({ recipe, onCancel, onRecipeSaved }: RecipeFormProps) {
                        onChange={(e) => handleChange(setPeople, parseInt(e.target.value))}
                 /><span> (0 for fixed amounts)</span>
                 {errors.people && <p className="error">{errors.people}</p>}
+            </div>
+
+            <div className="form-line">
+                <label>Categories:</label>
+                <select
+                    onChange={e => {
+                        addCategory(e.target.value);
+                        e.target.value = "";
+                    }}
+                    defaultValue=""
+                >
+                    <option value="" disabled>Add from list...</option>
+                    {predefinedCategories
+                        .filter(cat => !(categories ?? []).includes(cat))
+                        .map(cat => (
+                            <option key={cat} value={cat}>{cat}</option>
+                        ))}
+                </select>
+                <div style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap" }}>
+                    {(categories ?? []).map(cat => (
+                        <span key={cat} className="category">
+                            {cat}
+                            <button type="button"
+                                    onClick={() => removeCategory(cat)} style={{ marginLeft: 4 }}>×</button>
+                        </span>
+                    ))}
+                </div>
             </div>
 
             <div className="form-group">

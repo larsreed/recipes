@@ -90,6 +90,7 @@ class RecipeController(
             pattern.matcher(recipe.closing ?: "").find() ||
             pattern.matcher(recipe.served ?: "").find() ||
             pattern.matcher(recipe.wineTips ?: "").find() ||
+            pattern.matcher(recipe.categories ?: "").find() ||
             pattern.matcher(recipe.matchFor ?: "").find() ||
             recipe.ingredients.any { ingredient ->
                 pattern.matcher(ingredient.name).find() ||
@@ -177,7 +178,8 @@ class RecipeController(
                         notes = columns[8].replace("\\n", "\n"),
                         pageRef = columns[10],
                         wineTips = columns[11].replace("\\n", "\n"),
-                        matchFor = columns[12].replace("\\n", "\n")
+                        matchFor = columns[12].replace("\\n", "\n"),
+                        categories = columns[13]
                     )
                     val sourceId = sources[columns[9]]
                     currentRecipe?.sourceId = sourceId
@@ -250,7 +252,8 @@ class RecipeController(
                     val fromMeasure = columns[1]
                     val toMeasure = columns[2]
                     val factor = columns[3].toFloat()
-                    conversionRepository.save(Conversion(fromMeasure = fromMeasure, toMeasure = toMeasure, factor = factor))
+                    conversionRepository.save(Conversion(fromMeasure = fromMeasure, toMeasure = toMeasure,
+                        factor = factor))
                 }
 
                 line.startsWith("Temperature") -> {
@@ -325,6 +328,7 @@ class RecipeController(
                     }\t${recipe.pageRef?.replace("\n", "\\n") ?: ""
                     }\t${recipe.wineTips?.replace("\n", "\\n") ?: ""
                     }\t${recipe.matchFor?.replace("\n", "\\n") ?: ""
+                    }\t${recipe.categories ?: ""
                     }\n"
                 )
 

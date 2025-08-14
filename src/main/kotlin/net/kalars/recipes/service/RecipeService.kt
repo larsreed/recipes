@@ -49,6 +49,7 @@ class RecipeService(
         existingRecipe.notes = recipe.notes
         existingRecipe.wineTips = recipe.wineTips
         existingRecipe.matchFor = recipe.matchFor
+        existingRecipe.categories = recipe.categories
 
         existingRecipe.ingredients.clear()
         recipe.ingredients.forEachIndexed { index, ingredientDto ->
