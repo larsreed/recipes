@@ -27,7 +27,8 @@ interface Recipe {
     rating?: number;
     people: number;
     wineTips?: string;
-    matchFor?: string;
+    matchFor?: string;''
+    categories: string;
     ingredients: Ingredient[];
     attachments: Attachment[];
     instructions?: string;
@@ -420,6 +421,7 @@ function RecipeList() {
                 ${recipe.rating ? `<p>Rating: ${recipe.rating}</p>` : ''}
                 ${recipe.wineTips ? `<p>Wine tips: ${recipe.wineTips.replace(/\n/g, '<br />')}</p>` : ''}
                 ${recipe.matchFor ? `<p>Match for: ${recipe.matchFor.replace(/\n/g, '<br />')}</p>` : ''}
+                ${recipe.categories ? `<p>Category: ${recipe.categories.replace(/,/g, ' ')}</p>` : ''}
                 ${recipe.notes ? `<div>Notes: ${marked(recipe.notes)}</div>` : ''}
                 ${recipe.subrecipe ? `<h4>Ingredients</h4>` : `<h3>Ingredients</h3>`}
                 ${recipe.subrecipe ? `<h4>Instructions</h4>` : `<h3>Instructions</h3>`}
@@ -674,6 +676,9 @@ function RecipeList() {
                     <th onClick={() => requestSort('rating')}>
                         Rating <i className={getSortIcon('rating')}></i>
                     </th>
+                    <th onClick={() => requestSort('categories')}>
+                        Cats. <i className={getSortIcon('categories')}></i>
+                    </th>
                     <th>
                         <button onClick={handleOpenRecipeModal} title="Add recipe">
                             <i className="fas fa-plus"></i>
@@ -715,6 +720,7 @@ function RecipeList() {
                         <td>{recipe.source ? recipe.source.name : ''}</td>
                         <td>{recipe.pageRef}</td>
                         <td className="center">{recipe.rating}</td>
+                        <td>{recipe.categories}</td>
                         <td>
                             <button onClick={() => editRecipe(recipe)}
                                     title="Edit">
