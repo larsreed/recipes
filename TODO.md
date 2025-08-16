@@ -1,8 +1,8 @@
 # TODO
 
-1. add picture on recipe, including imp/exp & print
-3. complete implem of goto subrecipe
+1. complete implem of goto subrecipe
 2. Styling & layout
+3. add pictures to Sources
 4. ability to use visual editor in larger text fields
 5. make it possible to group ingredients
 6. ESC to close SourceModal, check if dirty first, also for SourceModal
