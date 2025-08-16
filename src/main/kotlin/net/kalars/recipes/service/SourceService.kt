@@ -11,12 +11,12 @@ class SourceService(private val sourceRepository: SourceRepository) {
 
     fun getAllSources(): List<Source> = sourceRepository.findAll()
 
-    fun createOrGetSource(name: String, authors: String): Source {
+    fun createOrGetSource(name: String, authors: String, info: String?): Source {
         // Check if the source already exists
         val existingSource = sourceRepository.findByName(name)
         return existingSource.orElseGet {
             // Create and save a new source
-            val newSource = Source(name = name, authors = authors)
+            val newSource = Source(name = name, authors = authors, info = info)
             sourceRepository.save(newSource)
         }
     }
@@ -37,7 +37,7 @@ class SourceService(private val sourceRepository: SourceRepository) {
         }
         val existingSource = sourceRepository.findById(id)
             .orElseThrow { EntityNotFoundException("Source not found") }
-        val updatedSource = existingSource.copy(name = source.name, authors = source.authors)
+        val updatedSource = existingSource.copy(name = source.name, authors = source.authors, info = source.info)
         return sourceRepository.save(updatedSource)
     }
 

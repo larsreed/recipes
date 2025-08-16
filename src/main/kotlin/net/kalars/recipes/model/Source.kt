@@ -9,6 +9,7 @@ data class Source (
     val id: Long = 0,
     val name: String,
     val authors: String,
+    val info: String?
 ) {
-    constructor() : this(0, "", "")
+    constructor() : this(0, "", "", null)
 }

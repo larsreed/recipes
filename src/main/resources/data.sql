@@ -43,6 +43,7 @@ CREATE TABLE source (
      id BIGINT AUTO_INCREMENT PRIMARY KEY,
      name VARCHAR(128),
      authors VARCHAR(255),
+     info VARCHAR(255) NULL,
      CONSTRAINT unique_source_name UNIQUE (name)
 );
 

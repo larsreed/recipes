@@ -132,7 +132,7 @@ class RecipeController(
         val sources = mutableMapOf<String, Long>() // Map to store source names and their IDs
         val subrecipesToAdd = mutableMapOf<String, List<String>>() // Map to store links between main and subrecipes
         var currentRecipe: Recipe? = null
-        var lineNo: Int = 0
+        var lineNo = 0
 
         reader.lines().forEach { line ->
             val columns = line.trim().split("\t").toMutableList().apply { while (size < 100) add("") }
@@ -154,7 +154,8 @@ class RecipeController(
                     }
                     val sourceName = columns[1]
                     val authors = columns[2].replace("\\n", "\n")
-                    val source = sourceService.createOrGetSource(sourceName, authors)
+                    val info = columns[3].replace("\\n", "\n")
+                    val source = sourceService.createOrGetSource(sourceName, authors, info)
                     sources[sourceName] = source.id
                 }
 
@@ -301,7 +302,7 @@ class RecipeController(
             append("# Total sources: ${sources.size}\n")
             append("# Format (\\n for newline, TAB-separated)\n")
             append("# '#' Comment\n")
-            append("# 'Source'\tName\tAuthors\n")
+            append("# 'Source'\tName\tAuthors\tInfo\n")
             append("# 'Recipe'\tName\tIsSubrecipe:bool\tPeople:int\tRating?:0-6\tServed?\tInstructions?\tClosing=\tNotes?\tSource?\tPageRef?\tWineTips?\tMatchFor?\n")
             append("# '+Ingredient'\tPreamble?\tAmount?:float\tMeasure?\tPrefix?\tName\tInstruction?\n")
             append("# '+Subrecipe'\tName\n")
@@ -313,7 +314,8 @@ class RecipeController(
             recipes.forEach { recipe ->
                 append("\n")
                 sources.find { src -> src.id == recipe.sourceId }?.let { source ->
-                    append("Source\t${source.name}\t${source.authors.replace("\n", "\\n")}\n")
+                    append("Source\t${source.name}\t${source.authors.replace("\n", "\\n")}\t${
+                        source.info?.replace("\n", "\\n")}\n")
                     sources.remove(source)
                 }
                 append("Recipe\t${recipe.name
@@ -353,7 +355,8 @@ class RecipeController(
             }
             append("\n\n####################\n\n")
             sources.forEach { source ->
-                append("Source\t${source.name}\t${source.authors.replace("\n", "\\n")}\n")
+                append("Source\t${source.name}\t${source.authors.replace("\n", "\\n")}\t${
+                    source.info?.replace("\n", "\\n") ?: ""}\n")
             }
             append("\n\n####################\n\n")
             conversionRepository.findAll().forEach { conversion ->

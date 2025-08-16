@@ -22,7 +22,7 @@ class SourceServiceTest {
 
     @Test
     fun `getAllSources returns all sources`() {
-        val sources = listOf(Source(id = 1, name = "Book", authors = "Author"))
+        val sources = listOf(Source(id = 1, name = "Book", authors = "Author", info = "Info"))
         Mockito.`when`(sourceRepository.findAll()).thenReturn(sources)
         val result = sourceService.getAllSources()
         assertEquals(sources, result)
@@ -30,18 +30,18 @@ class SourceServiceTest {
 
     @Test
     fun `createOrGetSource returns existing source if found`() {
-        val source = Source(id = 1, name = "Book", authors = "Author")
+        val source = Source(id = 1, name = "Book", authors = "Author", info = "Info")
         Mockito.`when`(sourceRepository.findByName("Book")).thenReturn(Optional.of(source))
-        val result = sourceService.createOrGetSource("Book", "Author")
+        val result = sourceService.createOrGetSource("Book", "Author", "Info")
         assertEquals(source, result)
     }
 
     @Test
     fun `createOrGetSource creates and returns new source if not found`() {
         Mockito.`when`(sourceRepository.findByName("NewBook")).thenReturn(Optional.empty())
-        val newSource = Source(name = "NewBook", authors = "NewAuthor")
+        val newSource = Source(name = "NewBook", authors = "NewAuthor", info = "NewInfo")
         Mockito.`when`(sourceRepository.save(Mockito.any(Source::class.java))).thenReturn(newSource)
-        val result = sourceService.createOrGetSource("NewBook", "NewAuthor")
+        val result = sourceService.createOrGetSource("NewBook", "NewAuthor", "NewInfo")
         assertEquals("NewBook", result.name)
         assertEquals("NewAuthor", result.authors)
     }
@@ -54,7 +54,7 @@ class SourceServiceTest {
 
     @Test
     fun `getSource returns source if found`() {
-        val source = Source(id = 1, name = "Book", authors = "Author")
+        val source = Source(id = 1, name = "Book", authors = "Author", info = "Info")
         Mockito.`when`(sourceRepository.findById(1L)).thenReturn(Optional.of(source))
         val result = sourceService.getSource(1L)
         assertEquals(source, result)
@@ -70,7 +70,7 @@ class SourceServiceTest {
 
     @Test
     fun `saveSource saves and returns source`() {
-        val source = Source(id = 1, name = "Book", authors = "Author")
+        val source = Source(id = 1, name = "Book", authors = "Author", info = "Info")
         Mockito.`when`(sourceRepository.save(source)).thenReturn(source)
         val result = sourceService.saveSource(source)
         assertEquals(source, result)
@@ -78,8 +78,8 @@ class SourceServiceTest {
 
     @Test
     fun `updateSource updates and returns source`() {
-        val existing = Source(id = 1, name = "Old", authors = "A")
-        val updated = Source(id = 1, name = "New", authors = "B")
+        val existing = Source(id = 1, name = "Old", authors = "A", info = "Old Info")
+        val updated = Source(id = 1, name = "New", authors = "B",  info = "New Info")
         Mockito.`when`(sourceRepository.existsByNameAndIdNot("New", 1L)).thenReturn(false)
         Mockito.`when`(sourceRepository.findById(1L)).thenReturn(Optional.of(existing))
         Mockito.`when`(sourceRepository.save(Mockito.any(Source::class.java))).thenReturn(updated)
@@ -90,7 +90,7 @@ class SourceServiceTest {
 
     @Test
     fun `updateSource throws if name not unique`() {
-        val updated = Source(id = 1, name = "Dup", authors = "B")
+        val updated = Source(id = 1, name = "Dup", authors = "B",  info = "New Info")
         Mockito.`when`(sourceRepository.existsByNameAndIdNot("Dup", 1L)).thenReturn(true)
         assertThrows(IllegalArgumentException::class.java) {
             sourceService.updateSource(1L, updated)
@@ -99,7 +99,7 @@ class SourceServiceTest {
 
     @Test
     fun `updateSource throws if not found`() {
-        val updated = Source(id = 1, name = "New", authors = "B")
+        val updated = Source(id = 1, name = "New", authors = "B", info = "New Info")
         Mockito.`when`(sourceRepository.existsByNameAndIdNot("New", 1L)).thenReturn(false)
         Mockito.`when`(sourceRepository.findById(1L)).thenReturn(Optional.empty())
         assertThrows(EntityNotFoundException::class.java) {

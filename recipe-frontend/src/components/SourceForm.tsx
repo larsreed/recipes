@@ -1,12 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import axios from "axios";
 import config from '../config';
+import AutoGrowTextarea from './AutoGrowTextarea.tsx';
 
 
 interface Source {
     id: number;
     name: string;
     authors: string;
+    info?: string;
 }
 
 interface SourceFormProps {
@@ -19,14 +21,17 @@ interface SourceFormProps {
 function SourceForm({ source, onCancel, onSourceCreated }: SourceFormProps) {
     const [name, setName] = useState(source?.name || '');
     const [authors, setAuthors] = useState(source?.authors || '');
+    const [info, setInfo] = useState(source?.info || '');
 
     useEffect(() => {
         if (source) {
             setName(source.name);
             setAuthors(source.authors);
+            setInfo(source.info || '');
         } else {
             setName('');
             setAuthors('');
+            setInfo('');
         }
     }, [source]);
 
@@ -47,7 +52,7 @@ function SourceForm({ source, onCancel, onSourceCreated }: SourceFormProps) {
             setErrors(newErrors);
             return;
         }
-        const newSource = { ...source, name, authors };
+        const newSource = { ...source, name, authors, info };
         const apiUrl = source ? `${config.backendUrl}/api/sources/${source.id}` : `${config.backendUrl}/api/sources`;
         try {
             const checkUrl = `${config.backendUrl}/api/sources/check-name?name=${encodeURIComponent(name)}&id=${source ? source.id : -1}`;
@@ -56,10 +61,12 @@ function SourceForm({ source, onCancel, onSourceCreated }: SourceFormProps) {
                 setApiError('Source name must be unique');
                 return;
             }
+            console.log(newSource);
             // eslint-disable-next-line @typescript-eslint/no-unused-vars
             const response = source ? await axios.put(apiUrl, newSource) : await axios.post(apiUrl, newSource);
             setName('');
             setAuthors('');
+            setInfo('');
             setErrors({});
             setApiError(null);
             if (onSourceCreated) onSourceCreated();
@@ -72,6 +79,7 @@ function SourceForm({ source, onCancel, onSourceCreated }: SourceFormProps) {
     const handleCancel = () => {
         setName('');
         setAuthors('');
+        setInfo('');
         setErrors({});
         setApiError(null);
         onCancel();
@@ -101,6 +109,16 @@ function SourceForm({ source, onCancel, onSourceCreated }: SourceFormProps) {
                     required
                 />
                 {errors.authors && <p className="error">{errors.authors}</p>}
+            </div>
+            <div className="form-group">
+                <label htmlFor="info">Info (markup):</label>
+                <AutoGrowTextarea
+                    id="info"
+                    value={info}
+                    onChange={(e) => setInfo(e.target.value)}
+                    rows={3}
+                    style={{ resize: 'vertical', verticalAlign: 'top', overflow: 'hidden' }}
+                />
             </div>
             <div className="form-actions">
                 <button type="submit">Save</button>

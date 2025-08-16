@@ -7,6 +7,7 @@ interface Source {
     id: number;
     name: string;
     authors: string;
+    info?: string;
 }
 
 function SourceList() {
@@ -67,6 +68,7 @@ function SourceList() {
                     <th>ID</th>
                     <th>Name</th>
                     <th>Authors</th>
+                    <th>Info</th>
                     <th/>
                 </tr>
                 </thead>
@@ -76,6 +78,7 @@ function SourceList() {
                         <td>{source.id}</td>
                         <td>{source.name}</td>
                         <td>{source.authors}</td>
+                        <td>{source.info}</td>
                         <td>
                             <button onClick={() => setEditingSource(source)} title="Edit">
                                 <i className="fas fa-edit"></i>
