@@ -1,5 +1,5 @@
 ﻿# Source	Name	Authors
-# Recipe	Name	IsSubrecipe:bool	People:int	Rating?:0-6	Served?	Instructions	Finally	Notes?	Source?	PageRef?	WineTips?	MatchFor?
+# Recipe	Name	IsSubrecipe:bool	People:int	Rating?:0-6	Served?	Instructions	Finally	Notes?	Source?	PageRef?	WineTips?	MatchFor?	Categories?
 # +Ingredient	Preamble	Amount?:float	Measure?	prefix?	Name	Instruction?
 # +Subrecipe	Name
 # +Attachment	FileName	Base64Content
@@ -8,7 +8,7 @@
 # -------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 Source	Usikker	?
-Recipe	Fruktfat uten fat	FALSE	12	4	17.mai 2025\nL fam 2025\nLærere 2025				Usikker		Pet Nat Rosé by Toni Hartl 2022  https://www.vinmonopolet.no/Land/%C3%98sterrike/%C3%96sterreichischer-W-/Pet-Nat-Ros%C3%A9-by-Toni-Hartl-2022/p/17124101 (musserende rosé, Østerrike – polet #17124101) eller dens hvite søster	Forrett
+Recipe	Fruktfat uten fat	FALSE	12	4	17.mai 2025\nL fam 2025\nLærere 2025				Usikker		Pet Nat Rosé by Toni Hartl 2022  https://www.vinmonopolet.no/Land/%C3%98sterrike/%C3%96sterreichischer-W-/Pet-Nat-Ros%C3%A9-by-Toni-Hartl-2022/p/17124101 (musserende rosé, Østerrike – polet #17124101) eller dens hvite søster		Forrett
 +Ingredient		2	stk		melon (lys)	i terninger
 +Ingredient		3	stk		grapefrukt	i fileter
 +Ingredient	dynkes med	6	glass		Sauternes	skal stå et par timer, minst
@@ -22,7 +22,7 @@ Recipe	Smør og brød	FALSE	4	5	Mange ganger
 +Subrecipe	Evabrød
 +Subrecipe	Halvbrunet urtesmør
 Source	Brimistua	Eva på Brimi Fjellstugu
-Recipe	Evabrød	TRUE	0	4	Mange ganger	Heves til dobbel størrelse.\nFormes til 4 runde brød\nPensle med olje og drysses med flaksalt	Etterheves ca 1/2 time\nStekes på 210° i ca 15 min		Brimistua			Tilbehør
+Recipe	Evabrød	TRUE	0	4	Mange ganger	Heves til dobbel størrelse.\nFormes til 4 runde brød\nPensle med olje og drysses med flaksalt	Etterheves ca 1/2 time\nStekes på 210° i ca 15 min		Brimistua				Tilbehør
 +Ingredient		1	kg		hvetemel
 +Ingredient		1	dl		grov hvete
 +Ingredient		1	pakke		gjær
@@ -30,12 +30,12 @@ Recipe	Evabrød	TRUE	0	4	Mange ganger	Heves til dobbel størrelse.\nFormes til 4
 +Ingredient		1	dl		olje
 +Ingredient					vann	til deigen er passe
 Source	Egen	Lars R
-Recipe	Halvbrunet urtesmør	TRUE	0	4	17.mai 2025\nLærere 2025	Ta ut smør så det blir romtemperert.\nBrun halvparten av smøret på medium varme, visp jevnlig, og sammenhengende på slutten – vær forsiktig så det ikke svir seg, ca 160° er passe (svir seg ved 180…). Avkjøl til romtemperatur.	Pisk sammen med resten av smøret – minst 5 minutter – luft er greia.		Egen			Brød
-+Ingredient		150	g		rørossmør	(du kan bruke vanlig smør også, men jeg er litt hekta;)
+Recipe	Halvbrunet urtesmør	TRUE	0	4	17.mai 2025\nLærere 2025	Ta ut smør så det blir romtemperert.\nBrun halvparten av smøret på medium varme, visp jevnlig, og sammenhengende på slutten – vær forsiktig så det ikke svir seg, ca 160° er passe (svir seg ved 180…). Avkjøl til romtemperatur.	Pisk sammen med resten av smøret – minst 5 minutter – luft er greia.		Egen			Brød	Tilbehør
++Ingredient		150	g		rørossmør	(du kan bruke vanlig smør også, men jeg er litt hekta 	)
 +Ingredient	Rør inn finhakket				rosmarin
 +Ingredient	og finhakket				hvitløk
 
-Recipe	Sashimi i epletreet	FALSE	4	5	17.mai 2025\nL fam 2025\nLærere 2025				Usikker		Hexamer Schlossböckelheimer Porphyr Riesling 2023 (polet #416101) eller Kruger-Rumpf Phyllit Riesling Feinherb 2024 (polet #851901)
+Recipe	Sashimi i epletreet	FALSE	4	5	17.mai 2025\nL fam 2025\nLærere 2025				Usikker		Hexamer Schlossböckelheimer Porphyr Riesling 2023 (polet #416101) eller Kruger-Rumpf Phyllit Riesling Feinherb 2024 (polet #851901)		Hovedrett
 +Subrecipe	Ponzusaus
 +Subrecipe	Eple- og avokadosalat
 +Ingredient		200	g		laksefilet
@@ -43,7 +43,7 @@ Recipe	Sashimi i epletreet	FALSE	4	5	17.mai 2025\nL fam 2025\nLærere 2025				Us
 +Ingredient		200	g		kveitefilet	all fisken skjæres i tynne skiver
 +Ingredient	Serveres med 				wasabi
 +Ingredient	og				syltet ingefær
-Recipe	Ponzusaus	FALSE	6	5	17.mai 2025\nL fam 2025\nLærere 2025				Usikker			Sushi
+Recipe	Ponzusaus	FALSE	6	5	17.mai 2025\nL fam 2025\nLærere 2025				Usikker			Sushi	Saus
 +Ingredient	bland	2	dl		saltredusert soyasaus
 +Ingredient		4	ss		sitronsaft
 +Ingredient		2	ss		limesaft
@@ -55,7 +55,7 @@ Recipe	Ponzusaus	FALSE	6	5	17.mai 2025\nL fam 2025\nLærere 2025				Usikker			Su
 +Ingredient		4	ss		sukker
 +Ingredient		4	ss	finhakket	koriander
 +Ingredient		2	klyper		tørket chili
-Recipe	Eple- og avokadosalat	TRUE	4	4	17.mai 2025\nL fam 2025\nLærere 2025				Usikker			Sushi
+Recipe	Eple- og avokadosalat	TRUE	4	4	17.mai 2025\nL fam 2025\nLærere 2025				Usikker			Sushi	Tilbehør
 +Ingredient		2			grønne epler	i små terninger
 +Ingredient		2			avokado	i små terninger
 +Ingredient		2	ss		olivenolje
@@ -65,18 +65,18 @@ Recipe	Eple- og avokadosalat	TRUE	4	4	17.mai 2025\nL fam 2025\nLærere 2025				U
 +Ingredient		6	ss	hakket	koriander
 
 Source	Hellstrøm hvit	Eyvind Hellstrøm
-Recipe	Kamskjell Tian	FALSE	4	4	17.mai 2025\nLærere 2025		Bruk ringer, 1 lag squash, 1 lag tomat, 1 lag kamskjell,\nstek på grillvarme i ovn 2-3 minutter\nServeres gjerne i skjellene, hell over saus	SJEKK ORIGINAL	x|	?	Simpsons Gravel Castle Chardonnay 2023 (Engelsk – Kent, pol #11051501) eller Tissot Chardonnay Patchwork 2023 (Jura, pol#19372701)
+Recipe	Kamskjell Tian	FALSE	4	4	17.mai 2025\nLærere 2025		Bruk ringer, 1 lag squash, 1 lag tomat, 1 lag kamskjell,\nstek på grillvarme i ovn 2-3 minutter\nServeres gjerne i skjellene, hell over saus	SJEKK ORIGINAL	x|	?	Simpsons Gravel Castle Chardonnay 2023 (Engelsk – Kent, pol #11051501) eller Tissot Chardonnay Patchwork 2023 (Jura, pol#19372701)		Hovedrett
 +Subrecipe	Bakte cherrytomater
 +Subrecipe	Squashkompott
 +Subrecipe	Saus til kamskjell Tian
 +Ingredient			15		kamskjell	skjæres rå i skiver
 +Ingredient	dryss over				limeskall
-Recipe	Bakte cherrytomater	TRUE	4	4	Ofte		bakes på 150° i 40 min					kjøtt, fisk, nesten alt
+Recipe	Bakte cherrytomater	TRUE	4	4	Ofte		bakes på 150° i 40 min					kjøtt, fisk, nesten alt	Tilbehør
 +Ingredient		300	g		cherrytomater	deles i to, i smurt form
 +Ingredient	drysses med		olivenolje		+ salt& pepper
 Recipe	Squashkompott	TRUE	4	3	17.mai 2025\nLærere 2025				Hellstrøm hvit	?
 +Ingredient		2			squash	små – skrelles, kutt i små terninger, freses i smør, tilsett
-+Ingredient		3	ss		kaldt vann	kok på sterk varme til vannet er fordampet, bland godt til kompottlignende, avkjøl
++Ingredient		3	ss		kaldt vann	kok på sterk varme til vannet er fordampet, bland godt til kompottlignende, avkjøl							Tilbehør
 +Ingredient	Riv skallet på	2			lime	(saft presses etterpå)
 Recipe	Saus til kamskjell Tian	TRUE	4	4
 +Ingredient		2	ss	finhakket	sjalottløk	kokes inn med
@@ -87,12 +87,12 @@ Recipe	Saus til kamskjell Tian	TRUE	4	4
 +Ingredient	dryss av				salt
 
 Source	Hellstrøm blå	Eyvind Hellstrøm
-Recipe	Piggvar Vierge	FALSE	4	5		Salt fisken litt i forvei	Anrett fisken på sausen med grønnsaker og friske urter		Hellstrøm blå	172
+Recipe	Piggvar Vierge	FALSE	4	5		Salt fisken litt i forvei	Anrett fisken på sausen med grønnsaker og friske urter		Hellstrøm blå	172			Hovedrett
 +Subrecipe	Sauce Vierge
 +Ingredient					Sesongens grønnsaker, fx artisjokker, broccoli, vårløk, asparges, småpoteter
 +Ingredient		4			piggvarkoteletter 	Stek i varm panne i olje 3-4 min på hver side til gyllenbrun, hold varm
 +Ingredient		4	dl		Sauce Vierge
-Recipe	Sauce Vierge	TRUE	6	5		Snitt tomater i topp/bunn, noen sek i kokende vann, så isvann, flå dem.\nDel i 4, skrap ut kjernene.\nKjør skinn og kjerner til juice med stavmikse, sil, kok inn med hvitløk og litt salt til kompott, avkjøl.\nHakk tomatkjøttet grovt, bland med juicen		4-6 personer	Hellstrøm blå	258		fisk
+Recipe	Sauce Vierge	TRUE	6	5		Snitt tomater i topp/bunn, noen sek i kokende vann, så isvann, flå dem.\nDel i 4, skrap ut kjernene.\nKjør skinn og kjerner til juice med stavmikse, sil, kok inn med hvitløk og litt salt til kompott, avkjøl.\nHakk tomatkjøttet grovt, bland med juicen		4-6 personer	Hellstrøm blå	258		fisk	Saus
 +Ingredient		6			Store tomater	Se over
 +Ingredient		2	fedd	hvitløk	finhakkes og kokes inn med tomatsausen
 +Ingredient		2,5	dl		extra virgin olivenolje	blandes i sausen
@@ -100,7 +100,7 @@ Recipe	Sauce Vierge	TRUE	6	5		Snitt tomater i topp/bunn, noen sek i kokende vann
 +Ingredient	smak til med				salt
 +Ingredient	og				kajennepepper
 
-Recipe	Toast med skagenrøre	FALSE	4	6			Anrett røre, mer dill, sitronfilet + evt løyrom på toppen av brødet		Hellstrøm blå	205
+Recipe	Toast med skagenrøre	FALSE	4	6			Anrett røre, mer dill, sitronfilet + evt løyrom på toppen av brødet		Hellstrøm blå	205			Hovedrett,Forrett
 +Subrecipe	Majones
 +Ingredient		100	g		smør	klares, til steking av brød
 +Ingredient		400	g	ferske pillede	reker
@@ -112,7 +112,7 @@ Recipe	Toast med skagenrøre	FALSE	4	6			Anrett røre, mer dill, sitronfilet + e
 +Ingredient					brød	stekes i klaret smør, evt uten skorpe
 +Ingredient				frisk	dill	hakkes\nBland pillede reker, pepperrot, sitronsaft, majones, pepper og frisk hakket dill sammen til god konsistens
 
-Recipe	Majones	TRUE	0	4	Ofte		Oppbevares kaldt		Hellstrøm blå	247
+Recipe	Majones	TRUE	0	4	Ofte		Oppbevares kaldt		Hellstrøm blå	247			Tilbehør,Saus
 +Ingredient	Visp sammen	2			eggeplommer
 +Ingredient	med 2-	3	ss		dijonsennep
 +Ingredient		1	ts		kajennepepper
