@@ -10,4 +10,7 @@
       <module name="recipes.test" options="-parameters -proc:none" />
     </option>
   </component>
+  <component name="TypeScriptCompiler">
+    <option name="recompileOnChanges" value="true" />
+  </component>
 </project>
