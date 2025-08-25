@@ -339,7 +339,7 @@ class RecipeController(
                 }
 
                 recipe.ingredients.forEach { ingredient ->
-                    var amount = ingredient.amount?.toString()?.replace(Regex("""(\.\d*?)0+$"""),
+                    val amount = ingredient.amount?.toString()?.replace(Regex("""(\.\d*?)0+$"""),
                         "$1")?.replace(Regex("""\.$"""), "") ?: ""
                     append("+Ingredient\t${ingredient.preamble?.replace("\n", "\\n")  ?: ""
                         }\t${amount
