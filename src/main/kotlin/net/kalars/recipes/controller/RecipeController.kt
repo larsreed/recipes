@@ -303,7 +303,7 @@ class RecipeController(
             append("# Format (\\n for newline, TAB-separated)\n")
             append("# '#' Comment\n")
             append("# 'Source'\tName\tAuthors\tInfo\n")
-            append("# 'Recipe'\tName\tIsSubrecipe:bool\tPeople:int\tRating?:0-6\tServed?\tInstructions?\tClosing=\tNotes?\tSource?\tPageRef?\tWineTips?\tMatchFor?\n")
+            append("# 'Recipe'\tName\tIsSubrecipe:bool\tPeople:int\tRating?:0-6\tServed?\tInstructions?\tClosing?\tNotes?\tSource?\tPageRef?\tWineTips?\tMatchFor?\n")
             append("# '+Ingredient'\tPreamble?\tAmount?:float\tMeasure?\tPrefix?\tName\tInstruction?\n")
             append("# '+Subrecipe'\tName\n")
             append("# '+Attachment'\tFileName\tBase64Content\n")
@@ -315,7 +315,7 @@ class RecipeController(
                 append("\n")
                 sources.find { src -> src.id == recipe.sourceId }?.let { source ->
                     append("Source\t${source.name}\t${source.authors.replace("\n", "\\n")}\t${
-                        source.info?.replace("\n", "\\n")}\n")
+                        source.info?.replace("\n", "\\n") ?: ""}\n")
                     sources.remove(source)
                 }
                 append("Recipe\t${recipe.name
@@ -334,18 +334,20 @@ class RecipeController(
                     }\n"
                 )
 
+                recipe.subrecipes.forEach { subrecipe ->
+                    append("+Subrecipe\t${subrecipe.name.replace("\n", "\\n")}\n")
+                }
+
                 recipe.ingredients.forEach { ingredient ->
+                    var amount = ingredient.amount?.toString()?.replace(Regex("""(\.\d*?)0+$"""),
+                        "$1")?.replace(Regex("""\.$"""), "") ?: ""
                     append("+Ingredient\t${ingredient.preamble?.replace("\n", "\\n")  ?: ""
-                        }\t${ingredient.amount ?: ""
+                        }\t${amount
                         }\t${ingredient.measure?.replace("\n", "\\n") ?: ""
                         }\t${ingredient.prefix?.replace("\n", "\\n") ?: ""
                         }\t${ingredient.name.replace("\n", "\\n")
                         }\t${ingredient.instruction?.replace("\n", "\\n") ?: ""}\n"
                     )
-                }
-
-                recipe.subrecipes.forEach { subrecipe ->
-                    append("+Subrecipe\t${subrecipe.name.replace("\n", "\\n")}\n")
                 }
 
                 recipe.attachments.forEach { attachment ->

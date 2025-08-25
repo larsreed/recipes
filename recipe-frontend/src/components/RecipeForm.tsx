@@ -51,6 +51,12 @@ interface Ingredient {
     measure?: string;
 }
 
+const predefinedCategories = [
+    "Vegetar", "Forrett", "Hovedrett", "Dessert", "Tilbehør", "Bakverk", "Saus", "Drikke", "Fisk", "Frukt",
+    "Vegetarian", "Appetizer", "Main Course", "Side disk", "Pastry", "Sauce", "Drinks", "Fish", "Fruit"
+];
+
+
 
 function RecipeForm({ recipe, onCancel, onRecipeSaved }: RecipeFormProps) {
     const [name, setName] = useState(recipe?.name || '');
@@ -386,10 +392,6 @@ function RecipeForm({ recipe, onCancel, onRecipeSaved }: RecipeFormProps) {
         }
     };
 
-    const predefinedCategories = [
-        "Vegetar", "Forrett", "Hovedrett", "Dessert", "Tilbehør", "Bakverk", "Saus", "Drikke",
-        "Vegetarian", "Appetizer", "Main Course", "Side disk", "Pastry", "Sauce", "Drinks"
-    ];
     const addCategory = (newCategory: string) => {
         if (newCategory && !categories?.includes(newCategory)) {
             handleChange(setCategories, [...(categories ?? []), newCategory]);

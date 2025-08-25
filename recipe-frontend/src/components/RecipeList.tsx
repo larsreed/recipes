@@ -423,9 +423,8 @@ function RecipeList() {
                 ${recipe.matchFor ? `<p>Match for: ${recipe.matchFor.replace(/\n/g, '<br />')}</p>` : ''}
                 ${recipe.categories ? `<p>Category: ${recipe.categories.replace(/,/g, ' ')}</p>` : ''}
                 ${recipe.notes ? `<div>Notes: ${marked(recipe.notes)}</div>` : ''}
+                ${recipe.instructions ? `<div class="instructions">${marked(recipe.instructions)}</div>` : ''}
                 ${recipe.subrecipe ? `<h4>Ingredients</h4>` : `<h3>Ingredients</h3>`}
-                ${recipe.subrecipe ? `<h4>Instructions</h4>` : `<h3>Instructions</h3>`}
-                <div class="instructions">${marked(recipe.instructions ?? '')}</div>
                 <table class="noborder">
                     ${recipe.ingredients.map(ingredient => `
                         <tr class="ingredient">
@@ -465,6 +464,14 @@ function RecipeList() {
                     @page {
                         size: A4;
                         margin: 0;
+                    }
+                    @media print {
+                      @page {
+                        margin-top: 0.5in;
+                        margin-bottom: 0.75in;
+                        margin-left: 1in;
+                        margin-right: 1in;
+                      }
                     }
                     body {
                         font-family: Calibri, sans-serif;
@@ -521,7 +528,7 @@ function RecipeList() {
                         color: chocolate;
                     }
                     .instructions {
-                        margin-top: 60px;
+                        margin-top: 20px;
                     }
                     .attachment {
                         margin-top: 20px;
