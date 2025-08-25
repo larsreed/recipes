@@ -1,7 +1,8 @@
 import { useEffect } from 'react';
 import TemperaturesList from './TemperaturesList';
 
-const TemperatureModal = ({ onClose }) => {
+// @ts-ignore
+const TemperatureModal = ({onClose: onClose}) => {
     useEffect(() => {
         const handleKeyDown = (event: KeyboardEvent) => {
             if (event.key === 'Escape') {

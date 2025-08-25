@@ -102,7 +102,7 @@ function ConversionsList() {
                 />
             ) : (
                 <ConversionForm
-                    onSave={(conversion) => saveConversion(conversion)}
+                    onSave={(conversion: Conversion) => saveConversion(conversion)}
                     onCancel={() => setEditingConversion(null)}
                     onConversionCreated={fetchConversions}
                 />

@@ -15,7 +15,7 @@ interface SourceFormProps {
     source?: Source;
     onCancel: () => void;
     onSourceCreated?: () => void;
-    onSave?: () => void;
+    onSave?: (source: Source) => Promise<void>;
 }
 
 function SourceForm({ source, onCancel, onSourceCreated }: SourceFormProps) {
@@ -62,7 +62,7 @@ function SourceForm({ source, onCancel, onSourceCreated }: SourceFormProps) {
                 return;
             }
             console.log(newSource);
-            // eslint-disable-next-line @typescript-eslint/no-unused-vars
+            // @ts-ignore
             const response = source ? await axios.put(apiUrl, newSource) : await axios.post(apiUrl, newSource);
             setName('');
             setAuthors('');

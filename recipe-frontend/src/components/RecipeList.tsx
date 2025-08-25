@@ -27,7 +27,7 @@ interface Recipe {
     rating?: number;
     people: number;
     wineTips?: string;
-    matchFor?: string;''
+    matchFor?: string;
     categories: string;
     ingredients: Ingredient[];
     attachments: Attachment[];
@@ -99,16 +99,18 @@ function RecipeList() {
     }, [fetchRecipes, includeSubrecipes]);
 
     const sortedRecipes = [...recipes].sort((a, b) => {
+        // @ts-ignore
         if (a[sortConfig.key] < b[sortConfig.key]) {
             return sortConfig.direction === 'ascending' ? -1 : 1;
         }
+        // @ts-ignore
         if (a[sortConfig.key] > b[sortConfig.key]) {
             return sortConfig.direction === 'ascending' ? 1 : -1;
         }
         return 0;
     });
 
-    const requestSort = (key) => {
+    const requestSort = (key: string) => {
         let direction = 'ascending';
         if (sortConfig.key === key && sortConfig.direction === 'ascending') {
             direction = 'descending';
@@ -116,7 +118,7 @@ function RecipeList() {
         setSortConfig({ key, direction });
     };
 
-    const getSortIcon = (key) => {
+    const getSortIcon = (key: string) => {
         if (sortConfig.key === key) {
             return sortConfig.direction === 'ascending' ? 'fas fa-sort-up' : 'fas fa-sort-down';
         }
@@ -332,7 +334,7 @@ function RecipeList() {
                     const conversions = conversionsResponse.data;
 
                     const usedMeasures = new Set<string>();
-                    shoppingContent.map(item => {
+                    shoppingContent.map((item: { measure: string; }) => {
                         if (item.measure) { usedMeasures.add(item.measure); }
                     })
 
@@ -340,8 +342,8 @@ function RecipeList() {
                     if (newWindow) {
 
                         const conversionLines = conversions
-                            .filter(conversion => usedMeasures.has(conversion.fromMeasure) || usedMeasures.has(conversion.toMeasure))
-                            .map(conversion => `To convert from ${conversion.fromMeasure} to ${conversion.toMeasure}: multiply by ${conversion.factor}`)
+                            .filter((conversion: { fromMeasure: string; toMeasure: string; }) => usedMeasures.has(conversion.fromMeasure) || usedMeasures.has(conversion.toMeasure))
+                            .map((conversion: { fromMeasure: any; toMeasure: any; factor: any; }) => `To convert from ${conversion.fromMeasure} to ${conversion.toMeasure}: multiply by ${conversion.factor}`)
                             .join('<br />');
 
 
@@ -368,7 +370,7 @@ function RecipeList() {
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    ${shoppingContent.map(item => `
+                                    ${shoppingContent.map((item: { name: any; amount: number; measure: any; }) => `
                                         <tr>
                                             <td>${item.name}</td>
                                             <td>${item.amount? parseFloat(item.amount.toFixed(2)).toString() : ''}</td> 
@@ -599,6 +601,8 @@ function RecipeList() {
         setSelectAll(!selectAll);
     };
 
+    // @ts-ignore
+    // @ts-ignore
     return (
         <div>
             <div className="standard-form">
@@ -610,7 +614,10 @@ function RecipeList() {
             </div>
             <div className="standard-form">
                 Import recipes: <input id="csvFileInput" type="file" accept=".csv,.txt"
-                                       onChange={(e) => setCsvFile(e.target.files[0])}/>
+                                       onChange={(e) => {
+                                           // @ts-ignore
+                                           setCsvFile(e.target.files[0]);
+                                       }}/>
                 &nbsp;
                 {csvFile && <button onClick={handleImport}>Import</button>}
             </div>

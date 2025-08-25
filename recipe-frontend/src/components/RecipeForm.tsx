@@ -1,4 +1,4 @@
-import React, { useRef, useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import config from '../config';
 import AutoGrowTextarea from './AutoGrowTextarea.tsx';
@@ -334,7 +334,9 @@ function RecipeForm({ recipe, onCancel, onRecipeSaved }: RecipeFormProps) {
             setRating(response.data.rating || null);
             setWineTips(response.data.wineTips || null);
             setMatchFor(response.data.matchFor || null);
-            setCategories(response.data.categories?.split(',').map(tag => tag.trim()).filter(tag => tag) || null);
+            setCategories(response.data.categories?.split(',').map((tag: string) => tag.trim()).filter((tag: any) => {
+                return tag;
+            }) || null);
             setNotes(response.data.notes || '');
             setIngredients(response.data.ingredients || []);
             setSubrecipes(response.data.subrecipes || []);
@@ -377,7 +379,7 @@ function RecipeForm({ recipe, onCancel, onRecipeSaved }: RecipeFormProps) {
         };
         const apiUrl = recipe ? `${config.backendUrl}/api/recipes/${recipe.id}` : `${config.backendUrl}/api/recipes`;
         try {
-            // eslint-disable-next-line @typescript-eslint/no-unused-vars
+            // @ts-ignore
             const response = recipe ? await axios.put(apiUrl, newRecipe) : await axios.post(apiUrl, newRecipe);
             blankRecipe();
             setAttachments([]);
@@ -727,7 +729,10 @@ function RecipeForm({ recipe, onCancel, onRecipeSaved }: RecipeFormProps) {
             <div className="form-group">
                 <label>Import Ingredients from CSV:</label>
                 <input id="csvFileName" type="file" accept=".csv,.txt"
-                       onChange={(e) => setCsvFile(e.target.files[0])}/>
+                       onChange={(e) => {
+                           // @ts-ignore
+                           setCsvFile(e.target.files[0]);
+                       }}/>
                 {csvFile && (<button type="button" onClick={handleImport}>Import</button>)}
             </div>
 

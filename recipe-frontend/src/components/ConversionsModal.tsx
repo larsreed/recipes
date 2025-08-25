@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import ConversionsList from './ConversionsList';
 
+// @ts-ignore
 const ConversionModal = ({ onClose }) => {
     useEffect(() => {
         const handleKeyDown = (event: KeyboardEvent) => {

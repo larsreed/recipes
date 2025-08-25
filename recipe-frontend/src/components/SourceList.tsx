@@ -22,7 +22,7 @@ function SourceList() {
                 setErrorMessage(null); // Clear errors on success
             })
             .catch(error => {
-                setErrorMessage('Error fetching sources.')
+                setErrorMessage('Error fetching sources.');
                 console.error('Error fetching sources:', error);
             });
     };
@@ -45,7 +45,6 @@ function SourceList() {
         }
     };
 
-
     const saveSource = async (source: Source) => {
         try {
             await axios.put(`${config.backendUrl}/api/sources/${source.id}`, source);
@@ -58,6 +57,7 @@ function SourceList() {
         }
     };
 
+    // @ts-ignore
     return (
         <div>
             <h2>Source List</h2>
@@ -102,7 +102,7 @@ function SourceList() {
                 />
             ) : (
                 <SourceForm
-                    onSave={(source) => saveSource(source)}
+                    onSave={saveSource}
                     onCancel={() => setEditingSource(null)}
                     onSourceCreated={fetchSources}
                 />

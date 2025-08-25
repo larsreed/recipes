@@ -98,7 +98,7 @@ function TemperaturesList() {
                 />
             ) : (
                 <TemperatureForm
-                    onSave={(temperature) => saveTemperature(temperature)}
+                    onSave={(temperature: Temperature) => saveTemperature(temperature)}
                     onCancel={() => setEditingTemperature(null)}
                     onTemperatureCreated={fetchTemperatures}
                 />

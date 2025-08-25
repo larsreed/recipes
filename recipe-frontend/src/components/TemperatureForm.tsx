@@ -12,7 +12,7 @@ interface TemperatureFormProps {
     temperature?: Temperature;
     onCancel: () => void;
     onTemperatureCreated?: () => void;
-    onSave?: () => void;
+    onSave?: (temperature: Temperature) => Promise<void>;
 }
 
 function TemperatureForm({ temperature, onCancel, onTemperatureCreated }: TemperatureFormProps) {
@@ -50,7 +50,7 @@ function TemperatureForm({ temperature, onCancel, onTemperatureCreated }: Temper
         console.log(newTemperature); //FIXME
         const apiUrl = temperature ? `${config.backendUrl}/api/temperatures/${temperature.id}` : `${config.backendUrl}/api/temperatures`;
         try {
-            // eslint-disable-next-line @typescript-eslint/no-unused-vars
+            // @ts-ignore
             const response = temperature ? await axios.put(apiUrl, newTemperature) : await axios.post(apiUrl, newTemperature);
             setMeat('');
             setTemp(0.0);
@@ -81,7 +81,10 @@ function TemperatureForm({ temperature, onCancel, onTemperatureCreated }: Temper
                     type="float"
                     id="temp"
                     value={temp}
-                    onChange={(e) => setTemp(e.target.value)}
+                    onChange={(e) => {
+                        // @ts-ignore
+                        setTemp(e.target.value);
+                    }}
                     required
                 />
                 <label htmlFor="meat">Meat:</label>

@@ -15,7 +15,7 @@ interface ConversionFormProps {
     conversion?: Conversion;
     onCancel: () => void;
     onConversionCreated?: () => void;
-    onSave?: () => void;
+    onSave?: (conversion: Conversion) => Promise<void>;
 }
 
 function ConversionForm({ conversion, onCancel, onConversionCreated }: ConversionFormProps) {
@@ -57,7 +57,6 @@ function ConversionForm({ conversion, onCancel, onConversionCreated }: Conversio
         console.log(newConversion); //FIXME
         const apiUrl = conversion ? `${config.backendUrl}/api/conversions/${conversion.id}` : `${config.backendUrl}/api/conversions`;
         try {
-            // eslint-disable-next-line @typescript-eslint/no-unused-vars
             // @ts-ignore
             const response = conversion ? await axios.put(apiUrl, newConversion) : await axios.post(apiUrl, newConversion);
             setFromMeasure('');
@@ -81,8 +80,6 @@ function ConversionForm({ conversion, onCancel, onConversionCreated }: Conversio
         onCancel();
     };
 
-    // @ts-ignore
-    // @ts-ignore
     return (
         <form onSubmit={handleSubmit} className="conversion-form">
             <h2>{conversion ? 'Edit conversion' : 'Add a new conversion'}</h2>

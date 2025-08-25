@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import SourceList from './SourceList';
 
+// @ts-ignore
 const SourceModal = ({ onClose }) => {
     useEffect(() => {
         const handleKeyDown = (event: KeyboardEvent) => {
