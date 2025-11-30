@@ -44,6 +44,7 @@ CREATE TABLE source (
      name VARCHAR(128),
      authors VARCHAR(255),
      info VARCHAR(255) NULL,
+     title VARCHAR(255) NULL,
      CONSTRAINT unique_source_name UNIQUE (name)
 );
 
@@ -62,11 +63,13 @@ CREATE TABLE conversion (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
     factor FLOAT NOT NULL,
     from_measure VARCHAR(10) NOT NULL,
-    to_measure VARCHAR(10) NOT NULL
+    to_measure VARCHAR(10) NOT NULL,
+    description TEXT NULL
 );
 
 CREATE TABLE temperatures (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
     temp FLOAT NOT NULL,
-    meat VARCHAR(255) NOT NULL
+    meat VARCHAR(255) NOT NULL,
+    description TEXT NULL
 );

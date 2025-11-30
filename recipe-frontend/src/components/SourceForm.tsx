@@ -111,6 +111,15 @@ function SourceForm({ source, onCancel, onSourceCreated }: SourceFormProps) {
                 {errors.authors && <p className="error">{errors.authors}</p>}
             </div>
             <div className="form-group">
+                <label htmlFor="title">Title:</label>
+                <input
+                    type="text"
+                    id="title"
+                    value={title}
+                    onChange={(e) => setTitle(e.target.value)}
+                />
+            </div>
+            <div className="form-group">
                 <label htmlFor="info">Info (markup):</label>
                 <AutoGrowTextarea
                     id="info"

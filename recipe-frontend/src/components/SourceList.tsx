@@ -8,6 +8,7 @@ interface Source {
     name: string;
     authors: string;
     info?: string;
+    title?: string;
 }
 
 function SourceList() {
@@ -57,7 +58,6 @@ function SourceList() {
         }
     };
 
-    // @ts-ignore
     return (
         <div>
             <h2>Source List</h2>
@@ -68,6 +68,7 @@ function SourceList() {
                     <th>ID</th>
                     <th>Name</th>
                     <th>Authors</th>
+                    <th>Title</th>
                     <th>Info</th>
                     <th/>
                 </tr>
@@ -78,6 +79,7 @@ function SourceList() {
                         <td>{source.id}</td>
                         <td>{source.name}</td>
                         <td>{source.authors}</td>
+                        <td>{source.title || ''}</td>
                         <td>{source.info}</td>
                         <td>
                             <button onClick={() => setEditingSource(source)} title="Edit">

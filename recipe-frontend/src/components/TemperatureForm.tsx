@@ -6,6 +6,7 @@ interface Temperature {
     id: number;
     meat: string;
     temp: number;
+    description?: string;
 }
 
 interface TemperatureFormProps {
@@ -18,14 +19,17 @@ interface TemperatureFormProps {
 function TemperatureForm({ temperature, onCancel, onTemperatureCreated }: TemperatureFormProps) {
     const [meat, setMeat] = useState(temperature?.meat || '');
     const [temp, setTemp] = useState(temperature?.temp || 0.0);
+    const [description, setDescription] = useState(temperature?.description || '');
 
     useEffect(() => {
         if (temperature) {
             setTemp(temperature.temp);
             setMeat(temperature.meat);
+            setDescription(temperature.description)
         } else {
             setMeat('');
             setTemp(0.0);
+            setDescription('');
         }
     }, [temperature]);
 
@@ -46,7 +50,7 @@ function TemperatureForm({ temperature, onCancel, onTemperatureCreated }: Temper
             setErrors(newErrors);
             return;
         }
-        const newTemperature = { ...temperature, meat, temp };
+        const newTemperature = { ...temperature, meat, temp, description };
         console.log(newTemperature); //FIXME
         const apiUrl = temperature ? `${config.backendUrl}/api/temperatures/${temperature.id}` : `${config.backendUrl}/api/temperatures`;
         try {
@@ -54,6 +58,7 @@ function TemperatureForm({ temperature, onCancel, onTemperatureCreated }: Temper
             const response = temperature ? await axios.put(apiUrl, newTemperature) : await axios.post(apiUrl, newTemperature);
             setMeat('');
             setTemp(0.0);
+            setDescription('')
             setErrors({});
             setApiError(null);
             if (onTemperatureCreated) onTemperatureCreated();
@@ -67,6 +72,7 @@ function TemperatureForm({ temperature, onCancel, onTemperatureCreated }: Temper
         setMeat('');
         setTemp(0.0);
         setErrors({});
+        setDescription('')
         setApiError(null);
         onCancel();
     };
@@ -94,6 +100,14 @@ function TemperatureForm({ temperature, onCancel, onTemperatureCreated }: Temper
                     value={meat}
                     onChange={(e) => setMeat(e.target.value)}
                     required
+                />
+
+                <label htmlFor="description">Description:</label>
+                <input
+                    type="text"
+                    id="description"
+                    value={description}
+                    onChange={(e) => setDescription(e.target.value)}
                 />
 
                 {errors.temp && <p className="error">{errors.temp}</p>}

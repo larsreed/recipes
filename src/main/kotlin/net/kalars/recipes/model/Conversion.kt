@@ -11,7 +11,8 @@ data class Conversion(
     val id: Long = 0,
     var factor: Float,
     var fromMeasure: String,
-    var toMeasure: String
+    var toMeasure: String,
+    var description: String? = ""
 ) {
-    constructor() : this(0, 0.0f, fromMeasure = "", toMeasure = "")
+    constructor() : this(0, 0.0f, fromMeasure = "", toMeasure = "", description = "")
 }

@@ -7,6 +7,7 @@ interface Temperature {
     id: number;
     meat: string;
     temp: number;
+    description?: string;
 }
 
 function TemperaturesList() {
@@ -66,6 +67,7 @@ function TemperaturesList() {
                     <th>ID</th>
                     <th>Temperature (C)</th>
                     <th>Meat</th>
+                    <th>Description</th>
                     <th/>
                 </tr>
                 </thead>
@@ -75,6 +77,7 @@ function TemperaturesList() {
                         <td>{temperature.id}</td>
                         <td>{temperature.temp}</td>
                         <td>{temperature.meat}</td>
+                        <td>{temperature.description || ''}</td>
                         <td>
                             <button onClick={() => setEditingTemperature(temperature)} title="Edit">
                                 <i className="fas fa-edit"></i>

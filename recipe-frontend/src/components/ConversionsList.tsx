@@ -8,6 +8,7 @@ interface Conversion {
     fromMeasure: string;
     toMeasure: string;
     factor: number;
+    description: string;
 }
 
 function ConversionsList() {
@@ -69,6 +70,7 @@ function ConversionsList() {
                     <th>From</th>
                     <th>To</th>
                     <th>Factor</th>
+                    <th>Description</th>
                     <th/>
                 </tr>
                 </thead>
@@ -79,6 +81,7 @@ function ConversionsList() {
                         <td>{conversion.fromMeasure}</td>
                         <td>{conversion.toMeasure}</td>
                         <td>{conversion.factor}</td>
+                        <td>{conversion.description}</td>
                         <td>
                             <button onClick={() => setEditingConversion(conversion)} title="Edit">
                                 <i className="fas fa-edit"></i>

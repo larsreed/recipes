@@ -32,8 +32,8 @@ class SourceControllerTest {
     @Test
     fun `should fetch all sources`() {
         val sources = listOf(
-            Source(id = 1, name = "Book A", authors = "Author 1", info = "Info A"),
-            Source(id = 2, name = "Book B", authors = "Author 2", info = "Info B")
+            Source(id = 1, name = "Book A", authors = "Author 1", info = "Info A", title = "Title A"),
+            Source(id = 2, name = "Book B", authors = "Author 2", info = "Info B", title = "Title B")
         )
         Mockito.`when`(sourceRepository.findAll()).thenReturn(sources)
 
@@ -52,7 +52,7 @@ class SourceControllerTest {
 
     @Test
     fun `should add a source`() {
-        val source = Source(id = 1, name = "Book A", authors = "Author 1", info = "Info A")
+        val source = Source(id = 1, name = "Book A", authors = "Author 1", info = "Info A", title = "Title A")
         val sourceJson = """
             {
                 "name": "Book A",
@@ -77,13 +77,14 @@ class SourceControllerTest {
 
     @Test
     fun `should update a source`() {
-        val existingSource = Source(id = 1, name = "Book A", authors = "Author 1", info = "Info A")
-        val updatedSource = Source(id = 1, name = "Book B", authors = "Author 2", info = "Info B")
+        val existingSource = Source(id = 1, name = "Book A", authors = "Author 1", info = "Info A", title = "Title A")
+        val updatedSource = Source(id = 1, name = "Book B", authors = "Author 2", info = "Info B", title = "Title B")
         val updatedSourceJson = """
             {
                 "name": "Book B",
                 "authors": "Author 2",
-                "info": "Info B"
+                "info": "Info B",
+                "title": "Title B"
             }
         """.trimIndent()
 
