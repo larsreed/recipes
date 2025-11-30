@@ -9,6 +9,7 @@ interface Source {
     name: string;
     authors: string;
     info?: string;
+    title?: string;
 }
 
 interface SourceFormProps {
@@ -22,16 +23,19 @@ function SourceForm({ source, onCancel, onSourceCreated }: SourceFormProps) {
     const [name, setName] = useState(source?.name || '');
     const [authors, setAuthors] = useState(source?.authors || '');
     const [info, setInfo] = useState(source?.info || '');
+    const [title, setTitle] = useState(source?.title || '');
 
     useEffect(() => {
         if (source) {
             setName(source.name);
             setAuthors(source.authors);
             setInfo(source.info || '');
+            setTitle(source.title || '');
         } else {
             setName('');
             setAuthors('');
             setInfo('');
+            setTitle('');
         }
     }, [source]);
 
@@ -52,7 +56,7 @@ function SourceForm({ source, onCancel, onSourceCreated }: SourceFormProps) {
             setErrors(newErrors);
             return;
         }
-        const newSource = { ...source, name, authors, info };
+        const newSource = { ...source, name, authors, info, title };
         const apiUrl = source ? `${config.backendUrl}/api/sources/${source.id}` : `${config.backendUrl}/api/sources`;
         try {
             const checkUrl = `${config.backendUrl}/api/sources/check-name?name=${encodeURIComponent(name)}&id=${source ? source.id : -1}`;
@@ -67,6 +71,7 @@ function SourceForm({ source, onCancel, onSourceCreated }: SourceFormProps) {
             setName('');
             setAuthors('');
             setInfo('');
+            setTitle('');
             setErrors({});
             setApiError(null);
             if (onSourceCreated) onSourceCreated();
@@ -80,6 +85,7 @@ function SourceForm({ source, onCancel, onSourceCreated }: SourceFormProps) {
         setName('');
         setAuthors('');
         setInfo('');
+        setTitle('');
         setErrors({});
         setApiError(null);
         onCancel();

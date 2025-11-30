@@ -605,6 +605,16 @@ function RecipeList() {
     // @ts-ignore
     return (
         <div>
+            {isSourceModalOpen && <SourceModal onClose={handleCloseSourceModal}/>}
+            {isTemperatureModalOpen && <TemperaturesModal onClose={handleCloseTemperatureModal}/>}
+            {isConversionsModalOpen && <ConversionsModal onClose={handleCloseConversionsModal}/>}
+            {isRecipeModalOpen && (
+                <RecipeModal
+                    recipe={editingRecipe}
+                    onCancel={handleCloseRecipeModal}
+                    onRecipeSaved={handleRecipeSaved}
+                />
+            )}
             <div className="standard-form">
                 <button onClick={handleOpenSourceModal}>Edit sources</button>
                 &nbsp;
@@ -627,16 +637,6 @@ function RecipeList() {
                 </button>
                 &nbsp;
                 {isSearchActive && <button onClick={handleShowAllRecipes}>All</button>}
-                {isSourceModalOpen && <SourceModal onClose={handleCloseSourceModal}/>}
-                {isTemperatureModalOpen && <TemperaturesModal onClose={handleCloseTemperatureModal}/>}
-                {isConversionsModalOpen && <ConversionsModal onClose={handleCloseConversionsModal}/>}
-                {isRecipeModalOpen && (
-                    <RecipeModal
-                        recipe={editingRecipe}
-                        onCancel={handleCloseRecipeModal}
-                        onRecipeSaved={handleRecipeSaved}
-                    />
-                )}
                 {isSearchPanelOpen &&
                     <input
                         type="text"
