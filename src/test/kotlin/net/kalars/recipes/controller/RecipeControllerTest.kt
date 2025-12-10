@@ -228,7 +228,7 @@ class RecipeControllerTest {
     @Test
     fun `should export all recipes as csv`() {
         val recipes = listOf(Recipe(id = 1, name = "Cake", people = 2, instructions = "Bake"))
-        val sources = listOf(Source(id = 1, name = "Book", authors = "Author", info="Info"))
+        val sources = listOf(Source(id = 1, name = "Book", authors = "Author", info="Info", title="Title"))
         Mockito.`when`(recipeService.getAllRecipes()).thenReturn(recipes)
         Mockito.`when`(sourceService.getAllSources()).thenReturn(sources)
         Mockito.`when`(conversionRepository.findAll()).thenReturn(emptyList())

@@ -20,7 +20,8 @@ class ConversionController(private val conversionRepository: ConversionRepositor
         return conversionRepository.save(existingConversion.copy(
             factor = updatedConversion.factor,
             fromMeasure = updatedConversion.fromMeasure,
-            toMeasure = updatedConversion.toMeasure
+            toMeasure = updatedConversion.toMeasure,
+            description = updatedConversion.description
         ))
     }
 

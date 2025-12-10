@@ -92,7 +92,7 @@ class RecipeServiceTest {
 
     @Test
     fun `nullifySourceInRecipes sets source to null and saves`() {
-        val source = Source(id = 2, name = "S", authors = "A", info = "I")
+        val source = Source(id = 2, name = "S", authors = "A", info = "I", title = "T")
         val recipe = Recipe(
             id = 1,
             name = "Test",

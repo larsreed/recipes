@@ -3,13 +3,13 @@
 # +Ingredient	Preamble	Amount?:float	Measure?	prefix?	Name	Instruction?
 # +Subrecipe	Name
 # +Attachment	FileName	Base64Content
-# Conversion	From	To	Factor
-# Temperature	Temp (C)	Meat
+# Conversion	From	To	Factor	Description
+# Temperature	Temp (C)	Meat	Description
 # emacs	(query-replace-regexp "\\([0-9]\\)[,]\\([0-9]\\)" "\\1.\\2")
 # -------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 Conversion	l	dl	0.1
-Temperature	100	Vann
+Temperature	100	Vann	Boiling point of water
 
 Source	Usikker	?
 Recipe	Fruktfat uten fat	false	12	4	17.mai 2025\nL fam 2025\nLærere 2025				Usikker		Pet Nat Rosé by Toni Hartl 2022  https://www.vinmonopolet.no/Land/%C3%98sterrike/%C3%96sterreichischer-W-/Pet-Nat-Ros%C3%A9-by-Toni-Hartl-2022/p/17124101 (musserende rosé, Østerrike – polet #17124101) eller dens hvite søster		Forrett,Frukt

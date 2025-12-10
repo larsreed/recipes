@@ -9,6 +9,7 @@ interface Conversion {
     fromMeasure: string;
     toMeasure: string;
     factor: number;
+    description: string;
 }
 
 interface ConversionFormProps {
@@ -22,16 +23,19 @@ function ConversionForm({ conversion, onCancel, onConversionCreated }: Conversio
     const [fromMeasure, setFromMeasure] = useState(conversion?.fromMeasure || '');
     const [toMeasure, setToMeasure] = useState(conversion?.toMeasure || '');
     const [factor, setFactor] = useState(conversion?.factor || 0.0);
+    const [description, setDescription] = useState(conversion?.description || '');
 
     useEffect(() => {
         if (conversion) {
             setFromMeasure(conversion.fromMeasure);
             setToMeasure(conversion.toMeasure);
             setFactor(conversion.factor);
+            setDescription(conversion.description);
         } else {
             setFromMeasure('');
             setToMeasure('');
             setFactor(0.0);
+            setDescription('');
         }
     }, [conversion]);
 
@@ -53,7 +57,7 @@ function ConversionForm({ conversion, onCancel, onConversionCreated }: Conversio
             setErrors(newErrors);
             return;
         }
-        const newConversion = { ...conversion, fromMeasure, toMeasure, factor };
+        const newConversion = { ...conversion, fromMeasure, toMeasure, factor, description };
         console.log(newConversion); //FIXME
         const apiUrl = conversion ? `${config.backendUrl}/api/conversions/${conversion.id}` : `${config.backendUrl}/api/conversions`;
         try {
@@ -62,6 +66,7 @@ function ConversionForm({ conversion, onCancel, onConversionCreated }: Conversio
             setFromMeasure('');
             setToMeasure('');
             setFactor(0.0);
+            setDescription('');
             setErrors({});
             setApiError(null);
             if (onConversionCreated) onConversionCreated();
@@ -75,6 +80,7 @@ function ConversionForm({ conversion, onCancel, onConversionCreated }: Conversio
         setFromMeasure('');
         setToMeasure('');
         setFactor(0.0);
+        setDescription('');
         setErrors({});
         setApiError(null);
         onCancel();
@@ -111,6 +117,14 @@ function ConversionForm({ conversion, onCancel, onConversionCreated }: Conversio
                         setFactor(e.target.value);
                     }}
                     required
+                />
+                <label htmlFor="description">Description:</label>
+                <input
+                    type="text"
+                    id="description"
+                    value={description}
+                    onChange={(e) => setDescription(e.target.value)}
+                    placeholder="Optional description"
                 />
 
                 {errors.fromMeasure && <p className="error">{errors.fromMeasure}</p>}

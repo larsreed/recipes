@@ -31,8 +31,8 @@ class ConversionControllerTest {
     @Test
     fun `should fetch all conversions`() {
         val conversions = listOf(
-            Conversion(id = 1, factor = 240.0f, fromMeasure = "cup", toMeasure = "ml"),
-            Conversion(id = 2, factor = 15.0f, fromMeasure = "tbsp", toMeasure = "ml")
+            Conversion(id = 1, factor = 240.0f, fromMeasure = "cup", toMeasure = "ml", description = "Standard cup conversion"),
+            Conversion(id = 2, factor = 15.0f, fromMeasure = "tbsp", toMeasure = "ml", description = "Tablespoon to milliliter")
         )
         Mockito.`when`(conversionRepository.findAll()).thenReturn(conversions)
 
@@ -44,21 +44,24 @@ class ConversionControllerTest {
             .body("[0].fromMeasure", org.hamcrest.Matchers.equalTo("cup"))
             .body("[0].toMeasure", org.hamcrest.Matchers.equalTo("ml"))
             .body("[0].factor", org.hamcrest.Matchers.equalTo(240.0f))
+            .body("[0].description", org.hamcrest.Matchers.equalTo("Standard cup conversion"))
             .body("[1].fromMeasure", org.hamcrest.Matchers.equalTo("tbsp"))
             .body("[1].toMeasure", org.hamcrest.Matchers.equalTo("ml"))
             .body("[1].factor", org.hamcrest.Matchers.equalTo(15.0f))
+            .body("[1].description", org.hamcrest.Matchers.equalTo("Tablespoon to milliliter"))
 
         Mockito.verify(conversionRepository).findAll()
     }
 
     @Test
     fun `should add a conversion`() {
-        val conversion = Conversion(id = 1, factor = 240.0f, fromMeasure = "cup", toMeasure = "ml")
+        val conversion = Conversion(id = 1, factor = 240.0f, fromMeasure = "cup", toMeasure = "ml", description = "Standard cup conversion")
         val conversionJson = """
             {
                 "fromMeasure": "cup",
                 "toMeasure": "ml",
-                "factor": 240.0
+                "factor": 240.0,
+                "description": "Standard cup conversion"
             }
         """.trimIndent()
 
@@ -73,19 +76,21 @@ class ConversionControllerTest {
             .body("fromMeasure", org.hamcrest.Matchers.equalTo("cup"))
             .body("toMeasure", org.hamcrest.Matchers.equalTo("ml"))
             .body("factor", org.hamcrest.Matchers.equalTo(240.0f))
+            .body("description", org.hamcrest.Matchers.equalTo("Standard cup conversion"))
 
         Mockito.verify(conversionRepository).save(Mockito.any(Conversion::class.java))
     }
 
     @Test
     fun `should update a conversion`() {
-        val existingConversion = Conversion(id = 1, factor = 240.0f, fromMeasure = "cup", toMeasure = "ml")
-        val updatedConversion = Conversion(id = 1, factor = 250.0f, fromMeasure = "cup", toMeasure = "ml")
+        val existingConversion = Conversion(id = 1, factor = 240.0f, fromMeasure = "cup", toMeasure = "ml", description = "Standard cup conversion")
+        val updatedConversion = Conversion(id = 1, factor = 250.0f, fromMeasure = "cup", toMeasure = "ml", description = "Updated cup conversion")
         val updatedConversionJson = """
             {
                 "fromMeasure": "cup",
                 "toMeasure": "ml",
-                "factor": 250.0
+                "factor": 250.0,
+                "description": "Updated cup conversion"
             }
         """.trimIndent()
 
@@ -101,6 +106,7 @@ class ConversionControllerTest {
             .body("fromMeasure", org.hamcrest.Matchers.equalTo("cup"))
             .body("toMeasure", org.hamcrest.Matchers.equalTo("ml"))
             .body("factor", org.hamcrest.Matchers.equalTo(250.0f))
+            .body("description", org.hamcrest.Matchers.equalTo("Updated cup conversion"))
 
         Mockito.verify(conversionRepository).findById(1L)
         Mockito.verify(conversionRepository).save(Mockito.any(Conversion::class.java))

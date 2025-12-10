@@ -20,6 +20,7 @@ class TemperatureController(private val temperatureRepository: TemperatureReposi
         return temperatureRepository.save(existingTemperature.copy(
             temp = updatedTemperature.temp,
             meat = updatedTemperature.meat,
+            description = updatedTemperature.description
         ))
     }
 

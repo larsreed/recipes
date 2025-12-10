@@ -10,7 +10,8 @@ data class Temperature(
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     val id: Long = 0,
     var temp: Float,
-    var meat: String
+    var meat: String,
+    var description: String? = null
 ) {
-    constructor() : this(0, 0.0f, "")
+    constructor() : this(0, 0.0f, "", null)
 }

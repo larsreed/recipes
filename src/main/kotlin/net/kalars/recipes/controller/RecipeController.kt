@@ -155,7 +155,8 @@ class RecipeController(
                     val sourceName = columns[1]
                     val authors = columns[2].replace("\\n", "\n")
                     val info = columns[3].replace("\\n", "\n")
-                    val source = sourceService.createOrGetSource(sourceName, authors, info)
+                    val title = columns.getOrNull(4)?.replace("\\n", "\n")
+                    val source = sourceService.createOrGetSource(sourceName, authors, info, title)
                     sources[sourceName] = source.id
                 }
 
@@ -253,8 +254,10 @@ class RecipeController(
                     val fromMeasure = columns[1]
                     val toMeasure = columns[2]
                     val factor = columns[3].toFloat()
-                    conversionRepository.save(Conversion(fromMeasure = fromMeasure, toMeasure = toMeasure,
-                        factor = factor))
+                    val description = columns.getOrNull(4)?.replace("\\n", "\n")
+                    conversionRepository.save(Conversion(
+                        fromMeasure = fromMeasure, toMeasure = toMeasure,
+                        factor = factor, description = description))
                 }
 
                 line.startsWith("Temperature") -> {
@@ -264,7 +267,8 @@ class RecipeController(
                     }
                     val temp = columns[1].toFloat()
                     val meat = columns[2]
-                    temperatureRepository.save(Temperature(temp = temp, meat = meat))
+                    val description = columns.getOrNull(3)?.replace("\\n", "\n")
+                    temperatureRepository.save(Temperature(temp = temp, meat = meat, description = description))
                 }
             }
         }
@@ -302,20 +306,21 @@ class RecipeController(
             append("# Total sources: ${sources.size}\n")
             append("# Format (\\n for newline, TAB-separated)\n")
             append("# '#' Comment\n")
-            append("# 'Source'\tName\tAuthors\tInfo\n")
+            append("# 'Source'\tName\tAuthors\tInfo\tTitle?\n")
             append("# 'Recipe'\tName\tIsSubrecipe:bool\tPeople:int\tRating?:0-6\tServed?\tInstructions?\tClosing?\tNotes?\tSource?\tPageRef?\tWineTips?\tMatchFor?\n")
             append("# '+Ingredient'\tPreamble?\tAmount?:float\tMeasure?\tPrefix?\tName\tInstruction?\n")
             append("# '+Subrecipe'\tName\n")
             append("# '+Attachment'\tFileName\tBase64Content\n")
-            append("# 'Conversion'\tFrom\tTo\tFactor\n")
-            append("# 'Temperature'\tTemp (C)\tMeat\n")
+            append("# 'Conversion'\tFrom\tTo\tFactor\tDescription?\n")
+            append("# 'Temperature'\tTemp (C)\tMeat\tDescription?\n")
             append("\n\n####################\n\n")
 
             recipes.forEach { recipe ->
                 append("\n")
                 sources.find { src -> src.id == recipe.sourceId }?.let { source ->
                     append("Source\t${source.name}\t${source.authors.replace("\n", "\\n")}\t${
-                        source.info?.replace("\n", "\\n") ?: ""}\n")
+                        source.info?.replace("\n", "\\n") ?: ""}\t${
+                        source.title?.replace("\n", "\\n") ?: ""}\n")
                     sources.remove(source)
                 }
                 append("Recipe\t${recipe.name
@@ -358,15 +363,18 @@ class RecipeController(
             append("\n\n####################\n\n")
             sources.forEach { source ->
                 append("Source\t${source.name}\t${source.authors.replace("\n", "\\n")}\t${
-                    source.info?.replace("\n", "\\n") ?: ""}\n")
+                    source.info?.replace("\n", "\\n") ?: ""}\t${
+                    source.title?.replace("\n", "\\n") ?: ""}\n")
             }
             append("\n\n####################\n\n")
             conversionRepository.findAll().forEach { conversion ->
-                append("Conversion\t${conversion.fromMeasure}\t${conversion.toMeasure}\t${conversion.factor}\n")
+                append("Conversion\t${conversion.fromMeasure}\t${conversion.toMeasure}\t${conversion.factor}\t${
+                    conversion.description?.replace("\n", "\\n") ?: ""}\n")
             }
             append("\n\n####################\n\n")
             temperatureRepository.findAll().forEach { temperature ->
-                append("Temperature\t${temperature.temp}\t${temperature.meat}\n")
+                append("Temperature\t${temperature.temp}\t${temperature.meat}\t${
+                    temperature.description?.replace("\n", "\\n") ?: ""}\n")
             }
         }
 
