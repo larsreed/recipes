@@ -184,10 +184,11 @@ class RecipeController(
                         categories = columns[13]
                     )
                     val sourceId = sources[columns[9]]
-                    currentRecipe?.sourceId = sourceId
+                    var r = currentRecipe
+                    r?.sourceId = sourceId
                 }
 
-                line.startsWith("+Ingredient") -> {
+                line.startsWith("Ingredient") -> {
                     // Add an ingredient to the current recipe
                     if (columns.size <2) {
                         report("Invalid Ingredient line ($lineNo): $line")
@@ -209,7 +210,7 @@ class RecipeController(
                     )
                 }
 
-                line.startsWith("+Subrecipe") -> {
+                line.startsWith("Subrecipe") -> {
                     // Remember a subrecipe to add later
                     if (columns.size < 2) {
                         report("Invalid Subrecipe line ($lineNo): $line")
@@ -226,7 +227,7 @@ class RecipeController(
                     ) { oldMapping, subs -> (oldMapping + subs).distinct() }
                 }
 
-                line.startsWith("+Attachment") -> {
+                line.startsWith("Attachment") -> {
                     // Add an attachment to the current recipe
                     if (columns.size < 3) {
                         report("Invalid Attachment line ($lineNo): $line")
@@ -308,9 +309,9 @@ class RecipeController(
             append("# '#' Comment\n")
             append("# 'Source'\tName\tAuthors\tInfo\tTitle?\n")
             append("# 'Recipe'\tName\tIsSubrecipe:bool\tPeople:int\tRating?:0-6\tServed?\tInstructions?\tClosing?\tNotes?\tSource?\tPageRef?\tWineTips?\tMatchFor?\n")
-            append("# '+Ingredient'\tPreamble?\tAmount?:float\tMeasure?\tPrefix?\tName\tInstruction?\n")
-            append("# '+Subrecipe'\tName\n")
-            append("# '+Attachment'\tFileName\tBase64Content\n")
+            append("# 'Ingredient'\tPreamble?\tAmount?:float\tMeasure?\tPrefix?\tName\tInstruction?\n")
+            append("# 'Subrecipe'\tName\n")
+            append("# 'Attachment'\tFileName\tBase64Content\n")
             append("# 'Conversion'\tFrom\tTo\tFactor\tDescription?\n")
             append("# 'Temperature'\tTemp (C)\tMeat\tDescription?\n")
             append("\n\n####################\n\n")
@@ -340,13 +341,13 @@ class RecipeController(
                 )
 
                 recipe.subrecipes.forEach { subrecipe ->
-                    append("+Subrecipe\t${subrecipe.name.replace("\n", "\\n")}\n")
+                    append("Subrecipe\t${subrecipe.name.replace("\n", "\\n")}\n")
                 }
 
                 recipe.ingredients.forEach { ingredient ->
                     val amount = ingredient.amount?.toString()?.replace(Regex("""(\.\d*?)0+$"""),
                         "$1")?.replace(Regex("""\.$"""), "") ?: ""
-                    append("+Ingredient\t${ingredient.preamble?.replace("\n", "\\n")  ?: ""
+                    append("Ingredient\t${ingredient.preamble?.replace("\n", "\\n")  ?: ""
                         }\t${amount
                         }\t${ingredient.measure?.replace("\n", "\\n") ?: ""
                         }\t${ingredient.prefix?.replace("\n", "\\n") ?: ""
@@ -357,7 +358,7 @@ class RecipeController(
 
                 recipe.attachments.forEach { attachment ->
                     val base64Data = Base64.getEncoder().encodeToString(attachment.fileContent.toByteArray())
-                    append("+Attachment\t${attachment.fileName.replace("\n", "\\n")}\t$base64Data\n")
+                    append("Attachment\t${attachment.fileName.replace("\n", "\\n")}\t$base64Data\n")
                 }
             }
             append("\n\n####################\n\n")

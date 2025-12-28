@@ -440,12 +440,8 @@ function RecipeList() {
                                         : ingredient.amount) 
                                      : ''}
                                 ${ingredient.measure || ''}
-                            </td>
-                            <td class="ingredient-cell">
                                 ${ingredient.prefix || ''}
-                            </td>
-                            <td class="ingredient-cell ingredient-name">
-                                ${ingredient.name}
+                                <span class="ingredient-name">${ingredient.name}</span>
                             </td>
                             <td class="ingredient-cell">
                                 ${ingredient.instruction ? marked(ingredient.instruction) : ''}
