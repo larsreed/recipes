@@ -256,11 +256,23 @@ class RecipeController(
                     val toMeasure = columns[2]
                     val factor = columns[3].toFloat()
                     val description = columns.getOrNull(4)?.replace("\\n", "\n")
-                    conversionRepository.save(Conversion(
-                        fromMeasure = fromMeasure, toMeasure = toMeasure,
-                        factor = factor, description = description))
-                }
 
+                    val existingConversion = conversionRepository.findByFromMeasureAndToMeasure(fromMeasure, toMeasure)
+                    if (existingConversion != null) {
+                        existingConversion.factor = factor
+                        existingConversion.description = description
+                        conversionRepository.save(existingConversion)
+                    } else {
+                        conversionRepository.save(
+                            Conversion(
+                                fromMeasure = fromMeasure,
+                                toMeasure = toMeasure,
+                                factor = factor,
+                                description = description
+                            )
+                        )
+                    }
+                }
                 line.startsWith("Temperature") -> {
                     if (columns.size < 3) {
                         report("Invalid Temperature line ($lineNo): $line")
@@ -269,7 +281,16 @@ class RecipeController(
                     val temp = columns[1].toFloat()
                     val meat = columns[2]
                     val description = columns.getOrNull(3)?.replace("\\n", "\n")
-                    temperatureRepository.save(Temperature(temp = temp, meat = meat, description = description))
+
+                    val existingTemperature = temperatureRepository.findByTempAndMeatAndDescription(temp, meat, description)
+                    if (existingTemperature != null) {
+                        existingTemperature.temp = temp
+                        existingTemperature.meat = meat
+                        existingTemperature.description = description
+                        temperatureRepository.save(existingTemperature)
+                    } else {
+                        temperatureRepository.save(Temperature(temp = temp, meat = meat, description = description))
+                    }
                 }
             }
         }
