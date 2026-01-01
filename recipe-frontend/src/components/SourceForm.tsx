@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import axios from "axios";
 import config from '../config';
 import AutoGrowTextarea from './AutoGrowTextarea.tsx';
@@ -20,6 +20,14 @@ interface SourceFormProps {
 }
 
 function SourceForm({ source, onCancel, onSourceCreated }: SourceFormProps) {
+    const nameInputRef = useRef<HTMLInputElement>(null);
+
+    useEffect(() => {
+        if (source && nameInputRef.current) {
+            nameInputRef.current.focus();
+        }
+    }, [source]);
+
     const [name, setName] = useState(source?.name || '');
     const [authors, setAuthors] = useState(source?.authors || '');
     const [info, setInfo] = useState(source?.info || '');
@@ -66,8 +74,11 @@ function SourceForm({ source, onCancel, onSourceCreated }: SourceFormProps) {
                 return;
             }
             console.log(newSource);
-            // @ts-ignore
-            const response = source ? await axios.put(apiUrl, newSource) : await axios.post(apiUrl, newSource);
+            if (source) {
+                await axios.put(apiUrl, newSource);
+            } else {
+                await axios.post(apiUrl, newSource);
+            }
             setName('');
             setAuthors('');
             setInfo('');
@@ -102,6 +113,7 @@ function SourceForm({ source, onCancel, onSourceCreated }: SourceFormProps) {
                     value={name}
                     onChange={(e) => setName(e.target.value)}
                     required
+                    ref={nameInputRef}
                 />
                 {errors.name && <p className="error">{errors.name}</p>}
             </div>

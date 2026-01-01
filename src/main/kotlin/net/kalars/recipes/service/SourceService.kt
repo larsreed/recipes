@@ -14,7 +14,11 @@ class SourceService(private val sourceRepository: SourceRepository) {
     fun createOrGetSource(name: String, authors: String, info: String?, title: String?): Source {
         // Check if the source already exists
         val existingSource = sourceRepository.findByName(name)
-        return existingSource.orElseGet {
+        return if (existingSource.isPresent) {
+            val source = existingSource.get()
+            val updatedSource = source.copy(authors = authors, info = info, title = title)
+            sourceRepository.save(updatedSource)
+        } else {
             // Create and save a new source
             val newSource = Source(name = name, authors = authors, info = info, title = title)
             sourceRepository.save(newSource)
