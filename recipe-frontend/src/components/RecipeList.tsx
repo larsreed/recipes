@@ -99,12 +99,13 @@ function RecipeList() {
     }, [fetchRecipes, includeSubrecipes]);
 
     const sortedRecipes = [...recipes].sort((a, b) => {
-        // @ts-ignore
-        if (a[sortConfig.key] < b[sortConfig.key]) {
+        const aValue = sortConfig.key === 'source' ? a.source?.name?.toLowerCase() || '' : a[sortConfig.key]?.toString().toLowerCase() || '';
+        const bValue = sortConfig.key === 'source' ? b.source?.name?.toLowerCase() || '' : b[sortConfig.key]?.toString().toLowerCase() || '';
+
+        if (aValue < bValue) {
             return sortConfig.direction === 'ascending' ? -1 : 1;
         }
-        // @ts-ignore
-        if (a[sortConfig.key] > b[sortConfig.key]) {
+        if (aValue > bValue) {
             return sortConfig.direction === 'ascending' ? 1 : -1;
         }
         return 0;
@@ -343,12 +344,12 @@ function RecipeList() {
 
                         const conversionLines = conversions
                             .filter((conversion: { fromMeasure: string; toMeasure: string; }) => usedMeasures.has(conversion.fromMeasure) || usedMeasures.has(conversion.toMeasure))
-                            .map((conversion: { fromMeasure: any; toMeasure: any; factor: any; }) => `To convert from ${conversion.fromMeasure} to ${conversion.toMeasure}: multiply by ${conversion.factor}`)
+                            .map((conversion: { fromMeasure: never; toMeasure: never; factor: never; }) => `To convert from ${conversion.fromMeasure} to ${conversion.toMeasure}: multiply by ${conversion.factor}`)
                             .join('<br />');
 
 
                         const htmlContent = `
-                        <html>
+                        <html lang="en-GB">
                         <head>
                             <title>Shopping List</title>
                             <style>
@@ -597,7 +598,6 @@ function RecipeList() {
         setSelectAll(!selectAll);
     };
 
-    // @ts-ignore
     // @ts-ignore
     return (
         <div>
