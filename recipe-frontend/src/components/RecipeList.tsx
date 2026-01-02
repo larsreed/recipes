@@ -81,6 +81,7 @@ function RecipeList() {
     const [sortConfig, setSortConfig] = useState({ key: 'id', direction: 'ascending' });
     const [csvFile, setCsvFile] = useState<File | null>(null);
     const [apiError, setApiError] = useState<string | null>(null);
+    const [categoryFilter, setCategoryFilter] = useState<string>('');
 
     const fetchRecipes = useCallback(() => {
         axios.get(`${config.backendUrl}/api/recipes?includeSubrecipes=${includeSubrecipes}`)
@@ -598,6 +599,19 @@ function RecipeList() {
         setSelectAll(!selectAll);
     };
 
+    const uniqueCategories = Array.from(new Set(allRecipes.flatMap(recipe => recipe.categories.split(',').map(cat => cat.trim()))))
+        .filter(category => category !== '')
+        .sort((a, b) => a.toLowerCase().localeCompare(b.toLowerCase()));
+
+    const handleCategoryFilterChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
+        setCategoryFilter(event.target.value);
+        if (event.target.value === '') {
+            setRecipes(allRecipes);
+        } else {
+            setRecipes(allRecipes.filter(recipe => recipe.categories.split(',').map(cat => cat.trim()).includes(event.target.value)));
+        }
+    };
+
     // @ts-ignore
     return (
         <div>
@@ -644,6 +658,14 @@ function RecipeList() {
                 {isSearchPanelOpen && <button onClick={handleSearch}>Search</button>}
                 &nbsp;
                 {isSearchPanelOpen && <button onClick={handleCloseSearchPanel}>Cancel</button>}
+                &nbsp;
+                <label htmlFor="categoryFilter">Filter by Category:</label>
+                <select id="categoryFilter" value={categoryFilter} onChange={handleCategoryFilterChange}>
+                    <option value="">All Categories</option>
+                    {uniqueCategories.map(category => (
+                        <option key={category} value={category}>{category}</option>
+                    ))}
+                </select>
                 &nbsp;
                 <label>
                     <input
