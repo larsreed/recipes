@@ -1,158 +1,179 @@
-import React, { useState, useEffect, useRef } from 'react';
-import axios from "axios";
+import React, { useState, useEffect } from 'react';
+import axios from 'axios';
 import config from '../config';
-import AutoGrowTextarea from './AutoGrowTextarea.tsx';
 
-
-interface Source {
-    id: number;
-    name: string;
-    authors: string;
-    info?: string;
-    title?: string;
-}
-
-interface SourceFormProps {
-    source?: Source;
-    onCancel: () => void;
-    onSourceCreated?: () => void;
-    onSave?: (source: Source) => Promise<void>;
-}
-
-function SourceForm({ source, onCancel, onSourceCreated }: SourceFormProps) {
-    const nameInputRef = useRef<HTMLInputElement>(null);
+function SourceForm() {
+    const [sources, setSources] = useState([]);
+    const [newSource, setNewSource] = useState({ name: '', authors: '', info: '', title: '' });
 
     useEffect(() => {
-        if (source && nameInputRef.current) {
-            nameInputRef.current.focus();
+        fetchSources();
+    }, []);
+
+    const fetchSources = async () => {
+        try {
+            const response = await axios.get(`${config.backendUrl}/api/sources`);
+            setSources(response.data);
+        } catch (error) {
+            console.error('Error fetching sources:', error);
         }
-    }, [source]);
-
-    const [name, setName] = useState(source?.name || '');
-    const [authors, setAuthors] = useState(source?.authors || '');
-    const [info, setInfo] = useState(source?.info || '');
-    const [title, setTitle] = useState(source?.title || '');
-
-    useEffect(() => {
-        if (source) {
-            setName(source.name);
-            setAuthors(source.authors);
-            setInfo(source.info || '');
-            setTitle(source.title || '');
-        } else {
-            setName('');
-            setAuthors('');
-            setInfo('');
-            setTitle('');
-        }
-    }, [source]);
-
-    const [errors, setErrors] = useState<{ [key: string]: string }>({});
-    const [apiError, setApiError] = useState<string | null>(null);
-
-    const validate = () => {
-        const newErrors: { [key: string]: string } = {};
-        if (!name) newErrors.name = 'Name is required';
-        if (!authors) newErrors.authors = 'Authors are required';
-        return newErrors;
     };
 
-    const handleSubmit = async (event: React.FormEvent) => {
-        event.preventDefault();
-        const newErrors = validate();
-        if (Object.keys(newErrors).length > 0) {
-            setErrors(newErrors);
-            return;
-        }
-        const newSource = { ...source, name, authors, info, title };
-        const apiUrl = source ? `${config.backendUrl}/api/sources/${source.id}` : `${config.backendUrl}/api/sources`;
+    const handleInputChange = (index, field, value) => {
+        const updatedSources = [...sources];
+        updatedSources[index][field] = value;
+        setSources(updatedSources);
+    };
+
+    const handleSave = async (index) => {
+        const source = sources[index];
         try {
-            const checkUrl = `${config.backendUrl}/api/sources/check-name?name=${encodeURIComponent(name)}&id=${source ? source.id : -1}`;
-            const getResponse = await axios.get(checkUrl);
-            if (getResponse.data.exists) {
-                setApiError('Source name must be unique');
-                return;
-            }
-            console.log(newSource);
-            if (source) {
-                await axios.put(apiUrl, newSource);
+            if (source.id) {
+                await axios.put(`${config.backendUrl}/api/sources/${source.id}`, source);
             } else {
-                await axios.post(apiUrl, newSource);
+                const response = await axios.post(`${config.backendUrl}/api/sources`, source);
+                sources[index] = response.data; // Update with the saved source (including ID)
             }
-            setName('');
-            setAuthors('');
-            setInfo('');
-            setTitle('');
-            setErrors({});
-            setApiError(null);
-            if (onSourceCreated) onSourceCreated();
+            setSources([...sources]);
         } catch (error) {
             console.error('Error saving source:', error);
-            setApiError('Failed to save source. Please try again.');
         }
     };
 
-    const handleCancel = () => {
-        setName('');
-        setAuthors('');
-        setInfo('');
-        setTitle('');
-        setErrors({});
-        setApiError(null);
-        onCancel();
+    const handleDelete = async (index) => {
+        const source = sources[index];
+        if (source.id && window.confirm('Are you sure you want to delete this source?')) {
+            try {
+                await axios.delete(`${config.backendUrl}/api/sources/${source.id}`);
+                setSources(sources.filter((_, i) => i !== index));
+            } catch (error) {
+                console.error('Error deleting source:', error);
+            }
+        }
+    };
+
+    const handleAddNewRow = () => {
+        setSources([...sources, { ...newSource }]);
+        setNewSource({ name: '', authors: '', info: '', title: '' });
+    };
+
+    const handleBlur = async (index) => {
+        const source = sources[index];
+        try {
+            if (source.id) {
+                await axios.put(`${config.backendUrl}/api/sources/${source.id}`, source);
+            } else {
+                const response = await axios.post(`${config.backendUrl}/api/sources`, source);
+                sources[index] = response.data; // Update with the saved source (including ID)
+            }
+            setSources([...sources]);
+        } catch (error) {
+            console.error('Error saving source:', error);
+        }
     };
 
     return (
-        <form onSubmit={handleSubmit} className="source-form">
-            <h2>{source ? 'Edit Source' : 'Add a New Source'}</h2>
-            <div className="form-group">
-                <label htmlFor="name">Name:</label>
-                <input
-                    type="text"
-                    id="name"
-                    value={name}
-                    onChange={(e) => setName(e.target.value)}
-                    required
-                    ref={nameInputRef}
-                />
-                {errors.name && <p className="error">{errors.name}</p>}
-            </div>
-            <div className="form-group">
-                <label htmlFor="authors">Authors:</label>
-                <input
-                    type="text"
-                    id="authors"
-                    value={authors}
-                    onChange={(e) => setAuthors(e.target.value)}
-                    required
-                />
-                {errors.authors && <p className="error">{errors.authors}</p>}
-            </div>
-            <div className="form-group">
-                <label htmlFor="title">Title:</label>
-                <input
-                    type="text"
-                    id="title"
-                    value={title}
-                    onChange={(e) => setTitle(e.target.value)}
-                />
-            </div>
-            <div className="form-group">
-                <label htmlFor="info">Info (markup):</label>
-                <AutoGrowTextarea
-                    id="info"
-                    value={info}
-                    onChange={(e) => setInfo(e.target.value)}
-                    rows={3}
-                    style={{ resize: 'vertical', verticalAlign: 'top', overflow: 'hidden' }}
-                />
-            </div>
-            <div className="form-actions">
-                <button type="submit">Save</button>
-                <button type="button" onClick={handleCancel}>Clear</button>
-            </div>
-            {apiError && <p className="error">{apiError}</p>}
-        </form>
+        <div>
+            <table>
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Name</th>
+                        <th>Authors</th>
+                        <th>Title</th>
+                        <th>Info</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {sources.map((source, index) => (
+                        <tr key={index}>
+                            <td>{source.id || ''}</td>
+                            <td>
+                                <input
+                                    type="text"
+                                    value={source.name}
+                                    onChange={(e) => handleInputChange(index, 'name', e.target.value)}
+                                    onBlur={() => handleBlur(index)}
+                                />
+                            </td>
+                            <td>
+                                <input
+                                    type="text"
+                                    value={source.authors}
+                                    onChange={(e) => handleInputChange(index, 'authors', e.target.value)}
+                                    onBlur={() => handleBlur(index)}
+                                />
+                            </td>
+                            <td>
+                                <input
+                                    type="text"
+                                    value={source.title}
+                                    onChange={(e) => handleInputChange(index, 'title', e.target.value)}
+                                    onBlur={() => handleBlur(index)}
+                                />
+                            </td>
+                            <td>
+                                <input
+                                    type="text"
+                                    value={source.info}
+                                    onChange={(e) => handleInputChange(index, 'info', e.target.value)}
+                                    onBlur={() => handleBlur(index)}
+                                />
+                            </td>
+                            <td>
+                                <button onClick={() => handleSave(index)} title="Save">
+                                    <i className="fas fa-save"></i>
+                                </button>
+                                <button onClick={() => handleDelete(index)} title="Delete">
+                                    <i className="fas fa-remove"></i>
+                                </button>
+                            </td>
+                        </tr>
+                    ))}
+                    <tr>
+                        <td></td>
+                        <td>
+                            <input
+                                type="text"
+                                value={newSource.name}
+                                onChange={(e) => setNewSource({ ...newSource, name: e.target.value })}
+                                placeholder="New name"
+                            />
+                        </td>
+                        <td>
+                            <input
+                                type="text"
+                                value={newSource.authors}
+                                onChange={(e) => setNewSource({ ...newSource, authors: e.target.value })}
+                                placeholder="New authors"
+                            />
+                        </td>
+                        <td>
+                            <input
+                                type="text"
+                                value={newSource.title}
+                                onChange={(e) => setNewSource({ ...newSource, title: e.target.value })}
+                                placeholder="New title"
+                            />
+                        </td>
+                        <td>
+                            <input
+                                type="text"
+                                value={newSource.info}
+                                onChange={(e) => setNewSource({ ...newSource, info: e.target.value })}
+                                placeholder="New info"
+                            />
+                        </td>
+                        <td>
+                            <button onClick={handleAddNewRow}>
+                                <i className="fas fa-add"></i>
+                            </button>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
     );
 }
 

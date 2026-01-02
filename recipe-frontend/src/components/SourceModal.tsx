@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import SourceList from './SourceList';
+import SourceForm from './SourceForm';
 
 // @ts-ignore
 const SourceModal = ({ onClose }) => {
@@ -20,7 +20,7 @@ const SourceModal = ({ onClose }) => {
         <div className="modal">
             <div className="modal-content">
                 <span className="close" onClick={onClose}>&times;</span>
-                <SourceList />
+                <SourceForm />
             </div>
         </div>
     );
