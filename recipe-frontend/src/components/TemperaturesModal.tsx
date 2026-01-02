@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import TemperaturesList from './TemperaturesList';
+import TemperatureForm from './TemperatureForm';
 
 // @ts-ignore
 const TemperatureModal = ({onClose: onClose}) => {
@@ -20,7 +20,7 @@ const TemperatureModal = ({onClose: onClose}) => {
         <div className="modal">
             <div className="modal-content">
                 <span className="close" onClick={onClose}>&times;</span>
-                <TemperaturesList />
+                <TemperatureForm />
             </div>
         </div>
     );

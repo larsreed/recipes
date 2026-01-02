@@ -2,124 +2,146 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import config from '../config';
 
-interface Temperature {
-    id: number;
-    meat: string;
-    temp: number;
-    description?: string;
-}
-
-interface TemperatureFormProps {
-    temperature?: Temperature;
-    onCancel: () => void;
-    onTemperatureCreated?: () => void;
-    onSave?: (temperature: Temperature) => Promise<void>;
-}
-
-function TemperatureForm({ temperature, onCancel, onTemperatureCreated }: TemperatureFormProps) {
-    const [meat, setMeat] = useState(temperature?.meat || '');
-    const [temp, setTemp] = useState(temperature?.temp || 0.0);
-    const [description, setDescription] = useState(temperature?.description || '');
+function TemperatureForm() {
+    const [temperatures, setTemperatures] = useState([]);
+    const [newTemperature, setNewTemperature] = useState({ meat: '', temp: 0.0, description: '' });
 
     useEffect(() => {
-        if (temperature) {
-            setTemp(temperature.temp);
-            setMeat(temperature.meat);
-            setDescription(temperature.description)
-        } else {
-            setMeat('');
-            setTemp(0.0);
-            setDescription('');
+        fetchTemperatures();
+    }, []);
+
+    const fetchTemperatures = async () => {
+        try {
+            const response = await axios.get(`${config.backendUrl}/api/temperatures`);
+            setTemperatures(response.data);
+        } catch (error) {
+            console.error('Error fetching temperatures:', error);
         }
-    }, [temperature]);
-
-    const [errors, setErrors] = useState<{ [key: string]: string }>({});
-    const [apiError, setApiError] = useState<string | null>(null);
-
-    const validate = () => {
-        const newErrors: { [key: string]: string } = {};
-        if (!temp) newErrors.temp = 'Temperature is required';
-        if (!meat) newErrors.meat = 'Meat is required';
-        return newErrors;
     };
 
-    const handleSubmit = async (event: React.FormEvent) => {
-        event.preventDefault();
-        const newErrors = validate();
-        if (Object.keys(newErrors).length > 0) {
-            setErrors(newErrors);
-            return;
+    const handleInputChange = (index, field, value) => {
+        const updatedTemperatures = [...temperatures];
+        updatedTemperatures[index][field] = value;
+        setTemperatures(updatedTemperatures);
+    };
+
+    const handleDelete = async (index) => {
+        const temperature = temperatures[index];
+        if (temperature.id && window.confirm('Are you sure you want to delete this temperature?')) {
+            try {
+                await axios.delete(`${config.backendUrl}/api/temperatures/${temperature.id}`);
+                setTemperatures(temperatures.filter((_, i) => i !== index));
+            } catch (error) {
+                console.error('Error deleting temperature:', error);
+            }
         }
-        const newTemperature = { ...temperature, meat, temp, description };
-        console.log(newTemperature); //FIXME
-        const apiUrl = temperature ? `${config.backendUrl}/api/temperatures/${temperature.id}` : `${config.backendUrl}/api/temperatures`;
+    };
+
+    const handleAddNewRow = () => {
+        setTemperatures([...temperatures, { ...newTemperature }]);
+        setNewTemperature({ meat: '', temp: 0.0, description: '' });
+    };
+
+    const handleBlur = async (index) => {
+        const temperature = temperatures[index];
         try {
-            // @ts-ignore
-            const response = temperature ? await axios.put(apiUrl, newTemperature) : await axios.post(apiUrl, newTemperature);
-            setMeat('');
-            setTemp(0.0);
-            setDescription('')
-            setErrors({});
-            setApiError(null);
-            if (onTemperatureCreated) onTemperatureCreated();
+            if (temperature.id) {
+                await axios.put(`${config.backendUrl}/api/temperatures/${temperature.id}`, temperature);
+            } else {
+                const response = await axios.post(`${config.backendUrl}/api/temperatures`, temperature);
+                temperatures[index] = response.data; // Update with the saved temperature (including ID)
+            }
+            setTemperatures([...temperatures]);
         } catch (error) {
             console.error('Error saving temperature:', error);
-            setApiError('Failed to save temperature. Please try again.');
         }
-    };
-
-    const handleCancel = () => {
-        setMeat('');
-        setTemp(0.0);
-        setErrors({});
-        setDescription('')
-        setApiError(null);
-        onCancel();
     };
 
     return (
-        <form onSubmit={handleSubmit} className="Temperature-form">
-            <h2>{temperature ? 'Edit Temperature' : 'Add a new Temperature'}</h2>
-            <div className="form-line">
-
-                <label htmlFor="temp">Temperature:</label>
-                <input
-                    type="float"
-                    id="temp"
-                    value={temp}
-                    onChange={(e) => {
-                        // @ts-ignore
-                        setTemp(e.target.value);
-                    }}
-                    required
-                />
-                <label htmlFor="meat">Meat:</label>
-                <input
-                    type="text"
-                    id="meat"
-                    value={meat}
-                    onChange={(e) => setMeat(e.target.value)}
-                    required
-                />
-
-                <label htmlFor="description">Description:</label>
-                <input
-                    type="text"
-                    id="description"
-                    value={description}
-                    onChange={(e) => setDescription(e.target.value)}
-                />
-
-                {errors.temp && <p className="error">{errors.temp}</p>}
-                {errors.meat && <p className="error">{errors.meat}</p>}
-            </div>
-            <div><p>&nbsp;</p></div>
-            <div className="form-actions">
-                <button type="submit">Save</button>
-                <button type="button" onClick={handleCancel}>Clear</button>
-            </div>
-            {apiError && <p className="error">{apiError}</p>}
-        </form>
+        <div>
+            <table>
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Meat</th>
+                        <th>Temperature</th>
+                        <th>Description</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {temperatures.map((temperature, index) => (
+                        <tr key={index}>
+                            <td>{temperature.id || ''}</td>
+                            <td>
+                                <input
+                                    type="text"
+                                    value={temperature.meat}
+                                    onChange={(e) => handleInputChange(index, 'meat', e.target.value)}
+                                    onBlur={() => handleBlur(index)}
+                                />
+                            </td>
+                            <td>
+                                <input
+                                    type="number"
+                                    value={temperature.temp}
+                                    onChange={(e) => handleInputChange(index, 'temp', e.target.value)}
+                                    onBlur={() => handleBlur(index)}
+                                />
+                            </td>
+                            <td>
+                                <input
+                                    type="text"
+                                    value={temperature.description}
+                                    onChange={(e) => handleInputChange(index, 'description', e.target.value)}
+                                    onBlur={() => handleBlur(index)}
+                                />
+                            </td>
+                            <td>
+                                <button onClick={() => handleBlur(index)} title="Save">
+                                    <i className="fas fa-save"></i>
+                                </button>
+                                <button onClick={() => handleDelete(index)} title="Delete">
+                                    <i className="fas fa-remove"></i>
+                                </button>
+                            </td>
+                        </tr>
+                    ))}
+                    <tr>
+                        <td></td>
+                        <td>
+                            <input
+                                type="text"
+                                value={newTemperature.meat}
+                                onChange={(e) => setNewTemperature({ ...newTemperature, meat: e.target.value })}
+                                placeholder="New meat"
+                            />
+                        </td>
+                        <td>
+                            <input
+                                type="number"
+                                value={newTemperature.temp}
+                                onChange={(e) => setNewTemperature({ ...newTemperature, temp: e.target.value })}
+                                placeholder="New temperature"
+                            />
+                        </td>
+                        <td>
+                            <input
+                                type="text"
+                                value={newTemperature.description}
+                                onChange={(e) => setNewTemperature({ ...newTemperature, description: e.target.value })}
+                                placeholder="New description"
+                            />
+                        </td>
+                        <td>
+                            <button onClick={handleAddNewRow}>
+                                <i className="fas fa-add"></i>
+                            </button>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
     );
 }
 
