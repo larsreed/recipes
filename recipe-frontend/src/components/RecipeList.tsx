@@ -668,9 +668,6 @@ function RecipeList() {
                             onChange={handleSelectAllChange}
                         />
                     </th>
-                    <th onClick={() => requestSort('id')}>
-                        ID <i className={getSortIcon('id')}></i>
-                    </th>
                     <th onClick={() => requestSort('name')}>
                         Name <i className={getSortIcon('name')}></i>
                     </th>
@@ -718,12 +715,10 @@ function RecipeList() {
                         <td>
                             <input
                                 type="checkbox"
+                                title={`ID: ${recipe.id}`}
                                 checked={selectedRecipes.has(recipe.id)}
                                 onChange={() => handleCheckboxChange(recipe.id)}
                             />
-                        </td>
-                        <td>
-                            {recipe.id}
                         </td>
                         <td>{recipe.name}</td>
                         <td>{recipe.served}</td>
