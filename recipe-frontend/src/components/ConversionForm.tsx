@@ -1,144 +1,183 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import axios from 'axios';
 import config from '../config';
 import measureOptions from './measureOptions';
 
-
 interface Conversion {
-    id: number;
+    id?: number;
     fromMeasure: string;
     toMeasure: string;
     factor: number;
     description: string;
 }
 
-interface ConversionFormProps {
-    conversion?: Conversion;
-    onCancel: () => void;
-    onConversionCreated?: () => void;
-    onSave?: (conversion: Conversion) => Promise<void>;
-}
-
-function ConversionForm({ conversion, onCancel, onConversionCreated }: ConversionFormProps) {
-    const [fromMeasure, setFromMeasure] = useState(conversion?.fromMeasure || '');
-    const [toMeasure, setToMeasure] = useState(conversion?.toMeasure || '');
-    const [factor, setFactor] = useState(conversion?.factor || 0.0);
-    const [description, setDescription] = useState(conversion?.description || '');
+function ConversionList() {
+    const [conversions, setConversions] = useState<Conversion[]>([]);
+    const [newConversion, setNewConversion] = useState<Conversion>({ fromMeasure: '', toMeasure: '', factor: 0, description: '' });
 
     useEffect(() => {
-        if (conversion) {
-            setFromMeasure(conversion.fromMeasure);
-            setToMeasure(conversion.toMeasure);
-            setFactor(conversion.factor);
-            setDescription(conversion.description);
-        } else {
-            setFromMeasure('');
-            setToMeasure('');
-            setFactor(0.0);
-            setDescription('');
+        fetchConversions();
+    }, []);
+
+    const fetchConversions = async () => {
+        try {
+            const response = await axios.get(`${config.backendUrl}/api/conversions`);
+            setConversions(response.data);
+        } catch (error) {
+            console.error('Error fetching conversions:', error);
         }
-    }, [conversion]);
-
-    const [errors, setErrors] = useState<{ [key: string]: string }>({});
-    const [apiError, setApiError] = useState<string | null>(null);
-
-    const validate = () => {
-        const newErrors: { [key: string]: string } = {};
-        if (!fromMeasure) newErrors.fromMeasure = 'From is required';
-        if (!toMeasure) newErrors.toMeasure = 'To is required';
-        if (!factor) newErrors.factor = 'Factor is required';
-        return newErrors;
     };
 
-    const handleSubmit = async (event: React.FormEvent) => {
-        event.preventDefault();
-        const newErrors = validate();
-        if (Object.keys(newErrors).length > 0) {
-            setErrors(newErrors);
-            return;
-        }
-        const newConversion = { ...conversion, fromMeasure, toMeasure, factor, description };
-        console.log(newConversion); //FIXME
-        const apiUrl = conversion ? `${config.backendUrl}/api/conversions/${conversion.id}` : `${config.backendUrl}/api/conversions`;
+    const handleInputChange = (index: number, field: keyof Conversion, value: string | number) => {
+        const updatedConversions = [...conversions];
+        updatedConversions[index] = {
+            ...updatedConversions[index],
+            [field]: value,
+        };
+        setConversions(updatedConversions);
+    };
+
+    const handleSave = async (index: number) => {
+        const conversion = conversions[index];
         try {
-            // @ts-ignore
-            const response = conversion ? await axios.put(apiUrl, newConversion) : await axios.post(apiUrl, newConversion);
-            setFromMeasure('');
-            setToMeasure('');
-            setFactor(0.0);
-            setDescription('');
-            setErrors({});
-            setApiError(null);
-            if (onConversionCreated) onConversionCreated();
+            if (conversion.id) {
+                await axios.put(`${config.backendUrl}/api/conversions/${conversion.id}`, conversion);
+            } else {
+                const response = await axios.post(`${config.backendUrl}/api/conversions`, conversion);
+                conversions[index] = response.data; // Update with the saved conversion (including ID)
+            }
+            setConversions([...conversions]);
         } catch (error) {
             console.error('Error saving conversion:', error);
-            setApiError('Failed to save conversion. Please try again.');
         }
     };
 
-    const handleCancel = () => {
-        setFromMeasure('');
-        setToMeasure('');
-        setFactor(0.0);
-        setDescription('');
-        setErrors({});
-        setApiError(null);
-        onCancel();
+    const handleDelete = async (index: number) => {
+        const conversion = conversions[index];
+        if (conversion.id && window.confirm('Are you sure you want to delete this conversion?')) {
+            try {
+                await axios.delete(`${config.backendUrl}/api/conversions/${conversion.id}`);
+                setConversions(conversions.filter((_, i) => i !== index));
+            } catch (error) {
+                console.error('Error deleting conversion:', error);
+            }
+        }
+    };
+
+    const handleAddNewRow = async () => {
+        try {
+            const response = await axios.post(`${config.backendUrl}/api/conversions`, newConversion);
+            setConversions([...conversions, response.data]);
+            setNewConversion({ fromMeasure: '', toMeasure: '', factor: 0, description: '' });
+        } catch (error) {
+            console.error('Error adding new conversion:', error);
+        }
     };
 
     return (
-        <form onSubmit={handleSubmit} className="conversion-form">
-            <h2>{conversion ? 'Edit conversion' : 'Add a new conversion'}</h2>
-            <div className="form-line">
-
-                <label>From:</label>
-                <select
-                    value={fromMeasure}
-                    onChange={(e) => setFromMeasure(e.target.value)}>
-                    {measureOptions.map(option => (
-                        <option key={option} value={option}>{option}</option>
+        <div>
+            <table>
+                <thead>
+                    <tr>
+                        <th>From</th>
+                        <th>To</th>
+                        <th>Factor</th>
+                        <th>Description</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {conversions.map((conversion, index) => (
+                        <tr key={index}>
+                            <td>
+                                <select
+                                    value={conversion.fromMeasure}
+                                    onChange={(e) => handleInputChange(index, 'fromMeasure', e.target.value)}
+                                >
+                                    {measureOptions.map(option => (
+                                        <option key={option} value={option}>{option}</option>
+                                    ))}
+                                </select>
+                            </td>
+                            <td>
+                                <select
+                                    value={conversion.toMeasure}
+                                    onChange={(e) => handleInputChange(index, 'toMeasure', e.target.value)}
+                                >
+                                    {measureOptions.map(option => (
+                                        <option key={option} value={option}>{option}</option>
+                                    ))}
+                                </select>
+                            </td>
+                            <td>
+                                <input
+                                    type="number"
+                                    value={conversion.factor}
+                                    onChange={(e) => handleInputChange(index, 'factor', parseFloat(e.target.value))}
+                                />
+                            </td>
+                            <td>
+                                <input
+                                    type="text"
+                                    value={conversion.description}
+                                    onChange={(e) => handleInputChange(index, 'description', e.target.value)}
+                                />
+                            </td>
+                            <td>
+                                <button onClick={() => handleSave(index)}>
+                                    <i className="fas fa-save"></i>
+                                </button>
+                                <button onClick={() => handleDelete(index)}>
+                                    <i className="fas fa-remove"></i>
+                                </button>
+                            </td>
+                        </tr>
                     ))}
-                </select>
-                <label>To:</label>
-                <select
-                    value={toMeasure}
-                    onChange={(e) => setToMeasure(e.target.value)} >
-                    {measureOptions.map(option => (
-                        <option key={option} value={option}>{option}</option>
-                    ))}
-                </select>
-                <label htmlFor="factor">Factor:</label>
-                <input
-                    type="float"
-                    id="factor"
-                    value={factor}
-                    onChange={(e) => {
-                        // @ts-ignore
-                        setFactor(e.target.value);
-                    }}
-                    required
-                />
-                <label htmlFor="description">Description:</label>
-                <input
-                    type="text"
-                    id="description"
-                    value={description}
-                    onChange={(e) => setDescription(e.target.value)}
-                    placeholder="Optional description"
-                />
-
-                {errors.fromMeasure && <p className="error">{errors.fromMeasure}</p>}
-                {errors.toMeasure && <p className="error">{errors.toMeasure}</p>}
-                {errors.factor && <p className="error">{errors.factor}</p>}
-            </div>
-            <div><p>&nbsp;</p></div>
-            <div className="form-actions">
-                <button type="submit">Save</button>
-                <button type="button" onClick={handleCancel}>Clear</button>
-            </div>
-            {apiError && <p className="error">{apiError}</p>}
-        </form>
+                    <tr>
+                        <td>
+                            <select
+                                value={newConversion.fromMeasure}
+                                onChange={(e) => setNewConversion({ ...newConversion, fromMeasure: e.target.value })}
+                            >
+                                <option value="">Select</option>
+                                {measureOptions.map(option => (
+                                    <option key={option} value={option}>{option}</option>
+                                ))}
+                            </select>
+                        </td>
+                        <td>
+                            <select
+                                value={newConversion.toMeasure}
+                                onChange={(e) => setNewConversion({ ...newConversion, toMeasure: e.target.value })}
+                            >
+                                <option value="">Select</option>
+                                {measureOptions.map(option => (
+                                    <option key={option} value={option}>{option}</option>
+                                ))}
+                            </select>
+                        </td>
+                        <td>
+                            <input
+                                type="number"
+                                value={newConversion.factor}
+                                onChange={(e) => setNewConversion({ ...newConversion, factor: parseFloat(e.target.value) })}
+                            />
+                        </td>
+                        <td>
+                            <input
+                                type="text"
+                                value={newConversion.description}
+                                onChange={(e) => setNewConversion({ ...newConversion, description: e.target.value })}
+                            />
+                        </td>
+                        <td>
+                            <button onClick={handleAddNewRow}><i className="fas fa-add"></i></button>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
     );
 }
 
-export default ConversionForm;
+export default ConversionList;

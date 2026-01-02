@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import ConversionsList from './ConversionsList';
+import ConversionForm from './ConversionForm';
 
 // @ts-ignore
 const ConversionModal = ({ onClose }) => {
@@ -20,7 +20,7 @@ const ConversionModal = ({ onClose }) => {
         <div className="modal">
             <div className="modal-content">
                 <span className="close" onClick={onClose}>&times;</span>
-                <ConversionsList />
+                <ConversionForm />
             </div>
         </div>
     );
