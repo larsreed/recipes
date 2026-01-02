@@ -23,6 +23,7 @@ class RecipeController(
     private val conversionRepository: ConversionRepository,
     private val temperatureRepository: TemperatureRepository
 ) {
+
     private fun report(message: String): ResponseEntity<String> {
         System.err.println(message)
         return ResponseEntity.badRequest().body(message)
@@ -184,13 +185,15 @@ class RecipeController(
                         categories = columns[13]
                     )
                     val sourceId = sources[columns[9]]
-                    var r = currentRecipe
-                    r?.sourceId = sourceId
+                    if (sourceId == null && columns[9].isNotBlank()) {
+                        report("Warning: Recipe '${columns[1]}' references a non-existing source '${columns[9]}'.")
+                    }
+                    currentRecipe?.sourceId = sourceId
                 }
 
                 line.startsWith("Ingredient") -> {
                     // Add an ingredient to the current recipe
-                    if (columns.size <2) {
+                    if (columns.size < 2) {
                         report("Invalid Ingredient line ($lineNo): $line")
                         return@forEach
                     }
@@ -220,7 +223,7 @@ class RecipeController(
                         report("Subrecipe without Recipe ($lineNo): $line")
                         return@forEach
                     }
-                    val subName = mutableListOf(columns[1].replace("\\n", "\n"))
+                    val subName = mutableListOf(columns[1])
                     subrecipesToAdd.merge(
                         currentRecipe!!.name,
                         subName
@@ -241,8 +244,8 @@ class RecipeController(
                     val fileContent = String(Base64.getDecoder().decode(columns[2]))
                     currentRecipe?.attachments?.add(
                         Attachment(
-                            fileName = fileName,
-                            fileContent = fileContent
+                            fileName = columns[1].replace("\\n", "\n"),
+                            fileContent = String(Base64.getDecoder().decode(columns[2]))
                         )
                     )
                 }
@@ -304,6 +307,10 @@ class RecipeController(
             if (subrecipeNames != null) {
                 val subrecipes = subrecipeNames.mapNotNull { name ->
                     recipes.find { it.name == name }
+                }
+                if (subrecipes.size != subrecipeNames.size) {
+                    val missingNames = subrecipeNames.toSet() - subrecipes.map { it.name }.toSet()
+                    report("Warning: In recipe '${recipe.name}', the following subrecipes were not found: ${missingNames.joinToString(", ")}")
                 }
                 recipe.subrecipes.addAll(subrecipes)
                 recipeService.saveRecipe(recipe)
