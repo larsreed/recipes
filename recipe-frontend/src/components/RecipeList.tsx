@@ -450,6 +450,15 @@ function RecipeList() {
                             </td>
                         </tr>
                     `).join('')}
+                    ${recipe.subrecipes ? recipe.subrecipes.map(subrecipe => `
+                        <tr class="ingredient">
+                            <td class="ingredient-cell">
+                                ${marked(`${subrecipe.name}`)}
+                            </td>
+                            <td />
+                            <td />
+                        </tr>
+                    `).join('') : ''}
                 </table>
                 <div class="instructions">${marked(recipe.closing ?? '')}</div>
                 ${recipe.subrecipes ? recipe.subrecipes.map(subrecipe => generateRecipeHtml(subrecipe)).join('') : ''}
