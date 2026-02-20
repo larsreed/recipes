@@ -420,13 +420,13 @@ function RecipeList() {
                         </div>
                     `).join('')}
                 </div>
-                ${recipe.served ? `<p>Served: ${recipe.served.replace(/\n/g, '<br />')}</p>` : ''}
-                ${recipe.source ? `<p>Source: ${recipe.source.name}${recipe.pageRef ? ` p.${recipe.pageRef}` : ''}</p>` : ''}
-                ${recipe.rating ? `<p>Rating: ${recipe.rating}</p>` : ''}
-                ${recipe.wineTips ? `<p>Wine tips: ${recipe.wineTips.replace(/\n/g, '<br />')}</p>` : ''}
-                ${recipe.matchFor ? `<p>Match for: ${recipe.matchFor.replace(/\n/g, '<br />')}</p>` : ''}
-                ${recipe.categories ? `<p>Category: ${recipe.categories.replace(/,/g, ' ')}</p>` : ''}
-                ${recipe.notes ? `<div>Notes: ${marked(recipe.notes)}</div>` : ''}
+                ${recipe.served ? `<p><em>Served</em>: ${recipe.served.replace(/\n/g, '<br />')}</p>` : ''}
+                ${recipe.source ? `<p><em>Source</em>: ${recipe.source.name}${recipe.pageRef ? ` p.${recipe.pageRef}` : ''}</p>` : ''}
+                ${recipe.rating ? `<p><em>Rating</em>: ${recipe.rating}</p>` : ''}
+                ${recipe.wineTips ? `<p><em>Wine tips</em>: ${recipe.wineTips.replace(/\n/g, '<br />')}</p>` : ''}
+                ${recipe.matchFor ? `<p><em>Match for</em>: ${recipe.matchFor.replace(/\n/g, '<br />')}</p>` : ''}
+                ${recipe.categories ? `<p><em>Categories</em>: ${recipe.categories.replace(/,/g, ' ')}</p>` : ''}
+                ${recipe.notes ? `<div><em>Notes</em>: ${marked(recipe.notes)}</div>` : ''}
                 ${recipe.instructions ? `<div class="instructions">${marked(recipe.instructions)}</div>` : ''}
                 ${recipe.subrecipe ? `<h4>Ingredients</h4>` : `<h3>Ingredients</h3>`}
                 <table class="noborder">
