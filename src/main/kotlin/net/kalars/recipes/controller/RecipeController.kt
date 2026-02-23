@@ -48,7 +48,12 @@ class RecipeController(
         return try {
             ResponseEntity.ok(recipeService.createRecipe(recipe))
         } catch (e: RuntimeException) {
-            ResponseEntity.badRequest().body(mapOf("error" to e.message))
+            val errorMsg = if (e.message?.contains("unique") == true || e.message?.contains("unique constraint") == true) {
+                "A recipe with this name already exists. Please choose a different name."
+            } else {
+                e.message ?: "Unknown error occurred."
+            }
+            ResponseEntity.badRequest().body(mapOf("error" to errorMsg))
         }
     }
 
@@ -71,7 +76,18 @@ class RecipeController(
     }
 
     @PutMapping("/{id}")
-    fun updateRecipe(@PathVariable id: Long, @RequestBody recipe: Recipe): Recipe = recipeService.updateRecipe(id, recipe)
+    fun updateRecipe(@PathVariable id: Long, @RequestBody recipe: Recipe): ResponseEntity<Any> {
+        return try {
+            ResponseEntity.ok(recipeService.updateRecipe(id, recipe))
+        } catch (e: RuntimeException) {
+            val errorMsg = if (e.message?.contains("unique") == true || e.message?.contains("unique constraint") == true) {
+                "A recipe with this name already exists. Please choose a different name."
+            } else {
+                e.message ?: "Unknown error occurred."
+            }
+            ResponseEntity.badRequest().body(mapOf("error" to errorMsg))
+        }
+    }
 
     @DeleteMapping("/{id}")
     fun deleteRecipe(@PathVariable id: Long) = recipeService.deleteRecipe(id)

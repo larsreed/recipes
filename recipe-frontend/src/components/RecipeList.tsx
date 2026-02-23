@@ -608,7 +608,8 @@ function RecipeList() {
         setSelectAll(!selectAll);
     };
 
-    const uniqueCategories = Array.from(new Set(allRecipes.flatMap(recipe => recipe.categories.split(',').map(cat => cat.trim()))))
+    const uniqueCategories = Array.from(new Set(allRecipes.flatMap(recipe =>
+        (recipe.categories ?? '').split(',').map(cat => cat.trim()))))
         .filter(category => category !== '')
         .sort((a, b) => a.toLowerCase().localeCompare(b.toLowerCase()));
 

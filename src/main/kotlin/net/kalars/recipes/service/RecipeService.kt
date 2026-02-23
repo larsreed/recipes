@@ -41,6 +41,12 @@ class RecipeService(
         val existingRecipe = recipeRepository.findById(id)
             .orElseThrow { RuntimeException("Recipe not found") }
 
+        // Check for duplicate name (excluding self)
+        val duplicate = recipeRepository.findByName(recipe.name)
+        if (duplicate != null && duplicate.id != id) {
+            throw RuntimeException("Recipe name must be unique")
+        }
+
         existingRecipe.name = recipe.name
         existingRecipe.subrecipe = recipe.subrecipe
         existingRecipe.instructions = recipe.instructions
@@ -75,7 +81,7 @@ class RecipeService(
         existingRecipe.source = if (recipe.sourceId == null || recipe.sourceId == 0L)
             null else {
                 sourceRepository.findById(recipe.sourceId!!)
-                    .orElseThrow { RuntimeException("Source ${recipe.sourceId} not found") }
+                    .orElseThrow { RuntimeException("Source \\${recipe.sourceId} not found") }
         }
 
         // Update subrecipes and preserve order

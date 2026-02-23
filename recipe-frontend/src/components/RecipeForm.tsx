@@ -394,7 +394,12 @@ function RecipeForm({ recipe, onCancel, onRecipeSaved }: RecipeFormProps) {
             onRecipeSaved();
         } catch (error) {
             console.error('Error saving recipe:', error);
-            setApiError('Failed to save recipe. Please try again.');
+            // @ts-ignore
+            if (error.response && error.response.data && error.response.data.error) {
+                setApiError(error.response.data.error);
+            } else {
+                setApiError('Failed to save recipe. Please try again.');
+            }
         }
     };
 
