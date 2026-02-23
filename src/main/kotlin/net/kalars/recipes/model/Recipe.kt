@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize
 import jakarta.persistence.*
 
 @Entity
+@Table(name = "recipe", uniqueConstraints = [UniqueConstraint(columnNames = ["name"])])
 data class Recipe(
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     val id: Long = 0,

@@ -12,7 +12,8 @@ CREATE TABLE recipe (
     notes TEXT NULL,
     wine_tips TEXT null,
     match_for TEXT NULL,
-    categories VARCHAR(255) NULL
+    categories VARCHAR(255) NULL,
+    CONSTRAINT unique_recipe_name UNIQUE (name)
 );
 
 CREATE TABLE ingredient (

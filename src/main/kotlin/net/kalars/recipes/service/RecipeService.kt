@@ -22,6 +22,9 @@ class RecipeService(
         .orElseThrow { RuntimeException("Recipe not found") }
 
     fun createRecipe(recipe: Recipe): Recipe {
+        if (recipeRepository.findByName(recipe.name) != null) {
+            throw RuntimeException("Recipe name must be unique")
+        }
         if (recipe.sourceId != null && recipe.sourceId != 0L) {
             val source: Source = sourceRepository.findById(recipe.sourceId!!)
                 .orElseThrow { RuntimeException("Source not found") }

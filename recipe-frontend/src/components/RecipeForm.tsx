@@ -381,6 +381,10 @@ function RecipeForm({ recipe, onCancel, onRecipeSaved }: RecipeFormProps) {
         try {
             // @ts-ignore
             const response = recipe ? await axios.put(apiUrl, newRecipe) : await axios.post(apiUrl, newRecipe);
+            if (response.data.error) {
+                setApiError(response.data.error);
+                return;
+            }
             blankRecipe();
             setAttachments([]);
             setSubrecipes([]);

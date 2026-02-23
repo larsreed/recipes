@@ -44,8 +44,12 @@ class RecipeController(
     }
 
     @PostMapping
-    fun createRecipe(@RequestBody recipe: Recipe): Recipe {
-         return recipeService.createRecipe(recipe)
+    fun createRecipe(@RequestBody recipe: Recipe): ResponseEntity<Any> {
+        return try {
+            ResponseEntity.ok(recipeService.createRecipe(recipe))
+        } catch (e: RuntimeException) {
+            ResponseEntity.badRequest().body(mapOf("error" to e.message))
+        }
     }
 
     @PostMapping("/{id}/attachments")
