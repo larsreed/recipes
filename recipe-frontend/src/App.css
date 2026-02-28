@@ -602,3 +602,17 @@ td button:last-child {
     font-size: 0.75rem;
   }
 }
+
+/* Clickable recipe name */
+.recipe-name-link {
+  cursor: pointer;
+  color: var(--primary-color);
+  text-decoration: none;
+  transition: all 0.2s ease;
+  font-weight: 500;
+}
+
+.recipe-name-link:hover {
+  color: var(--primary-hover);
+  text-decoration: underline;
+}

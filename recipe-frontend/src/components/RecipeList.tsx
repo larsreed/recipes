@@ -784,15 +784,11 @@ function RecipeList() {
                         <td className="center">{recipe.rating}</td>
                         <td>{recipe.categories}</td>
                         <td>
-                            <button onClick={() => editRecipe(recipe)}
-                                    title="Edit">
-                                <i className="fas fa-edit"></i>
+                            <button onClick={() => handleViewRecipe(recipe)} title="View">
+                                <i className="fas fa-print"></i>
                             </button>
                             <button onClick={() => deleteRecipe(recipe.id)} title="Delete" className="btn-danger">
                                 <i className="fas fa-trash"></i>
-                            </button>
-                            <button onClick={() => handleViewRecipe(recipe)} title="View">
-                                <i className="fas fa-eye"></i>
                             </button>
                         </td>
                     </tr>
