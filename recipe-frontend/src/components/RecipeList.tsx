@@ -648,9 +648,7 @@ function RecipeList() {
                     <i className="fas fa-thermometer-half"></i>
                     Temperatures
                 </button>
-            </div>
-            <div className="standard-form">
-                <label htmlFor="csvFileInput" style={{display: 'flex', alignItems: 'center', gap: '0.5rem'}}>
+                <label htmlFor="csvFileInput" style={{display: 'flex', alignItems: 'center', gap: '0.5rem', paddingLeft: '0.5rem'}}>
                     <i className="fas fa-file-import"></i>
                     Import recipes:
                 </label>
@@ -663,8 +661,6 @@ function RecipeList() {
                     <i className="fas fa-upload"></i>
                     Import
                 </button>}
-            </div>
-            <div className="standard-form">
                 <button onClick={handleOpenSearchPanel} title="Find by content">
                     <i className="fas fa-search"></i>
                     {isSearchPanelOpen ? 'Search' : 'Search'}
