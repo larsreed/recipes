@@ -7,11 +7,15 @@ function App() {
 
   return (
       <>
-          <h1>
-              <img src={recipeLogo} alt="Recipe Logo" style={{height: '40px', marginRight: '10px'}}/>
-              &nbsp;
-              Recipes
-          </h1>
+          <div className="app-banner">
+              <div className="banner-content">
+                  <img src={recipeLogo} alt="Recipe Logo" className="banner-logo"/>
+                  <div className="banner-text">
+                      <h1 className="banner-title">Recipes</h1>
+                      <p className="banner-subtitle">My personal cookbook</p>
+                  </div>
+              </div>
+          </div>
           <div className="card">
               <RecipeList/>
           </div>
