@@ -6,12 +6,14 @@ import net.kalars.recipes.model.ShoppingListItem
 import net.kalars.recipes.model.Source
 import net.kalars.recipes.repository.RecipeRepository
 import net.kalars.recipes.repository.SourceRepository
+import net.kalars.recipes.repository.ConversionRepository
 import org.springframework.stereotype.Service
 
 @Service
 class RecipeService(
     private val recipeRepository: RecipeRepository,
-    private val sourceRepository: SourceRepository
+    private val sourceRepository: SourceRepository,
+    private val conversionRepository: ConversionRepository
 ) {
 
     fun getAllRecipes(): List<Recipe> = recipeRepository.findAll()
@@ -130,7 +132,35 @@ class RecipeService(
             collectIngredients(recipe, ingredients, guests)
         }
 
-        return ingredients
+        // Apply preferred conversions
+        val preferredConversions = conversionRepository.findAll().filter { it.preferred }
+        val convertedIngredients = ingredients.map { item ->
+            val conversion = preferredConversions.find { it.fromMeasure == item.measure }
+            if (conversion != null) {
+                ShoppingListItem(
+                    item.name,
+                    (item.amount ?: 0f) * conversion.factor,
+                    conversion.toMeasure
+                )
+            } else {
+                item
+            }
+        }
+
+        // Consolidate ingredients with same name and measure after conversion
+        val consolidatedIngredients = mutableListOf<ShoppingListItem>()
+        convertedIngredients.forEach { item ->
+            val existing = consolidatedIngredients.find {
+                it.name == item.name && it.measure == item.measure
+            }
+            if (existing != null) {
+                existing.amount = (existing.amount ?: 0f) + (item.amount ?: 0f)
+            } else {
+                consolidatedIngredients.add(item)
+            }
+        }
+
+        return consolidatedIngredients
             .sortedBy { it.name }
     }
 
