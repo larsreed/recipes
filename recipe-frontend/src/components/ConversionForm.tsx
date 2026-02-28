@@ -127,7 +127,7 @@ function ConversionList() {
                                 <button onClick={() => handleSave(index)}>
                                     <i className="fas fa-save"></i>
                                 </button>
-                                <button onClick={() => handleDelete(index)}>
+                                <button onClick={() => handleDelete(index)} className="btn-danger">
                                     <i className="fas fa-remove"></i>
                                 </button>
                             </td>

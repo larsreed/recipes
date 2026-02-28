@@ -555,6 +555,7 @@ function RecipeForm({ recipe, onCancel, onRecipeSaved }: RecipeFormProps) {
                                         <button
                                             onClick={() => handleDeleteAttachment(attachment.id)}
                                             title="Delete"
+                                            className="btn-danger"
                                         >
                                             <i className="fas fa-remove"></i>
                                         </button>
@@ -591,7 +592,7 @@ function RecipeForm({ recipe, onCancel, onRecipeSaved }: RecipeFormProps) {
                                         title="Move Down">
                                     <i className="fas fa-arrow-down"></i>
                                 </button>
-                                <button type="button" onClick={() => handleRemoveSubrecipe(index)} title="Remove">
+                                <button type="button" onClick={() => handleRemoveSubrecipe(index)} title="Remove" className="btn-danger">
                                     <i className="fas fa-remove"></i>
                                 </button>
                                 <button
@@ -724,7 +725,7 @@ function RecipeForm({ recipe, onCancel, onRecipeSaved }: RecipeFormProps) {
                                     <i className="fas fa-arrow-down"></i>
                                 </button>
 
-                                <button type="button" onClick={() => removeIngredient(index)} title="Remove">
+                                <button type="button" onClick={() => removeIngredient(index)} title="Remove" className="btn-danger">
                                     <i className="fas fa-remove"></i>
                                 </button>
                             </td>

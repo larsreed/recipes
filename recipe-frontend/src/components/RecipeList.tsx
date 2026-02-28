@@ -636,47 +636,69 @@ function RecipeList() {
                 />
             )}
             <div className="standard-form">
-                <button onClick={handleOpenSourceModal}>Edit sources</button>
-                &nbsp;
-                <button onClick={handleOpenConversionsModal}>Edit conversions</button>
-                &nbsp;
-                <button onClick={handleOpenTemperatureModal}>Edit temperatures</button>
+                <button onClick={handleOpenSourceModal}>
+                    <i className="fas fa-book"></i>
+                    Sources
+                </button>
+                <button onClick={handleOpenConversionsModal}>
+                    <i className="fas fa-exchange-alt"></i>
+                    Conversions
+                </button>
+                <button onClick={handleOpenTemperatureModal}>
+                    <i className="fas fa-thermometer-half"></i>
+                    Temperatures
+                </button>
             </div>
             <div className="standard-form">
-                Import recipes: <input id="csvFileInput" type="file" accept=".csv,.txt"
-                                       onChange={(e) => {
-                                           // @ts-ignore
-                                           setCsvFile(e.target.files[0]);
-                                       }}/>
-                &nbsp;
-                {csvFile && <button onClick={handleImport}>Import</button>}
+                <label htmlFor="csvFileInput" style={{display: 'flex', alignItems: 'center', gap: '0.5rem'}}>
+                    <i className="fas fa-file-import"></i>
+                    Import recipes:
+                </label>
+                <input id="csvFileInput" type="file" accept=".csv,.txt"
+                       onChange={(e) => {
+                           // @ts-ignore
+                           setCsvFile(e.target.files[0]);
+                       }}/>
+                {csvFile && <button onClick={handleImport}>
+                    <i className="fas fa-upload"></i>
+                    Import
+                </button>}
             </div>
             <div className="standard-form">
                 <button onClick={handleOpenSearchPanel} title="Find by content">
                     <i className="fas fa-search"></i>
+                    {isSearchPanelOpen ? 'Search' : 'Search'}
                 </button>
-                &nbsp;
-                {isSearchActive && <button onClick={handleShowAllRecipes}>All</button>}
+                {isSearchActive && <button onClick={handleShowAllRecipes}>
+                    <i className="fas fa-list"></i>
+                    Show All
+                </button>}
                 {isSearchPanelOpen &&
                     <input
                         type="text"
                         placeholder="Enter regex..."
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
+                        style={{flexGrow: 1, minWidth: '200px'}}
                     />}
-                &nbsp;
-                {isSearchPanelOpen && <button onClick={handleSearch}>Search</button>}
-                &nbsp;
-                {isSearchPanelOpen && <button onClick={handleCloseSearchPanel}>Cancel</button>}
-                &nbsp;
-                <label htmlFor="categoryFilter">Filter by Category:</label>
+                {isSearchPanelOpen && <button onClick={handleSearch}>
+                    <i className="fas fa-search"></i>
+                    Search
+                </button>}
+                {isSearchPanelOpen && <button onClick={handleCloseSearchPanel}>
+                    <i className="fas fa-times"></i>
+                    Cancel
+                </button>}
+                <label htmlFor="categoryFilter" style={{display: 'flex', alignItems: 'center', gap: '0.5rem'}}>
+                    <i className="fas fa-filter"></i>
+                    Category:
+                </label>
                 <select id="categoryFilter" value={categoryFilter} onChange={handleCategoryFilterChange}>
                     <option value="">All Categories</option>
                     {uniqueCategories.map(category => (
                         <option key={category} value={category}>{category}</option>
                     ))}
                 </select>
-                &nbsp;
                 <label>
                     <input
                         type="checkbox"
@@ -685,7 +707,6 @@ function RecipeList() {
                     />
                     Include subrecipes
                 </label>
-                <p/>
             </div>
             <div>
                 {apiError && <p className="error">{apiError}</p>}
@@ -722,20 +743,16 @@ function RecipeList() {
                         <button onClick={handleOpenRecipeModal} title="Add recipe">
                             <i className="fas fa-plus"></i>
                         </button>
-                        &nbsp;
                         <button onClick={() => handleExportView()} title="Print layout">
                             <i className="fas fa-print"></i>
                         </button>
-                        &nbsp;
                         <button onClick={() => handleExportCsv()} title="Export to CSV">
                             <i className="fas fa-file-export"></i>
                         </button>
-                        &nbsp;
                         <button onClick={() => handleShoppingList()} title="Export shopping list">
-                            <i className="fas fa-list"></i>
+                            <i className="fas fa-shopping-cart"></i>
                         </button>
-                        &nbsp;
-                        <button onClick={handleDeleteMany} title="Delete selected recipes">
+                        <button onClick={handleDeleteMany} title="Delete selected recipes" className="btn-danger">
                             <i className="fas fa-trash"></i>
                         </button>
                     </th>
@@ -752,7 +769,15 @@ function RecipeList() {
                                 onChange={() => handleCheckboxChange(recipe.id)}
                             />
                         </td>
-                        <td>{recipe.name}</td>
+                        <td>
+                            <span
+                                onClick={() => editRecipe(recipe)}
+                                className="recipe-name-link"
+                                title="Click to edit"
+                            >
+                                {recipe.name}
+                            </span>
+                        </td>
                         <td>{recipe.served}</td>
                         <td>{recipe.source ? recipe.source.name : ''}</td>
                         <td>{recipe.pageRef}</td>
@@ -763,13 +788,11 @@ function RecipeList() {
                                     title="Edit">
                                 <i className="fas fa-edit"></i>
                             </button>
-                            &nbsp;
-                            <button onClick={() => deleteRecipe(recipe.id)} title="Delete">
+                            <button onClick={() => deleteRecipe(recipe.id)} title="Delete" className="btn-danger">
                                 <i className="fas fa-trash"></i>
                             </button>
-                            &nbsp;
                             <button onClick={() => handleViewRecipe(recipe)} title="View">
-                                <i className="fas fa-print"></i>
+                                <i className="fas fa-eye"></i>
                             </button>
                         </td>
                     </tr>

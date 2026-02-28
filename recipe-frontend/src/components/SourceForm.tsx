@@ -125,7 +125,7 @@ function SourceForm() {
                                 <button onClick={() => handleSave(index)} title="Save">
                                     <i className="fas fa-save"></i>
                                 </button>
-                                <button onClick={() => handleDelete(index)} title="Delete">
+                                <button onClick={() => handleDelete(index)} title="Delete" className="btn-danger">
                                     <i className="fas fa-remove"></i>
                                 </button>
                             </td>
