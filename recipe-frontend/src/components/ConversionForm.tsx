@@ -9,11 +9,12 @@ interface Conversion {
     toMeasure: string;
     factor: number;
     description: string;
+    preferred: boolean;
 }
 
 function ConversionList() {
     const [conversions, setConversions] = useState<Conversion[]>([]);
-    const [newConversion, setNewConversion] = useState<Conversion>({ fromMeasure: '', toMeasure: '', factor: 0, description: '' });
+    const [newConversion, setNewConversion] = useState<Conversion>({ fromMeasure: '', toMeasure: '', factor: 0, description: '', preferred: false });
 
     useEffect(() => {
         fetchConversions();
@@ -68,7 +69,7 @@ function ConversionList() {
         try {
             const response = await axios.post(`${config.backendUrl}/api/conversions`, newConversion);
             setConversions([...conversions, response.data]);
-            setNewConversion({ fromMeasure: '', toMeasure: '', factor: 0, description: '' });
+            setNewConversion({ fromMeasure: '', toMeasure: '', factor: 0, description: '', preferred: false });
         } catch (error) {
             console.error('Error adding new conversion:', error);
         }
@@ -83,6 +84,7 @@ function ConversionList() {
                         <th>To</th>
                         <th>Factor</th>
                         <th>Description</th>
+                        <th>Preferred</th>
                         <th>Actions</th>
                     </tr>
                 </thead>
@@ -121,6 +123,13 @@ function ConversionList() {
                                     type="text"
                                     value={conversion.description}
                                     onChange={(e) => handleInputChange(index, 'description', e.target.value)}
+                                />
+                            </td>
+                            <td style={{textAlign: 'center'}}>
+                                <input
+                                    type="checkbox"
+                                    checked={conversion.preferred}
+                                    onChange={(e) => handleInputChange(index, 'preferred', e.target.checked)}
                                 />
                             </td>
                             <td>
@@ -168,6 +177,13 @@ function ConversionList() {
                                 type="text"
                                 value={newConversion.description}
                                 onChange={(e) => setNewConversion({ ...newConversion, description: e.target.value })}
+                            />
+                        </td>
+                        <td style={{textAlign: 'center'}}>
+                            <input
+                                type="checkbox"
+                                checked={newConversion.preferred}
+                                onChange={(e) => setNewConversion({ ...newConversion, preferred: e.target.checked })}
                             />
                         </td>
                         <td>

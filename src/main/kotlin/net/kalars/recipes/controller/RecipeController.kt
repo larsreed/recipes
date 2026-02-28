@@ -279,11 +279,13 @@ class RecipeController(
                     val toMeasure = columns[2]
                     val factor = columns[3].toFloat()
                     val description = columns.getOrNull(4)?.replace("\\n", "\n")
+                    val preferred = columns.getOrNull(5)?.toBoolean() ?: false
 
                     val existingConversion = conversionRepository.findByFromMeasureAndToMeasure(fromMeasure, toMeasure)
                     if (existingConversion != null) {
                         existingConversion.factor = factor
                         existingConversion.description = description
+                        existingConversion.preferred = preferred
                         conversionRepository.save(existingConversion)
                     } else {
                         conversionRepository.save(
@@ -291,7 +293,8 @@ class RecipeController(
                                 fromMeasure = fromMeasure,
                                 toMeasure = toMeasure,
                                 factor = factor,
-                                description = description
+                                description = description,
+                                preferred = preferred
                             )
                         )
                     }
@@ -360,7 +363,7 @@ class RecipeController(
             append("# 'Ingredient'\tPreamble?\tAmount?:float\tMeasure?\tPrefix?\tName\tInstruction?\n")
             append("# 'Subrecipe'\tName\n")
             append("# 'Attachment'\tFileName\tBase64Content\n")
-            append("# 'Conversion'\tFrom\tTo\tFactor\tDescription?\n")
+            append("# 'Conversion'\tFrom\tTo\tFactor\tDescription?\tPreferred?:bool\n")
             append("# 'Temperature'\tTemp (C)\tMeat\tDescription?\n")
             append("\n\n####################\n\n")
 
@@ -418,7 +421,7 @@ class RecipeController(
             append("\n\n####################\n\n")
             conversionRepository.findAll().forEach { conversion ->
                 append("Conversion\t${conversion.fromMeasure}\t${conversion.toMeasure}\t${conversion.factor}\t${
-                    conversion.description?.replace("\n", "\\n") ?: ""}\n")
+                    conversion.description?.replace("\n", "\\n") ?: ""}\t${conversion.preferred}\n")
             }
             append("\n\n####################\n\n")
             temperatureRepository.findAll().forEach { temperature ->

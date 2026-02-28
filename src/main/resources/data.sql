@@ -65,7 +65,8 @@ CREATE TABLE conversion (
     factor FLOAT NOT NULL,
     from_measure VARCHAR(10) NOT NULL,
     to_measure VARCHAR(10) NOT NULL,
-    description TEXT NULL
+    description TEXT NULL,
+    preferred BOOLEAN DEFAULT FALSE
 );
 
 CREATE TABLE temperatures (

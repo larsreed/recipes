@@ -872,3 +872,53 @@ td button:last-child {
 .import-section label i {
   font-size: 1rem;
 }
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  #root {
+    padding: 1rem;
+  }
+
+  .modal-content {
+    width: 95%;
+    margin: 10% auto;
+    padding: 1.5rem;
+  }
+
+  .standard-form {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .form-line {
+    flex-direction: column;
+    width: 100%;
+  }
+
+  th, td {
+    padding: 4px 8px;
+    font-size: 0.75rem;
+  }
+
+  .app-banner {
+    padding: 1rem;
+    margin: -1rem -1rem 0.75rem -1rem;
+  }
+
+  .banner-content {
+    gap: 1rem;
+  }
+
+  .banner-logo {
+    width: 45px;
+    height: 45px;
+  }
+
+  .banner-title {
+    font-size: 1.5rem;
+  }
+
+  .banner-subtitle {
+    font-size: 0.875rem;
+  }
+}
