@@ -415,124 +415,197 @@ function RecipeForm({ recipe, onCancel, onRecipeSaved }: RecipeFormProps) {
     return (
         <form onSubmit={handleSubmit} className="recipe-form">
             <h2>{recipe ? 'Edit Recipe' : 'Add a New Recipe'}</h2>
-            <div className="form-line" style={{display: 'flex', gap: '1rem'}}>
-                <label>Name:</label><br/>
-                <input type="text"
-                       value={name}
-                       style={{flexGrow: 1}}
-                       onChange={(e) => handleChange(setName, e.target.value)}
-                />
-                {errors.name && <p className="error">{errors.name}</p>}
 
-                <label style={{marginLeft: 'auto'}}>
+            {/* Basic Information Section */}
+            <div className="form-section">
+                <div className="form-section-title">
+                    <i className="fas fa-info-circle"></i>
+                    Basic Information
+                </div>
+                <div className="form-grid">
+                    <div className="form-field" style={{gridColumn: '1 / -1'}}>
+                        <label>Recipe Name *</label>
+                        <input type="text"
+                               value={name}
+                               onChange={(e) => handleChange(setName, e.target.value)}
+                               placeholder="Enter recipe name"
+                        />
+                        {errors.name && <p className="error">{errors.name}</p>}
+                    </div>
+                    <div className="form-field">
+                        <label>Servings</label>
+                        <input type="number"
+                               value={people}
+                               onChange={(e) => handleChange(setPeople, parseInt(e.target.value))}
+                               placeholder="Number of servings"
+                        />
+                        <small style={{color: 'var(--text-secondary)', fontSize: '0.75rem'}}>Use 0 for fixed amounts</small>
+                        {errors.people && <p className="error">{errors.people}</p>}
+                    </div>
+                    <div className="form-field">
+                        <label>Rating</label>
+                        <input type="number"
+                               min="1"
+                               max="6"
+                               value={rating ?? ''}
+                               onChange={(e) => handleChange(setRating, parseInt(e.target.value))}
+                               placeholder="1-6"
+                        />
+                    </div>
+                </div>
+                <div className="form-field-inline" style={{marginTop: '0.75rem'}}>
                     <input type="checkbox"
                            checked={subrecipe}
                            onChange={(e) => handleChange(setSubrecipe, e.target.checked)}
+                           id="subrecipe-check"
                     />
-                    Is subrecipe
-                </label>
-
-                <label>People:</label>
-                <input type="number"
-                       value={people}
-                       onChange={(e) => handleChange(setPeople, parseInt(e.target.value))}
-                /><span> (0 for fixed amounts)</span>
-                {errors.people && <p className="error">{errors.people}</p>}
-            </div>
-
-            <div className="form-line">
-                <label>Categories:</label>
-                <select
-                    onChange={e => {
-                        addCategory(e.target.value);
-                        e.target.value = "";
-                    }}
-                    defaultValue=""
-                >
-                    <option value="" disabled>Add from list...</option>
-                    {predefinedCategories
-                        .filter(cat => !(categories ?? []).includes(cat))
-                        .map(cat => (
-                            <option key={cat} value={cat}>{cat}</option>
-                        ))}
-                </select>
-                <div style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap" }}>
-                    {(categories ?? []).map(cat => (
-                        <span key={cat} className="category">
-                            {cat}
-                            <button type="button"
-                                    onClick={() => removeCategory(cat)} style={{ marginLeft: 4 }}>×</button>
-                        </span>
-                    ))}
+                    <label htmlFor="subrecipe-check" style={{margin: 0}}>This is a subrecipe</label>
                 </div>
             </div>
 
-            <div className="form-group">
-                <label>Instructions (markdown):</label>
-
-                <AutoGrowTextarea value={instructions ?? ''}
-                          onChange={(e) => handleChange(setInstructions, e.target.value)}/>
-                {errors.instructions && <p className="error">{errors.instructions}</p>}
+            {/* Categories Section */}
+            <div className="form-section">
+                <div className="form-section-title">
+                    <i className="fas fa-tags"></i>
+                    Categories
+                </div>
+                <div className="form-field">
+                    <select
+                        onChange={e => {
+                            addCategory(e.target.value);
+                            e.target.value = "";
+                        }}
+                        defaultValue=""
+                    >
+                        <option value="" disabled>Add category...</option>
+                        {predefinedCategories
+                            .filter(cat => !(categories ?? []).includes(cat))
+                            .map(cat => (
+                                <option key={cat} value={cat}>{cat}</option>
+                            ))}
+                    </select>
+                    <div className="category-container">
+                        {(categories ?? []).map(cat => (
+                            <span key={cat} className="category">
+                                {cat}
+                                <button type="button" onClick={() => removeCategory(cat)}>×</button>
+                            </span>
+                        ))}
+                    </div>
+                </div>
             </div>
 
-            <div className="form-group">
-                <label>Closing instructions (markdown):</label>
-                <AutoGrowTextarea value={closing ?? ''}
-                          onChange={(e) => handleChange(setClosing, e.target.value)}/>
-                {errors.closing && <p className="error">{errors.closing}</p>}
+            {/* Instructions Section */}
+            <div className="form-section">
+                <div className="form-section-title">
+                    <i className="fas fa-list-ol"></i>
+                    Instructions
+                </div>
+                <div className="form-field">
+                    <label>Preparation Instructions (markdown)</label>
+                    <AutoGrowTextarea
+                        value={instructions ?? ''}
+                        onChange={(e) => handleChange(setInstructions, e.target.value)}
+                        placeholder="Enter step-by-step instructions..."
+                    />
+                    {errors.instructions && <p className="error">{errors.instructions}</p>}
+                </div>
+                <div className="form-field" style={{marginTop: '0.75rem'}}>
+                    <label>Closing Instructions (markdown)</label>
+                    <AutoGrowTextarea
+                        value={closing ?? ''}
+                        onChange={(e) => handleChange(setClosing, e.target.value)}
+                        placeholder="Final steps, serving suggestions..."
+                    />
+                    {errors.closing && <p className="error">{errors.closing}</p>}
+                </div>
             </div>
 
-            <div className="form-line">
-                <label>Source:</label>
-                <select value={sourceId ?? ''}
-                        style={{flexGrow: 0.8}}
-                        onChange={(e) => handleChange(setSourceId, e.target.value ? parseInt(e.target.value) : null)}>
-                    <option value="">No source</option>
-                    {sources.map((source) => (
-                        <option key={source.id} value={source.id}>
-                            {source.name}
-                        </option>
-                    ))}
-                </select>
-                <label>Page ref.:</label>
-                <input type="text" value={pageRef}
-                       style={{flexGrow: 0.2}}
-                       onChange={(e) => handleChange(setPageRef, e.target.value)}/>
-            </div>
-            <div className="form-line">
-                <label>Rating:</label>
-                <input type="number" min="1" max="6" value={rating ?? ''}
-                       style={{flexGrow: 0.1}}
-                       onChange={(e) => handleChange(setRating, parseInt(e.target.value))}/>
-                <label>Served:</label>
-                <AutoGrowTextarea value={served}
-                          style={{flexGrow: 0.3}}
-                          onChange={(e) => handleChange(setServed, e.target.value)}/>
-                <label>Wine tips:</label>
-                <input type="text"
-                       style={{flexGrow: 0.3}}
-                       value={wineTips ?? ''}
-                       onChange={(e) => handleChange(setWineTips, e.target.value)}/>
-                <label>Good match for:</label>
-                <input type="text" value={matchFor ?? ''}
-                       style={{flexGrow: 0.3}}
-                       onChange={(e) => handleChange(setMatchFor, e.target.value)}/>
+            {/* Source and Reference Section */}
+            <div className="form-section">
+                <div className="form-section-title">
+                    <i className="fas fa-book"></i>
+                    Source & Reference
+                </div>
+                <div className="form-grid">
+                    <div className="form-field">
+                        <label>Source</label>
+                        <select value={sourceId ?? ''}
+                                onChange={(e) => handleChange(setSourceId, e.target.value ? parseInt(e.target.value) : null)}>
+                            <option value="">No source</option>
+                            {sources.map((source) => (
+                                <option key={source.id} value={source.id}>
+                                    {source.name}
+                                </option>
+                            ))}
+                        </select>
+                    </div>
+                    <div className="form-field">
+                        <label>Page Reference</label>
+                        <input type="text"
+                               value={pageRef}
+                               onChange={(e) => handleChange(setPageRef, e.target.value)}
+                               placeholder="e.g., p. 42"
+                        />
+                    </div>
+                </div>
             </div>
 
-            <div className="form-group">
-                <label>Notes (markdown):</label>
-                <AutoGrowTextarea value={notes} onChange={(e) => handleChange(setNotes, e.target.value)}/>
+            {/* Additional Details Section */}
+            <div className="form-section">
+                <div className="form-section-title">
+                    <i className="fas fa-utensils"></i>
+                    Additional Details
+                </div>
+                <div className="form-grid">
+                    <div className="form-field">
+                        <label>Served</label>
+                        <AutoGrowTextarea
+                            value={served}
+                            onChange={(e) => handleChange(setServed, e.target.value)}
+                            placeholder="How is this served?"
+                        />
+                    </div>
+                    <div className="form-field">
+                        <label>Wine Tips</label>
+                        <input type="text"
+                               value={wineTips ?? ''}
+                               onChange={(e) => handleChange(setWineTips, e.target.value)}
+                               placeholder="Wine pairing suggestions"
+                        />
+                    </div>
+                    <div className="form-field">
+                        <label>Good Match For</label>
+                        <input type="text"
+                               value={matchFor ?? ''}
+                               onChange={(e) => handleChange(setMatchFor, e.target.value)}
+                               placeholder="What does this go well with?"
+                        />
+                    </div>
+                    <div className="form-field">
+                        <label>Notes (markdown)</label>
+                        <AutoGrowTextarea
+                            value={notes}
+                            onChange={(e) => handleChange(setNotes, e.target.value)}
+                            placeholder="Any additional notes..."
+                        />
+                    </div>
+                </div>
             </div>
 
+            {/* Attachments Section */}
             {recipe && (
-                <div id="attachments" className="form-group">
-                    <label>Attachments</label>
+                <div className="form-section">
+                    <div className="form-section-title">
+                        <i className="fas fa-paperclip"></i>
+                        Attachments
+                    </div>
                     <input type="file" onChange={handleFileChange}/>
                     <table className="attachment-table">
                         <thead>
                         <tr>
                             <th>File</th>
-                            <th>!</th>
+                            <th style={{width: '80px'}}>Actions</th>
                         </tr>
                         </thead>
                         <tbody>
@@ -568,70 +641,76 @@ function RecipeForm({ recipe, onCancel, onRecipeSaved }: RecipeFormProps) {
                 </div>
             )}
 
-            <div className="form-group">
-                <label>Subrecipes:</label>
-                <table className="subrecipe-table">
-                    <thead>
-                    <tr>
-                        <th>Name</th>
-                        <th>!</th>
-                    </tr>
-                    </thead>
-                    <tbody>
-                    {subrecipes.map((subrecipe, index) => (
-                        <tr key={subrecipe.id}>
-                            <td>{subrecipe.name}</td>
-                            <td>
-                                <button type="button" onClick={() => moveSubrecipe(index, index - 1)}
-                                        disabled={index === 0}
-                                        title="Move Up">
-                                    <i className="fas fa-arrow-up"></i>
-                                </button>
-                                <button type="button" onClick={() => moveSubrecipe(index, index + 1)}
-                                        disabled={index === ingredients.length - 1}
-                                        title="Move Down">
-                                    <i className="fas fa-arrow-down"></i>
-                                </button>
-                                <button type="button" onClick={() => handleRemoveSubrecipe(index)} title="Remove" className="btn-danger">
-                                    <i className="fas fa-remove"></i>
-                                </button>
-                                <button
-                                    type="button"
-                                    title="View Subrecipe"
-                                    onClick={() => {
-                                        console.log("Subrecipe:", subrecipe);
-                                        window.alert('Not yet implemented!');
-                                    }}>
-                                    <i className="fas fa-eye"></i>
-                                </button>
-                            </td>
+            {/* Subrecipes Section */}
+            <div className="form-section">
+                <div className="form-section-title">
+                    <i className="fas fa-sitemap"></i>
+                    Subrecipes
+                </div>
+                {subrecipes.length > 0 && (
+                    <table className="subrecipe-table">
+                        <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th style={{width: '140px'}}>Actions</th>
                         </tr>
-                    ))}
-                    </tbody>
-                </table>
+                        </thead>
+                        <tbody>
+                        {subrecipes.map((subrecipe, index) => (
+                            <tr key={subrecipe.id}>
+                                <td>{subrecipe.name}</td>
+                                <td>
+                                    <button type="button" onClick={() => moveSubrecipe(index, index - 1)}
+                                            disabled={index === 0}
+                                            title="Move Up">
+                                        <i className="fas fa-arrow-up"></i>
+                                    </button>
+                                    <button type="button" onClick={() => moveSubrecipe(index, index + 1)}
+                                            disabled={index === subrecipes.length - 1}
+                                            title="Move Down">
+                                        <i className="fas fa-arrow-down"></i>
+                                    </button>
+                                    <button type="button" onClick={() => handleRemoveSubrecipe(index)} title="Remove" className="btn-danger">
+                                        <i className="fas fa-remove"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                        ))}
+                        </tbody>
+                    </table>
+                )}
 
-                <div className="form-group">
-                    <label>Select Subrecipe:</label>
-                    <select
-                        value={selectedSubrecipeId ?? ''}
-                        onChange={(e) => handleChange(setSelectedSubrecipeId, e.target.value ? parseInt(e.target.value) : null)}
-                    >
-                        <option value="">Select a subrecipe</option>
-                        {availableRecipes
-                            .filter((recipe) => recipe.subrecipe)
-                            .map((recipe) => (
-                                <option key={recipe.id} value={recipe.id}>
-                                    {recipe.name}
-                                </option>
-                            ))}
-                    </select>
-                    <button type="button" onClick={handleAddSubrecipe}>Add Subrecipe</button>
+                <div className="form-grid" style={{marginTop: '0.75rem'}}>
+                    <div className="form-field" style={{gridColumn: '1 / -1'}}>
+                        <label>Add Subrecipe</label>
+                        <div style={{display: 'flex', gap: '0.5rem'}}>
+                            <select
+                                style={{flex: 1}}
+                                value={selectedSubrecipeId ?? ''}
+                                onChange={(e) => handleChange(setSelectedSubrecipeId, e.target.value ? parseInt(e.target.value) : null)}
+                            >
+                                <option value="">Select a subrecipe</option>
+                                {availableRecipes
+                                    .filter((recipe) => recipe.subrecipe)
+                                    .map((recipe) => (
+                                        <option key={recipe.id} value={recipe.id}>
+                                            {recipe.name}
+                                        </option>
+                                    ))}
+                            </select>
+                            <button type="button" onClick={handleAddSubrecipe} className="add-item-button">
+                                <i className="fas fa-plus"></i>
+                                Add
+                            </button>
+                        </div>
+                    </div>
                 </div>
             </div>
 
+            {/* Referenced By Section */}
             {recipe?.subrecipe && mainRecipes.length > 0 && (
-                <div className="form-group">
-                    <h3>Referenced by</h3>
+                <div className="referenced-by">
+                    <h3><i className="fas fa-link"></i> Referenced by</h3>
                     <ul>
                         {mainRecipes.map(mainRecipe => (
                             <li key={mainRecipe.id}>{mainRecipe.name}</li>
@@ -640,18 +719,22 @@ function RecipeForm({ recipe, onCancel, onRecipeSaved }: RecipeFormProps) {
                 </div>
             )}
 
-            <div className="form-group">
-                <label>Ingredients:</label>
+            {/* Ingredients Section */}
+            <div className="form-section">
+                <div className="form-section-title">
+                    <i className="fas fa-carrot"></i>
+                    Ingredients
+                </div>
                 <table className="ingredient-table">
                     <thead>
                     <tr>
-                        <th>Preamble (markdown)</th>
-                        <th>Amount</th>
-                        <th>Measure</th>
+                        <th>Preamble</th>
+                        <th style={{width: '80px'}}>Amount</th>
+                        <th style={{width: '100px'}}>Measure</th>
                         <th>Prefix</th>
                         <th>Name</th>
-                        <th>Instructions (markdown)</th>
-                        <th>!</th>
+                        <th>Instructions</th>
+                        <th style={{width: '100px'}}>Actions</th>
                     </tr>
                     </thead>
                     <tbody>
@@ -661,6 +744,7 @@ function RecipeForm({ recipe, onCancel, onRecipeSaved }: RecipeFormProps) {
                                 <AutoGrowTextarea
                                     value={ingredient.preamble ?? ''}
                                     onChange={(e) => handleIngredientChange(index, 'preamble', e.target.value)}
+                                    placeholder="Preamble"
                                 />
                                 {errors[`ingredient-${index}-preamble`] &&
                                     <p className="error">{errors[`ingredient-${index}-preamble`]}</p>}
@@ -668,7 +752,7 @@ function RecipeForm({ recipe, onCancel, onRecipeSaved }: RecipeFormProps) {
                             <td>
                                 <input
                                     type="number"
-                                    placeholder="Amount"
+                                    placeholder="Amt"
                                     value={ingredient.amount ?? ''}
                                     onChange={(e) => handleIngredientChange(index, 'amount', parseFloat(e.target.value))}
                                 />
@@ -700,7 +784,7 @@ function RecipeForm({ recipe, onCancel, onRecipeSaved }: RecipeFormProps) {
                             <td>
                                 <input
                                     type="text"
-                                    placeholder="Name"
+                                    placeholder="Name *"
                                     value={ingredient.name}
                                     onChange={(e) => handleIngredientChange(index, 'name', e.target.value)}
                                 />
@@ -711,6 +795,7 @@ function RecipeForm({ recipe, onCancel, onRecipeSaved }: RecipeFormProps) {
                                 <AutoGrowTextarea
                                     value={ingredient.instruction ?? ''}
                                     onChange={(e) => handleIngredientChange(index, 'instruction', e.target.value)}
+                                    placeholder="Instructions"
                                 />
                             </td>
                             <td>
@@ -724,7 +809,6 @@ function RecipeForm({ recipe, onCancel, onRecipeSaved }: RecipeFormProps) {
                                         title="Move Down">
                                     <i className="fas fa-arrow-down"></i>
                                 </button>
-
                                 <button type="button" onClick={() => removeIngredient(index)} title="Remove" className="btn-danger">
                                     <i className="fas fa-remove"></i>
                                 </button>
@@ -733,17 +817,29 @@ function RecipeForm({ recipe, onCancel, onRecipeSaved }: RecipeFormProps) {
                     ))}
                     </tbody>
                 </table>
-                <button type="button" onClick={addIngredient}>Add Ingredient</button>
+                <button type="button" onClick={addIngredient} className="add-item-button">
+                    <i className="fas fa-plus"></i>
+                    Add Ingredient
+                </button>
             </div>
 
-            <div className="form-group">
-                <label>Import Ingredients from CSV:</label>
+            {/* Import Ingredients Section */}
+            <div className="import-section">
+                <label>
+                    <i className="fas fa-file-import"></i>
+                    Import Ingredients from CSV
+                </label>
                 <input id="csvFileName" type="file" accept=".csv,.txt"
                        onChange={(e) => {
-                           // @ts-ignore
+                           // @ts-expect-error won't be null
                            setCsvFile(e.target.files[0]);
                        }}/>
-                {csvFile && (<button type="button" onClick={handleImport}>Import</button>)}
+                {csvFile && (
+                    <button type="button" onClick={handleImport} className="btn-success" style={{marginTop: '0.5rem'}}>
+                        <i className="fas fa-upload"></i>
+                        Import
+                    </button>
+                )}
             </div>
 
             {apiError && <p className="error">{apiError}</p>}
