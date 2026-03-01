@@ -708,6 +708,22 @@ function RecipeList() {
                 {apiError && <p className="error">{apiError}</p>}
             </div>
             <div style={{padding: '0.5rem 0', color: 'var(--text-secondary)', fontSize: '0.875rem'}}>
+                <button onClick={handleOpenRecipeModal} title="Add recipe">
+                    <i className="fas fa-plus"></i>
+                </button>
+                <button onClick={() => handleExportView()} title="Print layout">
+                    <i className="fas fa-print"></i>
+                </button>
+                <button onClick={() => handleExportCsv()} title="Export to CSV">
+                    <i className="fas fa-file-export"></i>
+                </button>
+                <button onClick={() => handleShoppingList()} title="Export shopping list">
+                    <i className="fas fa-shopping-cart"></i>
+                </button>
+                <button onClick={handleDeleteMany} title="Delete selected recipes" className="btn-danger">
+                    <i className="fas fa-trash"></i>
+                </button>
+                &nbsp;
                 Showing {sortedRecipes.length} recipe{sortedRecipes.length !== 1 ? 's' : ''}
                 {categoryFilter && ` in category "${categoryFilter}"`}
                 {isSearchActive && ` matching search`}
@@ -732,30 +748,16 @@ function RecipeList() {
                         Source <i className={getSortIcon('source')}></i>
                     </th>
                     <th onClick={() => requestSort('pageRef')}>
-                        Page Ref <i className={getSortIcon('pageRef')}></i>
+                        Page <i className={getSortIcon('pageRef')}></i>
                     </th>
                     <th onClick={() => requestSort('rating')}>
                         Rating <i className={getSortIcon('rating')}></i>
                     </th>
                     <th onClick={() => requestSort('categories')}>
-                        Cats. <i className={getSortIcon('categories')}></i>
+                        Categories <i className={getSortIcon('categories')}></i>
                     </th>
                     <th>
-                        <button onClick={handleOpenRecipeModal} title="Add recipe">
-                            <i className="fas fa-plus"></i>
-                        </button>
-                        <button onClick={() => handleExportView()} title="Print layout">
-                            <i className="fas fa-print"></i>
-                        </button>
-                        <button onClick={() => handleExportCsv()} title="Export to CSV">
-                            <i className="fas fa-file-export"></i>
-                        </button>
-                        <button onClick={() => handleShoppingList()} title="Export shopping list">
-                            <i className="fas fa-shopping-cart"></i>
-                        </button>
-                        <button onClick={handleDeleteMany} title="Delete selected recipes" className="btn-danger">
-                            <i className="fas fa-trash"></i>
-                        </button>
+
                     </th>
                 </tr>
                 </thead>
