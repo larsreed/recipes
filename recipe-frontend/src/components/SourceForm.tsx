@@ -1,10 +1,18 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import axios from 'axios';
 import config from '../config';
 
+interface Source {
+    id?: number;
+    name: string;
+    authors: string;
+    info: string;
+    title: string;
+}
+
 function SourceForm() {
-    const [sources, setSources] = useState([]);
-    const [newSource, setNewSource] = useState({ name: '', authors: '', info: '', title: '' });
+    const [sources, setSources] = useState<Source[]>([]);
+    const [newSource, setNewSource] = useState<Source>({ name: '', authors: '', info: '', title: '' });
 
     useEffect(() => {
         fetchSources();
@@ -13,19 +21,23 @@ function SourceForm() {
     const fetchSources = async () => {
         try {
             const response = await axios.get(`${config.backendUrl}/api/sources`);
-            setSources(response.data);
+            // Sort sources by name (case-insensitive)
+            const sortedSources = response.data.sort((a: Source, b: Source) =>
+                a.name.localeCompare(b.name, undefined, { sensitivity: 'base' })
+            );
+            setSources(sortedSources);
         } catch (error) {
             console.error('Error fetching sources:', error);
         }
     };
 
-    const handleInputChange = (index, field, value) => {
+    const handleInputChange = (index: number, field: keyof Source, value: string) => {
         const updatedSources = [...sources];
-        updatedSources[index][field] = value;
+        updatedSources[index][field] = value as never;
         setSources(updatedSources);
     };
 
-    const handleSave = async (index) => {
+    const handleSave = async (index: number) => {
         const source = sources[index];
         try {
             if (source.id) {
@@ -34,13 +46,17 @@ function SourceForm() {
                 const response = await axios.post(`${config.backendUrl}/api/sources`, source);
                 sources[index] = response.data; // Update with the saved source (including ID)
             }
-            setSources([...sources]);
+            // Sort sources by name after saving
+            const sortedSources = [...sources].sort((a, b) =>
+                a.name.localeCompare(b.name, undefined, { sensitivity: 'base' })
+            );
+            setSources(sortedSources);
         } catch (error) {
             console.error('Error saving source:', error);
         }
     };
 
-    const handleDelete = async (index) => {
+    const handleDelete = async (index: number) => {
         const source = sources[index];
         if (source.id && window.confirm('Are you sure you want to delete this source?')) {
             try {
@@ -57,7 +73,7 @@ function SourceForm() {
         setNewSource({ name: '', authors: '', info: '', title: '' });
     };
 
-    const handleBlur = async (index) => {
+    const handleBlur = async (index: number) => {
         const source = sources[index];
         try {
             if (source.id) {
@@ -66,7 +82,11 @@ function SourceForm() {
                 const response = await axios.post(`${config.backendUrl}/api/sources`, source);
                 sources[index] = response.data; // Update with the saved source (including ID)
             }
-            setSources([...sources]);
+            // Sort sources by name after saving
+            const sortedSources = [...sources].sort((a, b) =>
+                a.name.localeCompare(b.name, undefined, { sensitivity: 'base' })
+            );
+            setSources(sortedSources);
         } catch (error) {
             console.error('Error saving source:', error);
         }
@@ -77,7 +97,6 @@ function SourceForm() {
             <table>
                 <thead>
                     <tr>
-                        <th>ID</th>
                         <th>Name</th>
                         <th>Authors</th>
                         <th>Title</th>
@@ -88,7 +107,6 @@ function SourceForm() {
                 <tbody>
                     {sources.map((source, index) => (
                         <tr key={index}>
-                            <td>{source.id || ''}</td>
                             <td>
                                 <input
                                     type="text"
@@ -132,7 +150,6 @@ function SourceForm() {
                         </tr>
                     ))}
                     <tr>
-                        <td></td>
                         <td>
                             <input
                                 type="text"

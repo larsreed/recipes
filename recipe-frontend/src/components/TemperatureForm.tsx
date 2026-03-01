@@ -1,10 +1,17 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import axios from 'axios';
 import config from '../config';
 
+interface Temperature {
+    id?: number;
+    meat: string;
+    temp: number;
+    description: string;
+}
+
 function TemperatureForm() {
-    const [temperatures, setTemperatures] = useState([]);
-    const [newTemperature, setNewTemperature] = useState({ meat: '', temp: 0.0, description: '' });
+    const [temperatures, setTemperatures] = useState<Temperature[]>([]);
+    const [newTemperature, setNewTemperature] = useState<Temperature>({ meat: '', temp: 0.0, description: '' });
 
     useEffect(() => {
         fetchTemperatures();
@@ -13,19 +20,23 @@ function TemperatureForm() {
     const fetchTemperatures = async () => {
         try {
             const response = await axios.get(`${config.backendUrl}/api/temperatures`);
-            setTemperatures(response.data);
+            // Sort temperatures by meat (case-insensitive)
+            const sortedTemperatures = response.data.sort((a: Temperature, b: Temperature) =>
+                a.meat.localeCompare(b.meat, undefined, { sensitivity: 'base' })
+            );
+            setTemperatures(sortedTemperatures);
         } catch (error) {
             console.error('Error fetching temperatures:', error);
         }
     };
 
-    const handleInputChange = (index, field, value) => {
+    const handleInputChange = (index: number, field: keyof Temperature, value: string | number) => {
         const updatedTemperatures = [...temperatures];
-        updatedTemperatures[index][field] = value;
+        updatedTemperatures[index][field] = value as never;
         setTemperatures(updatedTemperatures);
     };
 
-    const handleDelete = async (index) => {
+    const handleDelete = async (index: number) => {
         const temperature = temperatures[index];
         if (temperature.id && window.confirm('Are you sure you want to delete this temperature?')) {
             try {
@@ -42,7 +53,7 @@ function TemperatureForm() {
         setNewTemperature({ meat: '', temp: 0.0, description: '' });
     };
 
-    const handleBlur = async (index) => {
+    const handleBlur = async (index: number) => {
         const temperature = temperatures[index];
         try {
             if (temperature.id) {
@@ -51,7 +62,11 @@ function TemperatureForm() {
                 const response = await axios.post(`${config.backendUrl}/api/temperatures`, temperature);
                 temperatures[index] = response.data; // Update with the saved temperature (including ID)
             }
-            setTemperatures([...temperatures]);
+            // Sort temperatures by meat after saving
+            const sortedTemperatures = [...temperatures].sort((a, b) =>
+                a.meat.localeCompare(b.meat, undefined, { sensitivity: 'base' })
+            );
+            setTemperatures(sortedTemperatures);
         } catch (error) {
             console.error('Error saving temperature:', error);
         }
@@ -62,7 +77,6 @@ function TemperatureForm() {
             <table>
                 <thead>
                     <tr>
-                        <th>ID</th>
                         <th>Meat</th>
                         <th>Temperature</th>
                         <th>Description</th>
@@ -72,7 +86,6 @@ function TemperatureForm() {
                 <tbody>
                     {temperatures.map((temperature, index) => (
                         <tr key={index}>
-                            <td>{temperature.id || ''}</td>
                             <td>
                                 <input
                                     type="text"
@@ -85,7 +98,7 @@ function TemperatureForm() {
                                 <input
                                     type="number"
                                     value={temperature.temp}
-                                    onChange={(e) => handleInputChange(index, 'temp', e.target.value)}
+                                    onChange={(e) => handleInputChange(index, 'temp', parseFloat(e.target.value))}
                                     onBlur={() => handleBlur(index)}
                                 />
                             </td>
@@ -108,7 +121,6 @@ function TemperatureForm() {
                         </tr>
                     ))}
                     <tr>
-                        <td></td>
                         <td>
                             <input
                                 type="text"
@@ -121,7 +133,7 @@ function TemperatureForm() {
                             <input
                                 type="number"
                                 value={newTemperature.temp}
-                                onChange={(e) => setNewTemperature({ ...newTemperature, temp: e.target.value })}
+                                onChange={(e) => setNewTemperature({ ...newTemperature, temp: parseFloat(e.target.value) })}
                                 placeholder="New temperature"
                             />
                         </td>
