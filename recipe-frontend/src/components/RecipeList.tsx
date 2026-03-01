@@ -707,6 +707,11 @@ function RecipeList() {
             <div>
                 {apiError && <p className="error">{apiError}</p>}
             </div>
+            <div style={{padding: '0.5rem 0', color: 'var(--text-secondary)', fontSize: '0.875rem'}}>
+                Showing {sortedRecipes.length} recipe{sortedRecipes.length !== 1 ? 's' : ''}
+                {categoryFilter && ` in category "${categoryFilter}"`}
+                {isSearchActive && ` matching search`}
+            </div>
             <table className="recipe-list-table">
                 <thead>
                 <tr>
