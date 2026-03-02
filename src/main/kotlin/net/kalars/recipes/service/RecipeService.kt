@@ -1,5 +1,6 @@
 package net.kalars.recipes.service
 
+import net.kalars.recipes.model.Conversion
 import net.kalars.recipes.model.Ingredient
 import net.kalars.recipes.model.Recipe
 import net.kalars.recipes.model.ShoppingListItem
@@ -124,60 +125,51 @@ class RecipeService(
 
     fun generateShoppingList(recipeIds: List<Long>, guests: Int): List<ShoppingListItem> {
         val ingredients = mutableListOf<ShoppingListItem>()
+        val preferredConversions = conversionRepository.findAll().filter { it.preferred }
 
         recipeIds.forEach { recipeId ->
             val recipe = recipeRepository.findById(recipeId).orElseThrow {
                 IllegalArgumentException("Recipe not found: $recipeId")
             }
-            collectIngredients(recipe, ingredients, guests)
+            collectIngredients(recipe, ingredients, guests, preferredConversions)
         }
-
-        // Apply preferred conversions
-        val preferredConversions = conversionRepository.findAll().filter { it.preferred }
-        val convertedIngredients = ingredients.map { item ->
-            val conversion = preferredConversions.find { it.fromMeasure == item.measure }
-            if (conversion != null) {
-                ShoppingListItem(
-                    item.name,
-                    (item.amount ?: 0f) * conversion.factor,
-                    conversion.toMeasure
-                )
-            } else {
-                item
-            }
-        }
-
-        // Consolidate ingredients with same name and measure after conversion
-        val consolidatedIngredients = mutableListOf<ShoppingListItem>()
-        convertedIngredients.forEach { item ->
-            val existing = consolidatedIngredients.find {
-                it.name == item.name && it.measure == item.measure
-            }
-            if (existing != null) {
-                existing.amount = (existing.amount ?: 0f) + (item.amount ?: 0f)
-            } else {
-                consolidatedIngredients.add(item)
-            }
-        }
-
-        return consolidatedIngredients
-            .sortedBy { it.name }
+        return ingredients.sortedBy { it.name }
     }
 
-    private fun collectIngredients(recipe: Recipe, ingredients: MutableList<ShoppingListItem>, guests: Int) {
+    private fun collectIngredients(
+        recipe: Recipe,
+        ingredients: MutableList<ShoppingListItem>,
+        guests: Int,
+        preferredConversions: List<Conversion>
+    ) {
         val people = if (recipe.people>0) recipe.people else guests // if 0, then fixed amount
         recipe.ingredients.forEach { ingredient ->
+            val conversion = preferredConversions.find { it.fromMeasure == ingredient.measure }
+            val actual = if (conversion != null) {
+                Ingredient(
+                    name = ingredient.name,
+                    amount = (ingredient.amount ?: 0f) * conversion.factor,
+                    measure = conversion.toMeasure
+                )
+            } else {
+                ingredient
+            }
             val existingItem = ingredients.find {
-                (it.name == ingredient.name) && (it.measure == ingredient.measure)
+                (it.name == actual.name) && (it.measure == actual.measure)
             }
             if (existingItem != null) {
-                existingItem.amount = (existingItem.amount ?: 0f) + (ingredient.amount ?: 0f) * (guests / people)
+                existingItem.amount = (existingItem.amount ?: 0f) + (actual.amount ?: 0f) * (guests / people)
             } else {
-                ingredients.add(ShoppingListItem(ingredient.name, ((ingredient.amount ?: 0f) * guests) / people,
-                    ingredient.measure))
+                ingredients.add(ShoppingListItem(actual.name, ((actual.amount ?: 0f) * guests) / people,
+                    actual.measure))
             }
         }
-        recipe.subrecipes.forEach { subrecipe -> collectIngredients(subrecipe, ingredients, guests) }
+        recipe.subrecipes.forEach { subrecipe -> collectIngredients(
+            subrecipe,
+            ingredients,
+            guests,
+            preferredConversions
+        ) }
     }
 
 }
