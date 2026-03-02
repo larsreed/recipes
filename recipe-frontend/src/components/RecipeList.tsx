@@ -332,22 +332,8 @@ function RecipeList() {
                 }).then(async response => {
                     const shoppingContent = response.data; // Assuming the backend returns CSV content as plain text
 
-                    const conversionsResponse = await axios.get(`${config.backendUrl}/api/conversions`);
-                    const conversions = conversionsResponse.data;
-
-                    const usedMeasures = new Set<string>();
-                    shoppingContent.map((item: { measure: string; }) => {
-                        if (item.measure) { usedMeasures.add(item.measure); }
-                    })
-
-                    const newWindow = window.open("", "_blank");
+                   const newWindow = window.open("", "_blank");
                     if (newWindow) {
-
-                        const conversionLines = conversions
-                            .filter((conversion: { fromMeasure: string; toMeasure: string; }) => usedMeasures.has(conversion.fromMeasure) || usedMeasures.has(conversion.toMeasure))
-                            .map((conversion: { fromMeasure: never; toMeasure: never; factor: never; }) => `To convert from ${conversion.fromMeasure} to ${conversion.toMeasure}: multiply by ${conversion.factor}`)
-                            .join('<br />');
-
 
                         const htmlContent = `
                         <html lang="en-GB">
@@ -381,9 +367,6 @@ function RecipeList() {
                                     `).join('')}
                                 </tbody>
                             </table>
-
-                            <h2>Conversions</h2>
-                            <p>${conversionLines}</p>
                         </body>
                         </html>
                     `;
