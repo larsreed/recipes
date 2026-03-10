@@ -409,13 +409,13 @@ function RecipeList() {
                 ${recipe.wineTips ? `<p><em>Wine tips</em>: ${recipe.wineTips.replace(/\n/g, '<br />')}</p>` : ''}
                 ${recipe.matchFor ? `<p><em>Match for</em>: ${recipe.matchFor.replace(/\n/g, '<br />')}</p>` : ''}
                 ${recipe.categories ? `<p><em>Categories</em>: ${recipe.categories.replace(/,/g, ' ')}</p>` : ''}
-                ${recipe.notes ? `<div><em>Notes</em>: ${marked(recipe.notes)}</div>` : ''}
+                ${recipe.notes ? `<div>${marked("*Notes*: " + recipe.notes)}</div>` : ''}
                 ${recipe.instructions ? `<div class="instructions">${marked(recipe.instructions)}</div>` : ''}
                 ${recipe.subrecipe ? `<h4>Ingredients</h4>` : `<h3>Ingredients</h3>`}
                 <table class="noborder">
                     ${recipe.ingredients.map(ingredient => `
                         <tr class="ingredient">
-                            <td class="ingredient-cell">
+                            <td class="ingredient-cell"> 
                                 ${ingredient.preamble ? marked(ingredient.preamble) : ''}
                             </td>
                             <td class="ingredient-cell">
