@@ -390,8 +390,8 @@ function RecipeList() {
             const guestsNumber = parseInt(guests);
             const recipesToExport = singleRecipe ? [singleRecipe] : (selectedRecipes.size > 0 ? recipes.filter(recipe => selectedRecipes.has(recipe.id)) : recipes);
 
-            const generateRecipeHtml: (recipe: Recipe) => string = (recipe: Recipe) => `
-            <div class="recipe" style="${recipe.subrecipe ? '' : 'page-break-after: always;'}">
+            const generateRecipeHtml: (recipe: Recipe, topRecipe: boolean) => string = (recipe: Recipe, topRecipe: boolean) => `
+            <div class="recipe" style="${topRecipe ? 'page-break-after: always;' : ''}">
                 ${recipe.subrecipe ? `<h3>» ${recipe.name}</h3>` : `<h2>${recipe.name}</h2>`}
                 <div class="attachments">
                     ${recipe.attachments.map(attachment => `
@@ -444,7 +444,7 @@ function RecipeList() {
                     `).join('') : ''}
                 </table>
                 <div class="instructions">${marked(recipe.closing ?? '')}</div>
-                ${recipe.subrecipes ? recipe.subrecipes.map(subrecipe => generateRecipeHtml(subrecipe)).join('') : ''}
+                ${recipe.subrecipes ? recipe.subrecipes.map(subrecipe => generateRecipeHtml(subrecipe, false)).join('') : ''}
             </div>
         `;
 
@@ -532,7 +532,7 @@ function RecipeList() {
                 </style>
             </head>
             <body>
-                ${recipesToExport.map(recipe => generateRecipeHtml(recipe)).join('')}
+                ${recipesToExport.map(recipe => generateRecipeHtml(recipe, true)).join('')}
             </body>
             </html>
         `;
