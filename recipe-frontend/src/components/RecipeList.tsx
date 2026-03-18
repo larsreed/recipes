@@ -391,7 +391,7 @@ function RecipeList() {
             const recipesToExport = singleRecipe ? [singleRecipe] : (selectedRecipes.size > 0 ? recipes.filter(recipe => selectedRecipes.has(recipe.id)) : recipes);
 
             const generateRecipeHtml: (recipe: Recipe, topRecipe: boolean) => string = (recipe: Recipe, topRecipe: boolean) => `
-            <div class="recipe" style="${topRecipe ? 'page-break-after: always;' : ''}">
+            <div class="recipe" style="${topRecipe ? 'page-break-after: always;' : 'break-inside: avoid;'}">
                 ${recipe.subrecipe ? `<h3>» ${recipe.name}</h3>` : `<h2>${recipe.name}</h2>`}
                 <div class="attachments">
                     ${recipe.attachments.map(attachment => `
