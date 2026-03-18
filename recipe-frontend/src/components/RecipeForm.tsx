@@ -691,7 +691,7 @@ function RecipeForm({ recipe, onCancel, onRecipeSaved }: RecipeFormProps) {
                             >
                                 <option value="">Select a subrecipe</option>
                                 {availableRecipes
-                                    .filter((recipe) => recipe.subrecipe)
+                                    .sort((a, b) => a.name.localeCompare(b.name))
                                     .map((recipe) => (
                                         <option key={recipe.id} value={recipe.id}>
                                             {recipe.name}
