@@ -1,4 +1,4 @@
-import React, {useState, useEffect, useCallback } from 'react';
+import React, {useState, useEffect, useCallback, useRef } from 'react';
 import Modal from 'react-modal';
 import axios from 'axios';
 import ConversionsModal from "./ConversionsModal.tsx";
@@ -82,6 +82,7 @@ function RecipeList() {
     const [csvFile, setCsvFile] = useState<File | null>(null);
     const [apiError, setApiError] = useState<string | null>(null);
     const [categoryFilter, setCategoryFilter] = useState<string>('');
+    const searchInputRef = useRef<HTMLInputElement>(null);
 
     const fetchRecipes = useCallback(() => {
         axios.get(`${config.backendUrl}/api/recipes?includeSubrecipes=${includeSubrecipes}`)
@@ -217,6 +218,7 @@ function RecipeList() {
 
     const handleOpenSearchPanel = () => {
         setIsSearchPanelOpen(true);
+        setTimeout(() => searchInputRef.current?.focus(), 0);
     };
 
     const handleCloseSearchPanel = () => {
@@ -684,10 +686,12 @@ function RecipeList() {
                 </button>}
                 {isSearchPanelOpen &&
                     <input
+                        ref={searchInputRef}
                         type="text"
                         placeholder="Enter regex..."
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
+                        onKeyDown={(e) => { if (e.key === 'Enter') handleSearch(); }}
                         style={{flexGrow: 1, minWidth: '200px'}}
                     />}
                 {isSearchPanelOpen && <button onClick={handleSearch}>
