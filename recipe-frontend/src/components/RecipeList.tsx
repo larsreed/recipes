@@ -448,6 +448,21 @@ function RecipeList() {
             </div>
         `;
 
+            const tocHtml = recipesToExport.length > 1 ? `
+                <div class="toc">
+                    <h2>Table of Contents</h2>
+                    <ul>
+                        ${recipesToExport.map((r, i) => `<li><a href="#recipe-${i}">${r.name}</a></li>`).join('')}
+                    </ul>
+                </div>
+            ` : '';
+
+            const generateRecipeHtmlWithId = (recipe: Recipe, topRecipe: boolean, index: number) =>
+                generateRecipeHtml(recipe, topRecipe).replace(
+                    recipe.subrecipe ? `<h3>» ${recipe.name}</h3>` : `<h2>${recipe.name}</h2>`,
+                    recipe.subrecipe ? `<h3 id="recipe-${index}">» ${recipe.name}</h3>` : `<h2 id="recipe-${index}">${recipe.name}</h2>`
+                );
+
             const htmlContent = `
             <html lang="en">
             <head>
@@ -529,10 +544,25 @@ function RecipeList() {
                         max-width: 100%;
                         height: auto;
                     }
+                    .toc {
+                        max-width: 800px;
+                        margin: 20px auto;
+                        padding: 20px;
+                        background: #fff;
+                        border: 1px solid #ddd;
+                        border-radius: 8px;
+                        page-break-after: always;
+                    }
+                    .toc h2 { color: #2c3e50; }
+                    .toc ul { list-style: none; padding: 0; }
+                    .toc ul li { margin: 6px 0; }
+                    .toc a { color: #16a085; text-decoration: none; }
+                    .toc a:hover { text-decoration: underline; }
                 </style>
             </head>
             <body>
-                ${recipesToExport.map(recipe => generateRecipeHtml(recipe, true)).join('')}
+                ${tocHtml}
+                ${recipesToExport.map((recipe, i) => generateRecipeHtmlWithId(recipe, true, i)).join('')}
             </body>
             </html>
         `;
