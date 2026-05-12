@@ -8,6 +8,11 @@ import RecipeModal from "./RecipeModal.tsx";
 import PromptDialog from "./PromptDialog.tsx";
 import { marked } from 'marked';
 import config from '../config';
+import {
+    Document, Packer, Paragraph, TextRun, HeadingLevel, Table, TableRow, TableCell,
+    BorderStyle, WidthType, PageBreak, XmlComponent, XmlAttributeComponent,
+} from 'docx';
+import { saveAs } from 'file-saver';
 
 
 interface Attachment {
@@ -585,6 +590,221 @@ function RecipeList() {
         }
     };
 
+    const handleExportWord = () => {
+        const guestsStr = prompt("Guests", "4");
+        if (!guestsStr || parseInt(guestsStr) <= 0) {
+            alert("Please enter a valid number of guests.");
+            return;
+        }
+        const guestsNumber = parseInt(guestsStr);
+        const recipesToExport = selectedRecipes.size > 0
+            ? recipes.filter(recipe => selectedRecipes.has(recipe.id))
+            : recipes;
+
+        const noBorder = { style: BorderStyle.NONE, size: 0, color: 'FFFFFF' };
+        const cellBorders = { top: noBorder, bottom: { style: BorderStyle.DOTTED, size: 4, color: '16a085' }, left: noBorder, right: noBorder };
+
+        const metaRun = (label: string, value: string) => new Paragraph({
+            children: [
+                new TextRun({ text: label, italics: true, color: '555555' }),
+                new TextRun({ text: value }),
+            ],
+            spacing: { after: 60 },
+        });
+
+        const buildRecipeSection = (recipe: Recipe, topLevel: boolean, index?: number): (Paragraph | Table)[] => {
+            const elements: (Paragraph | Table)[] = [];
+
+            // Heading
+            elements.push(new Paragraph({
+                text: topLevel ? recipe.name : `» ${recipe.name}`,
+                heading: topLevel ? HeadingLevel.HEADING_1 : HeadingLevel.HEADING_2,
+                ...(topLevel && index !== undefined ? { bookmark: { id: `recipe-${index}`, name: recipe.name } } : {}),
+                spacing: { before: topLevel ? 0 : 400, after: 200 },
+            }));
+
+            if (recipe.served) elements.push(metaRun('Served: ', recipe.served));
+            if (recipe.source) elements.push(metaRun('Source: ', recipe.source.name + (recipe.pageRef ? ` p.${recipe.pageRef}` : '')));
+            if (recipe.rating) elements.push(metaRun('Rating: ', String(recipe.rating)));
+            if (recipe.wineTips) elements.push(metaRun('Wine tips: ', recipe.wineTips));
+            if (recipe.matchFor) elements.push(metaRun('Match for: ', recipe.matchFor));
+            if (recipe.categories) elements.push(metaRun('Categories: ', recipe.categories.replace(/,/g, ' ')));
+            if (recipe.notes) elements.push(metaRun('Notes: ', recipe.notes));
+
+            if (recipe.instructions) {
+                elements.push(new Paragraph({
+                    children: [new TextRun({ text: recipe.instructions })],
+                    spacing: { after: 200 },
+                }));
+            }
+
+            // Ingredients heading
+            elements.push(new Paragraph({
+                text: 'Ingredients',
+                heading: topLevel ? HeadingLevel.HEADING_2 : HeadingLevel.HEADING_3,
+                spacing: { before: 200, after: 100 },
+            }));
+
+            // Ingredients table
+            const ingredientRows = recipe.ingredients.map(ing => {
+                const scaledAmount = ing.amount
+                    ? (recipe.people > 0
+                        ? parseFloat(((ing.amount * guestsNumber) / recipe.people).toFixed(2)).toString()
+                        : String(ing.amount))
+                    : '';
+                const amountMeasure = [scaledAmount, ing.measure, ing.prefix].filter(Boolean).join(' ');
+                return new TableRow({
+                    children: [
+                        new TableCell({
+                            children: [new Paragraph({ text: ing.preamble || '', spacing: { after: 0 } })],
+                            borders: cellBorders,
+                            width: { size: 20, type: WidthType.PERCENTAGE },
+                        }),
+                        new TableCell({
+                            children: [new Paragraph({
+                                children: [
+                                    new TextRun({ text: amountMeasure + (amountMeasure ? ' ' : '') }),
+                                    new TextRun({ text: ing.name, color: 'D2691E', bold: false }),
+                                ],
+                                spacing: { after: 0 },
+                            })],
+                            borders: cellBorders,
+                            width: { size: 50, type: WidthType.PERCENTAGE },
+                        }),
+                        new TableCell({
+                            children: [new Paragraph({ text: ing.instruction || '', spacing: { after: 0 } })],
+                            borders: cellBorders,
+                            width: { size: 30, type: WidthType.PERCENTAGE },
+                        }),
+                    ],
+                });
+            });
+
+            // Subrecipe references in ingredient table
+            const subrecipeRefRows = (recipe.subrecipes ?? []).map(sr => new TableRow({
+                children: [
+                    new TableCell({
+                        children: [new Paragraph({ children: [new TextRun({ text: sr.name, italics: true, color: '16a085' })], spacing: { after: 0 } })],
+                        borders: cellBorders,
+                        columnSpan: 3,
+                    }),
+                ],
+            }));
+
+            if (ingredientRows.length > 0 || subrecipeRefRows.length > 0) {
+                elements.push(new Table({
+                    rows: [...ingredientRows, ...subrecipeRefRows],
+                    width: { size: 100, type: WidthType.PERCENTAGE },
+                    borders: { top: noBorder, bottom: noBorder, left: noBorder, right: noBorder },
+                }));
+            }
+
+            if (recipe.closing) {
+                elements.push(new Paragraph({
+                    children: [new TextRun({ text: recipe.closing })],
+                    spacing: { before: 200, after: 200 },
+                }));
+            }
+
+            // Nested subrecipe full sections
+            for (const sr of (recipe.subrecipes ?? [])) {
+                elements.push(...buildRecipeSection(sr, false));
+            }
+
+            // Page break after each top-level recipe (except last)
+            if (topLevel) {
+                elements.push(new Paragraph({ children: [new PageBreak()] }));
+            }
+
+            return elements;
+        };
+
+        const allSections: (Paragraph | Table)[] = [];
+
+        // Word native TOC field
+        if (recipesToExport.length > 1) {
+            // Build a proper Word TOC complex field using XmlComponent.
+            // Word will render and update this as a native, clickable TOC when the document is opened.
+            class FldChar extends XmlComponent {
+                constructor(type: string) {
+                    super('w:fldChar');
+                    const attrs: Record<string, string> = { 'w:fldCharType': type };
+                    if (type === 'begin') attrs['w:dirty'] = 'true';
+                    this.root.push(new XmlAttributeComponent(attrs));
+                }
+            }
+            class InstrText extends XmlComponent {
+                constructor(text: string) {
+                    super('w:instrText');
+                    this.root.push(new XmlAttributeComponent({ 'xml:space': 'preserve' }));
+                    this.root.push(text as unknown as XmlComponent);
+                }
+            }
+            class FldRun extends XmlComponent {
+                constructor(child: XmlComponent) { super('w:r'); this.root.push(child); }
+            }
+            class TocParagraph extends XmlComponent {
+                constructor() {
+                    super('w:p');
+                    this.root.push(new FldRun(new FldChar('begin')));
+                    this.root.push(new FldRun(new InstrText(' TOC \\o "1-3" \\h \\z \\u ')));
+                    this.root.push(new FldRun(new FldChar('separate')));
+                    this.root.push(new FldRun(new FldChar('end')));
+                }
+            }
+
+            allSections.push(new TocParagraph() as unknown as Paragraph);
+            allSections.push(new Paragraph({ children: [new PageBreak()] }));
+        }
+
+        recipesToExport.forEach((recipe, i) => {
+            allSections.push(...buildRecipeSection(recipe, true, i));
+        });
+
+        const doc = new Document({
+            styles: {
+                default: {
+                    document: {
+                        run: { font: 'Calibri', size: 22 },
+                    },
+                },
+                paragraphStyles: [
+                    {
+                        id: 'Heading1',
+                        name: 'Heading 1',
+                        basedOn: 'Normal',
+                        next: 'Normal',
+                        run: { color: '2c3e50', size: 32, bold: true },
+                        paragraph: { spacing: { before: 240, after: 120 } },
+                    },
+                    {
+                        id: 'Heading2',
+                        name: 'Heading 2',
+                        basedOn: 'Normal',
+                        next: 'Normal',
+                        run: { color: '16a085', size: 26, bold: true },
+                        paragraph: { spacing: { before: 200, after: 100 } },
+                    },
+                    {
+                        id: 'Heading3',
+                        name: 'Heading 3',
+                        basedOn: 'Normal',
+                        next: 'Normal',
+                        run: { color: '16a085', size: 24, bold: true },
+                        paragraph: { spacing: { before: 160, after: 80 } },
+                    },
+                ],
+            },
+            sections: [{
+                children: allSections,
+            }],
+        });
+
+        Packer.toBlob(doc).then(blob => {
+            saveAs(blob, 'recipes.docx');
+        });
+    };
+
     const handleConfirmExport = () => {
         setIsDialogOpen(false);
         if (isExportAll) {
@@ -736,6 +956,9 @@ function RecipeList() {
                 </button>
                 <button onClick={() => handleShoppingList()} title="Export shopping list">
                     <i className="fas fa-shopping-cart"></i>
+                </button>
+                <button onClick={() => handleExportWord()} title="Export to Word (.docx)">
+                    <i className="fas fa-file-word"></i>
                 </button>
                 <button onClick={handleDeleteMany} title="Delete selected recipes" className="btn-danger">
                     <i className="fas fa-trash"></i>
