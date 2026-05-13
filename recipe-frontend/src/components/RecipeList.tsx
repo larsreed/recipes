@@ -10,7 +10,7 @@ import { marked } from 'marked';
 import config from '../config';
 import {
     Document, Packer, Paragraph, TextRun, HeadingLevel, Table, TableRow, TableCell,
-    BorderStyle, WidthType, PageBreak, XmlComponent, XmlAttributeComponent,
+    BorderStyle, WidthType, PageBreak, XmlComponent, XmlAttributeComponent, TableLayoutType,
 } from 'docx';
 import { saveAs } from 'file-saver';
 
@@ -604,6 +604,81 @@ function RecipeList() {
         const noBorder = { style: BorderStyle.NONE, size: 0, color: 'FFFFFF' };
         const cellBorders = { top: noBorder, bottom: { style: BorderStyle.DOTTED, size: 4, color: '16a085' }, left: noBorder, right: noBorder };
 
+        // Convert markdown text to an array of docx Paragraphs.
+        // Handles: paragraphs, bold, italic, bold+italic, bullet/ordered lists, headings, line breaks.
+        const markdownToDocx = (md: string): Paragraph[] => {
+            if (!md) return [];
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            const tokens: any[] = marked.lexer(md);
+            const result: Paragraph[] = [];
+
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            const inlineToRuns = (inlineTokens: any[], bold = false, italic = false): TextRun[] => {
+                const runs: TextRun[] = [];
+                for (const tok of inlineTokens) {
+                    if (tok.type === 'text' || tok.type === 'escape') {
+                        if (tok.tokens) {
+                            runs.push(...inlineToRuns(tok.tokens, bold, italic));
+                        } else {
+                            runs.push(new TextRun({ text: tok.text ?? tok.raw, bold, italics: italic }));
+                        }
+                    } else if (tok.type === 'strong') {
+                        runs.push(...inlineToRuns(tok.tokens, true, italic));
+                    } else if (tok.type === 'em') {
+                        runs.push(...inlineToRuns(tok.tokens, bold, true));
+                    } else if (tok.type === 'codespan') {
+                        runs.push(new TextRun({ text: tok.text, font: 'Courier New', bold, italics: italic }));
+                    } else if (tok.type === 'br') {
+                        runs.push(new TextRun({ text: '', break: 1 }));
+                    } else if (tok.type === 'space') {
+                        runs.push(new TextRun({ text: ' ' }));
+                    } else if (tok.text) {
+                        runs.push(new TextRun({ text: tok.text, bold, italics: italic }));
+                    }
+                }
+                return runs;
+            };
+
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            const processTokens = (tokenList: any[]) => {
+                for (const tok of tokenList) {
+                    if (tok.type === 'space') continue;
+                    if (tok.type === 'paragraph') {
+                        result.push(new Paragraph({ children: inlineToRuns(tok.tokens), spacing: { after: 80 } }));
+                    } else if (tok.type === 'heading') {
+                        const lvl = [HeadingLevel.HEADING_1, HeadingLevel.HEADING_2, HeadingLevel.HEADING_3,
+                            HeadingLevel.HEADING_4, HeadingLevel.HEADING_5, HeadingLevel.HEADING_6][Math.min(tok.depth - 1, 5)];
+                        result.push(new Paragraph({ children: inlineToRuns(tok.tokens), heading: lvl }));
+                    } else if (tok.type === 'list') {
+                        for (const item of tok.items) {
+                            const runs: TextRun[] = [];
+                            for (const t of item.tokens) {
+                                if (t.tokens) runs.push(...inlineToRuns(t.tokens));
+                                else runs.push(new TextRun({ text: t.text }));
+                            }
+                            result.push(new Paragraph({
+                                children: runs,
+                                bullet: tok.ordered ? undefined : { level: 0 },
+                                numbering: tok.ordered ? { reference: 'default-numbering', level: 0 } : undefined,
+                                spacing: { after: 40 },
+                            }));
+                        }
+                    } else if (tok.type === 'code') {
+                        result.push(new Paragraph({
+                            children: [new TextRun({ text: tok.text, font: 'Courier New' })],
+                            spacing: { after: 80 },
+                        }));
+                    } else if (tok.type === 'blockquote') {
+                        processTokens(tok.tokens);
+                    } else if (tok.tokens) {
+                        result.push(new Paragraph({ children: inlineToRuns(tok.tokens), spacing: { after: 80 } }));
+                    }
+                }
+            };
+            processTokens(tokens);
+            return result.length > 0 ? result : [new Paragraph({ text: md })];
+        };
+
         const metaRun = (label: string, value: string) => new Paragraph({
             children: [
                 new TextRun({ text: label, italics: true, color: '555555' }),
@@ -629,21 +704,47 @@ function RecipeList() {
             if (recipe.wineTips) elements.push(metaRun('Wine tips: ', recipe.wineTips));
             if (recipe.matchFor) elements.push(metaRun('Match for: ', recipe.matchFor));
             if (recipe.categories) elements.push(metaRun('Categories: ', recipe.categories.replace(/,/g, ' ')));
-            if (recipe.notes) elements.push(metaRun('Notes: ', recipe.notes));
+            if (recipe.notes) elements.push(...markdownToDocx('*Notes*: ' + recipe.notes));
 
             if (recipe.instructions) {
-                elements.push(new Paragraph({
-                    children: [new TextRun({ text: recipe.instructions })],
-                    spacing: { after: 200 },
-                }));
+                elements.push(...markdownToDocx(recipe.instructions));
             }
 
-            // Ingredients heading
+            // Ingredients heading — bold text, not a heading style
             elements.push(new Paragraph({
-                text: 'Ingredients',
-                heading: topLevel ? HeadingLevel.HEADING_2 : HeadingLevel.HEADING_3,
+                children: [new TextRun({ text: 'Ingredients', bold: true, size: 24 })],
                 spacing: { before: 200, after: 100 },
             }));
+
+            const inlineToRunsPublic = (md: string): TextRun[] => {
+                if (!md) return [new TextRun({ text: '' })];
+                const tokens = marked.lexer(md);
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                const inlineRuns = (toks: any[], bold = false, italic = false): TextRun[] => {
+                    const runs: TextRun[] = [];
+                    for (const t of toks) {
+                        if (t.type === 'text' || t.type === 'escape') {
+                            if (t.tokens) runs.push(...inlineRuns(t.tokens, bold, italic));
+                            else runs.push(new TextRun({ text: t.text ?? t.raw, bold, italics: italic }));
+                        } else if (t.type === 'strong') {
+                            runs.push(...inlineRuns(t.tokens, true, italic));
+                        } else if (t.type === 'em') {
+                            runs.push(...inlineRuns(t.tokens, bold, true));
+                        } else if (t.type === 'br') {
+                            runs.push(new TextRun({ text: '', break: 1 }));
+                        } else if (t.text) {
+                            runs.push(new TextRun({ text: t.text, bold, italics: italic }));
+                        }
+                    }
+                    return runs;
+                };
+                const allRuns: TextRun[] = [];
+                for (const tok of tokens) {
+                    if (tok.type === 'paragraph' || tok.type === 'text') allRuns.push(...inlineRuns(tok.tokens ?? []));
+                    else if (tok.type === 'space') allRuns.push(new TextRun({ text: ' ' }));
+                }
+                return allRuns.length > 0 ? allRuns : [new TextRun({ text: md })];
+            };
 
             // Ingredients table
             const ingredientRows = recipe.ingredients.map(ing => {
@@ -656,9 +757,8 @@ function RecipeList() {
                 return new TableRow({
                     children: [
                         new TableCell({
-                            children: [new Paragraph({ text: ing.preamble || '', spacing: { after: 0 } })],
+                            children: [new Paragraph({ children: inlineToRunsPublic(ing.preamble || ''), spacing: { after: 0 } })],
                             borders: cellBorders,
-                            width: { size: 20, type: WidthType.PERCENTAGE },
                         }),
                         new TableCell({
                             children: [new Paragraph({
@@ -669,12 +769,10 @@ function RecipeList() {
                                 spacing: { after: 0 },
                             })],
                             borders: cellBorders,
-                            width: { size: 50, type: WidthType.PERCENTAGE },
                         }),
                         new TableCell({
-                            children: [new Paragraph({ text: ing.instruction || '', spacing: { after: 0 } })],
+                            children: [new Paragraph({ children: inlineToRunsPublic(ing.instruction || ''), spacing: { after: 0 } })],
                             borders: cellBorders,
-                            width: { size: 30, type: WidthType.PERCENTAGE },
                         }),
                     ],
                 });
@@ -694,16 +792,14 @@ function RecipeList() {
             if (ingredientRows.length > 0 || subrecipeRefRows.length > 0) {
                 elements.push(new Table({
                     rows: [...ingredientRows, ...subrecipeRefRows],
-                    width: { size: 100, type: WidthType.PERCENTAGE },
+                    width: { size: 0, type: WidthType.AUTO },
+                    layout: TableLayoutType.AUTOFIT,
                     borders: { top: noBorder, bottom: noBorder, left: noBorder, right: noBorder },
                 }));
             }
 
             if (recipe.closing) {
-                elements.push(new Paragraph({
-                    children: [new TextRun({ text: recipe.closing })],
-                    spacing: { before: 200, after: 200 },
-                }));
+                elements.push(...markdownToDocx(recipe.closing));
             }
 
             // Nested subrecipe full sections
