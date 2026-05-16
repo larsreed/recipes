@@ -567,19 +567,19 @@ function RecipeForm({ recipe, onCancel, onRecipeSaved }: RecipeFormProps) {
                         />
                     </div>
                     <div className="form-field">
-                        <label>Wine Tips</label>
-                        <input type="text"
-                               value={wineTips ?? ''}
-                               onChange={(e) => handleChange(setWineTips, e.target.value)}
-                               placeholder="Wine pairing suggestions"
+                        <label>Wine Tips (markdown)</label>
+                        <AutoGrowTextarea
+                            value={wineTips ?? ''}
+                            onChange={(e) => handleChange(setWineTips, e.target.value)}
+                            placeholder="Wine pairing suggestions"
                         />
                     </div>
                     <div className="form-field">
-                        <label>Good Match For</label>
-                        <input type="text"
-                               value={matchFor ?? ''}
-                               onChange={(e) => handleChange(setMatchFor, e.target.value)}
-                               placeholder="What does this go well with?"
+                        <label>Good Match For (markdown)</label>
+                        <AutoGrowTextarea
+                            value={matchFor ?? ''}
+                            onChange={(e) => handleChange(setMatchFor, e.target.value)}
+                            placeholder="What does this go well with?"
                         />
                     </div>
                     <div className="form-field">

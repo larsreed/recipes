@@ -11,6 +11,7 @@ import config from '../config';
 import {
     Document, Packer, Paragraph, TextRun, HeadingLevel, Table, TableRow, TableCell,
     BorderStyle, WidthType, PageBreak, XmlComponent, XmlAttributeComponent, TableLayoutType,
+    ExternalHyperlink,
 } from 'docx';
 import { saveAs } from 'file-saver';
 
@@ -59,11 +60,15 @@ interface Ingredient {
 
 Modal.setAppElement('#root');
 
-// Configure marked to preserve line breaks
+// Configure marked to preserve line breaks and open links in new tab
 marked.setOptions({
     gfm: true,
     breaks: true,
 });
+const markedRenderer = new marked.Renderer();
+markedRenderer.link = ({ href, title, text }) =>
+    `<a href="${href}"${title ? ` title="${title}"` : ''} target="_blank" rel="noopener noreferrer">${text}</a>`;
+marked.use({ renderer: markedRenderer });
 
 
 function RecipeList() {
@@ -413,8 +418,8 @@ function RecipeList() {
                 ${recipe.served ? `<p><em>Served</em>: ${recipe.served.replace(/\n/g, '<br />')}</p>` : ''}
                 ${recipe.source ? `<p><em>Source</em>: ${recipe.source.name}${recipe.pageRef ? ` p.${recipe.pageRef}` : ''}</p>` : ''}
                 ${recipe.rating ? `<p><em>Rating</em>: ${recipe.rating}</p>` : ''}
-                ${recipe.wineTips ? `<p><em>Wine tips</em>: ${recipe.wineTips.replace(/\n/g, '<br />')}</p>` : ''}
-                ${recipe.matchFor ? `<p><em>Match for</em>: ${recipe.matchFor.replace(/\n/g, '<br />')}</p>` : ''}
+                ${recipe.wineTips ? `<div>${marked('*Wine tips*: ' + recipe.wineTips)}</div>` : ''}
+                ${recipe.matchFor ? `<div>${marked('*Match for*: ' + recipe.matchFor)}</div>` : ''}
                 ${recipe.categories ? `<p><em>Categories</em>: ${recipe.categories.replace(/,/g, ' ')}</p>` : ''}
                 ${recipe.notes ? `<div>${marked("*Notes*: " + recipe.notes)}</div>` : ''}
                 ${recipe.instructions ? `<div class="instructions">${marked(recipe.instructions)}</div>` : ''}
@@ -613,8 +618,8 @@ function RecipeList() {
             const result: Paragraph[] = [];
 
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            const inlineToRuns = (inlineTokens: any[], bold = false, italic = false): TextRun[] => {
-                const runs: TextRun[] = [];
+            const inlineToRuns = (inlineTokens: any[], bold = false, italic = false): (TextRun | ExternalHyperlink)[] => {
+                const runs: (TextRun | ExternalHyperlink)[] = [];
                 for (const tok of inlineTokens) {
                     if (tok.type === 'text' || tok.type === 'escape') {
                         if (tok.tokens) {
@@ -628,6 +633,12 @@ function RecipeList() {
                         runs.push(...inlineToRuns(tok.tokens, bold, true));
                     } else if (tok.type === 'codespan') {
                         runs.push(new TextRun({ text: tok.text ?? '', font: 'Courier New', bold, italics: italic }));
+                    } else if (tok.type === 'link') {
+                        const linkText = tok.text || tok.href || '';
+                        runs.push(new ExternalHyperlink({
+                            link: tok.href,
+                            children: [new TextRun({ text: linkText, style: 'Hyperlink', bold, italics: italic })],
+                        }));
                     } else if (tok.type === 'br') {
                         runs.push(new TextRun({ text: '', break: 1 }));
                     } else if (tok.type === 'space') {
@@ -644,15 +655,18 @@ function RecipeList() {
                 for (const tok of tokenList) {
                     if (tok.type === 'space') continue;
                     if (tok.type === 'paragraph') {
-                        const runs = tok.tokens?.length ? inlineToRuns(tok.tokens) : [new TextRun({ text: tok.text ?? '' })];
+                        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                        const runs: any[] = tok.tokens?.length ? inlineToRuns(tok.tokens) : [new TextRun({ text: tok.text ?? '' })];
                         result.push(new Paragraph({ children: runs, spacing: { after: 80 } }));
                     } else if (tok.type === 'heading') {
                         const lvl = [HeadingLevel.HEADING_1, HeadingLevel.HEADING_2, HeadingLevel.HEADING_3,
                             HeadingLevel.HEADING_4, HeadingLevel.HEADING_5, HeadingLevel.HEADING_6][Math.min(tok.depth - 1, 5)];
-                        result.push(new Paragraph({ children: inlineToRuns(tok.tokens), heading: lvl }));
+                        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                        result.push(new Paragraph({ children: inlineToRuns(tok.tokens) as any[], heading: lvl }));
                     } else if (tok.type === 'list') {
                         for (const item of tok.items) {
-                            const runs: TextRun[] = [];
+                            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                            const runs: any[] = [];
                             for (const t of item.tokens) {
                                 if (t.tokens) runs.push(...inlineToRuns(t.tokens));
                                 else runs.push(new TextRun({ text: t.text }));
@@ -672,7 +686,8 @@ function RecipeList() {
                     } else if (tok.type === 'blockquote') {
                         processTokens(tok.tokens);
                     } else if (tok.tokens) {
-                        result.push(new Paragraph({ children: inlineToRuns(tok.tokens), spacing: { after: 80 } }));
+                        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                        result.push(new Paragraph({ children: inlineToRuns(tok.tokens) as any[], spacing: { after: 80 } }));
                     }
                 }
             };
@@ -713,8 +728,8 @@ function RecipeList() {
             if (recipe.served) elements.push(metaRun('Served: ', unquoteCsv(recipe.served)));
             if (recipe.source) elements.push(metaRun('Source: ', recipe.source.name + (recipe.pageRef ? ` p.${recipe.pageRef}` : '')));
             if (recipe.rating) elements.push(metaRun('Rating: ', String(recipe.rating)));
-            if (recipe.wineTips) elements.push(metaRun('Wine tips: ', unquoteCsv(recipe.wineTips)));
-            if (recipe.matchFor) elements.push(metaRun('Match for: ', unquoteCsv(recipe.matchFor)));
+            if (recipe.wineTips) elements.push(...markdownToDocx('*Wine tips*: ' + unquoteCsv(recipe.wineTips)));
+            if (recipe.matchFor) elements.push(...markdownToDocx('*Match for*: ' + unquoteCsv(recipe.matchFor)));
             if (recipe.categories) elements.push(metaRun('Categories: ', recipe.categories.replace(/,/g, ' ')));
             if (recipe.notes) elements.push(...markdownToDocx('*Notes*: ' + unquoteCsv(recipe.notes)));
 
@@ -732,8 +747,8 @@ function RecipeList() {
                 if (!md) return [new TextRun({ text: '' })];
                 const tokens = marked.lexer(md);
                 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                const inlineRuns = (toks: any[], bold = false, italic = false): TextRun[] => {
-                    const runs: TextRun[] = [];
+                const inlineRuns = (toks: any[], bold = false, italic = false): (TextRun | ExternalHyperlink)[] => {
+                    const runs: (TextRun | ExternalHyperlink)[] = [];
                     for (const t of toks) {
                         if (t.type === 'text' || t.type === 'escape') {
                             if (t.tokens) runs.push(...inlineRuns(t.tokens, bold, italic));
@@ -742,6 +757,12 @@ function RecipeList() {
                             runs.push(...inlineRuns(t.tokens, true, italic));
                         } else if (t.type === 'em') {
                             runs.push(...inlineRuns(t.tokens, bold, true));
+                        } else if (t.type === 'link') {
+                            const linkText = t.text || t.href || '';
+                            runs.push(new ExternalHyperlink({
+                                link: t.href,
+                                children: [new TextRun({ text: linkText, style: 'Hyperlink', bold, italics: italic })],
+                            }));
                         } else if (t.type === 'br') {
                             runs.push(new TextRun({ text: '', break: 1 }));
                         } else if (t.text) {
@@ -750,12 +771,12 @@ function RecipeList() {
                     }
                     return runs;
                 };
-                const allRuns: TextRun[] = [];
+                const allRuns: (TextRun | ExternalHyperlink)[] = [];
                 for (const tok of tokens) {
                     if (tok.type === 'paragraph' || tok.type === 'text') allRuns.push(...inlineRuns(tok.tokens ?? []));
                     else if (tok.type === 'space') allRuns.push(new TextRun({ text: ' ' }));
                 }
-                return allRuns.length > 0 ? allRuns : [new TextRun({ text: md })];
+                return allRuns.length > 0 ? allRuns as TextRun[] : [new TextRun({ text: md })];
             };
 
             // Ingredients table
