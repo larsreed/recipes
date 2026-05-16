@@ -620,14 +620,14 @@ function RecipeList() {
                         if (tok.tokens) {
                             runs.push(...inlineToRuns(tok.tokens, bold, italic));
                         } else {
-                            runs.push(new TextRun({ text: tok.text ?? tok.raw, bold, italics: italic }));
+                            runs.push(new TextRun({ text: tok.text ?? '', bold, italics: italic }));
                         }
                     } else if (tok.type === 'strong') {
                         runs.push(...inlineToRuns(tok.tokens, true, italic));
                     } else if (tok.type === 'em') {
                         runs.push(...inlineToRuns(tok.tokens, bold, true));
                     } else if (tok.type === 'codespan') {
-                        runs.push(new TextRun({ text: tok.text, font: 'Courier New', bold, italics: italic }));
+                        runs.push(new TextRun({ text: tok.text ?? '', font: 'Courier New', bold, italics: italic }));
                     } else if (tok.type === 'br') {
                         runs.push(new TextRun({ text: '', break: 1 }));
                     } else if (tok.type === 'space') {
@@ -644,7 +644,8 @@ function RecipeList() {
                 for (const tok of tokenList) {
                     if (tok.type === 'space') continue;
                     if (tok.type === 'paragraph') {
-                        result.push(new Paragraph({ children: inlineToRuns(tok.tokens), spacing: { after: 80 } }));
+                        const runs = tok.tokens?.length ? inlineToRuns(tok.tokens) : [new TextRun({ text: tok.text ?? '' })];
+                        result.push(new Paragraph({ children: runs, spacing: { after: 80 } }));
                     } else if (tok.type === 'heading') {
                         const lvl = [HeadingLevel.HEADING_1, HeadingLevel.HEADING_2, HeadingLevel.HEADING_3,
                             HeadingLevel.HEADING_4, HeadingLevel.HEADING_5, HeadingLevel.HEADING_6][Math.min(tok.depth - 1, 5)];
@@ -679,6 +680,17 @@ function RecipeList() {
             return result.length > 0 ? result : [new Paragraph({ text: md })];
         };
 
+        // Strip CSV-style surrounding quotes and unescape doubled internal quotes
+        // e.g. "He said ""hello""" → He said "hello"
+        const unquoteCsv = (s: string): string => {
+            if (!s) return s;
+            const t = s.trim();
+            if (t.startsWith('"') && t.endsWith('"')) {
+                return t.slice(1, -1).replace(/""/g, '"');
+            }
+            return s;
+        };
+
         const metaRun = (label: string, value: string) => new Paragraph({
             children: [
                 new TextRun({ text: label, italics: true, color: '555555' }),
@@ -698,16 +710,16 @@ function RecipeList() {
                 spacing: { before: topLevel ? 0 : 400, after: 200 },
             }));
 
-            if (recipe.served) elements.push(metaRun('Served: ', recipe.served));
+            if (recipe.served) elements.push(metaRun('Served: ', unquoteCsv(recipe.served)));
             if (recipe.source) elements.push(metaRun('Source: ', recipe.source.name + (recipe.pageRef ? ` p.${recipe.pageRef}` : '')));
             if (recipe.rating) elements.push(metaRun('Rating: ', String(recipe.rating)));
-            if (recipe.wineTips) elements.push(metaRun('Wine tips: ', recipe.wineTips));
-            if (recipe.matchFor) elements.push(metaRun('Match for: ', recipe.matchFor));
+            if (recipe.wineTips) elements.push(metaRun('Wine tips: ', unquoteCsv(recipe.wineTips)));
+            if (recipe.matchFor) elements.push(metaRun('Match for: ', unquoteCsv(recipe.matchFor)));
             if (recipe.categories) elements.push(metaRun('Categories: ', recipe.categories.replace(/,/g, ' ')));
-            if (recipe.notes) elements.push(...markdownToDocx('*Notes*: ' + recipe.notes));
+            if (recipe.notes) elements.push(...markdownToDocx('*Notes*: ' + unquoteCsv(recipe.notes)));
 
             if (recipe.instructions) {
-                elements.push(...markdownToDocx(recipe.instructions));
+                elements.push(...markdownToDocx(unquoteCsv(recipe.instructions)));
             }
 
             // Ingredients heading — bold text, not a heading style
@@ -725,7 +737,7 @@ function RecipeList() {
                     for (const t of toks) {
                         if (t.type === 'text' || t.type === 'escape') {
                             if (t.tokens) runs.push(...inlineRuns(t.tokens, bold, italic));
-                            else runs.push(new TextRun({ text: t.text ?? t.raw, bold, italics: italic }));
+                            else runs.push(new TextRun({ text: t.text ?? '', bold, italics: italic }));
                         } else if (t.type === 'strong') {
                             runs.push(...inlineRuns(t.tokens, true, italic));
                         } else if (t.type === 'em') {
@@ -757,21 +769,21 @@ function RecipeList() {
                 return new TableRow({
                     children: [
                         new TableCell({
-                            children: [new Paragraph({ children: inlineToRunsPublic(ing.preamble || ''), spacing: { after: 0 } })],
+                            children: [new Paragraph({ children: inlineToRunsPublic(unquoteCsv(ing.preamble || '')), spacing: { after: 0 } })],
                             borders: cellBorders,
                         }),
                         new TableCell({
                             children: [new Paragraph({
                                 children: [
                                     new TextRun({ text: amountMeasure + (amountMeasure ? ' ' : '') }),
-                                    new TextRun({ text: ing.name, color: 'D2691E', bold: false }),
+                                    new TextRun({ text: unquoteCsv(ing.name), color: 'D2691E', bold: false }),
                                 ],
                                 spacing: { after: 0 },
                             })],
                             borders: cellBorders,
                         }),
                         new TableCell({
-                            children: [new Paragraph({ children: inlineToRunsPublic(ing.instruction || ''), spacing: { after: 0 } })],
+                            children: [new Paragraph({ children: inlineToRunsPublic(unquoteCsv(ing.instruction || '')), spacing: { after: 0 } })],
                             borders: cellBorders,
                         }),
                     ],
@@ -799,7 +811,7 @@ function RecipeList() {
             }
 
             if (recipe.closing) {
-                elements.push(...markdownToDocx(recipe.closing));
+                elements.push(...markdownToDocx(unquoteCsv(recipe.closing)));
             }
 
             // Nested subrecipe full sections
