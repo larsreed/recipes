@@ -196,7 +196,7 @@ function RecipeForm({ recipe, onCancel, onRecipeSaved }: RecipeFormProps) {
         };
     }, [isDirty, onCancel]);
 
-    const handleChange = (setter: React.Dispatch<React.SetStateAction<any>>, value: any) => {
+    const handleChange = <T,>(setter: React.Dispatch<React.SetStateAction<T>>, value: NoInfer<T>) => {
         setter(value);
         setIsDirty(true);
     };
@@ -334,9 +334,7 @@ function RecipeForm({ recipe, onCancel, onRecipeSaved }: RecipeFormProps) {
             setRating(response.data.rating || null);
             setWineTips(response.data.wineTips || null);
             setMatchFor(response.data.matchFor || null);
-            setCategories(response.data.categories?.split(',').map((tag: string) => tag.trim()).filter((tag: any) => {
-                return tag;
-            }) || null);
+            setCategories(response.data.categories?.split(',').map((tag: string) => tag.trim()).filter((tag: string) => tag) || null);
             setNotes(response.data.notes || '');
             setIngredients(response.data.ingredients || []);
             setSubrecipes(response.data.subrecipes || []);
@@ -379,7 +377,6 @@ function RecipeForm({ recipe, onCancel, onRecipeSaved }: RecipeFormProps) {
         };
         const apiUrl = recipe ? `${config.backendUrl}/api/recipes/${recipe.id}` : `${config.backendUrl}/api/recipes`;
         try {
-            // @ts-ignore
             const response = recipe ? await axios.put(apiUrl, newRecipe) : await axios.post(apiUrl, newRecipe);
             if (response.data.error) {
                 setApiError(response.data.error);
@@ -392,10 +389,9 @@ function RecipeForm({ recipe, onCancel, onRecipeSaved }: RecipeFormProps) {
             setApiError(null);
             setIsDirty(false);
             onRecipeSaved();
-        } catch (error) {
+        } catch (error: unknown) {
             console.error('Error saving recipe:', error);
-            // @ts-ignore
-            if (error.response && error.response.data && error.response.data.error) {
+            if (axios.isAxiosError<{ error?: string }>(error) && error.response?.data?.error) {
                 setApiError(error.response.data.error);
             } else {
                 setApiError('Failed to save recipe. Please try again.');

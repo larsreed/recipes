@@ -1,8 +1,11 @@
 import { useEffect } from 'react';
 import ConversionForm from './ConversionForm';
 
-// @ts-ignore
-const ConversionModal = ({ onClose }) => {
+interface ConversionModalProps {
+    onClose: () => void;
+}
+
+const ConversionModal = ({ onClose }: ConversionModalProps) => {
     useEffect(() => {
         const handleKeyDown = (event: KeyboardEvent) => {
             if (event.key === 'Escape') {

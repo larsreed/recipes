@@ -1,16 +1,12 @@
-import React, {useState, useEffect, useCallback, useRef } from 'react';
+import React, {useState, useEffect, useCallback, useRef, Suspense, lazy } from 'react';
 import Modal from 'react-modal';
 import axios from 'axios';
-import ConversionsModal from "./ConversionsModal.tsx";
-import SourceModal from "./SourceModal.tsx";
-import TemperaturesModal from "./TemperaturesModal.tsx";
-import RecipeModal from "./RecipeModal.tsx";
 import PromptDialog from "./PromptDialog.tsx";
 import { marked } from 'marked';
 import config from '../config';
 import {
     Document, Packer, Paragraph, TextRun, HeadingLevel, Table, TableRow, TableCell,
-    BorderStyle, WidthType, PageBreak, XmlComponent, XmlAttributeComponent, TableLayoutType,
+    BorderStyle, WidthType, PageBreak, TableLayoutType, TableOfContents,
     ExternalHyperlink,
 } from 'docx';
 import { saveAs } from 'file-saver';
@@ -58,6 +54,15 @@ interface Ingredient {
     instruction: string;
 }
 
+interface ShoppingListItem {
+    name: string;
+    amount?: number;
+    measure?: string;
+}
+
+type SortDirection = 'ascending' | 'descending';
+type SortKey = 'id' | 'name' | 'served' | 'source' | 'pageRef' | 'rating' | 'categories';
+
 Modal.setAppElement('#root');
 
 // Configure marked to preserve line breaks and open links in new tab
@@ -69,6 +74,11 @@ const markedRenderer = new marked.Renderer();
 markedRenderer.link = ({ href, title, text }) =>
     `<a href="${href}"${title ? ` title="${title}"` : ''} target="_blank" rel="noopener noreferrer">${text}</a>`;
 marked.use({ renderer: markedRenderer });
+
+const ConversionsModal = lazy(() => import('./ConversionsModal.tsx'));
+const SourceModal = lazy(() => import('./SourceModal.tsx'));
+const TemperaturesModal = lazy(() => import('./TemperaturesModal.tsx'));
+const RecipeModal = lazy(() => import('./RecipeModal.tsx'));
 
 
 function RecipeList() {
@@ -88,11 +98,16 @@ function RecipeList() {
     const [isSearchActive, setIsSearchActive] = useState(false);
     const [isExportAll, setIsExportAll] = useState(false);
     const [includeSubrecipes, setIncludeSubrecipes] = useState(false);
-    const [sortConfig, setSortConfig] = useState({ key: 'id', direction: 'ascending' });
+    const [sortConfig, setSortConfig] = useState<{ key: SortKey; direction: SortDirection }>({ key: 'id', direction: 'ascending' });
     const [csvFile, setCsvFile] = useState<File | null>(null);
     const [apiError, setApiError] = useState<string | null>(null);
     const [categoryFilter, setCategoryFilter] = useState<string>('');
     const searchInputRef = useRef<HTMLInputElement>(null);
+    const categoryFilterRef = useRef<string>('');
+
+    useEffect(() => {
+        categoryFilterRef.current = categoryFilter;
+    }, [categoryFilter]);
 
     const applyCategoryFilter = useCallback((recipeList: Recipe[], selectedCategory: string) => {
         if (!selectedCategory) {
@@ -116,12 +131,24 @@ function RecipeList() {
     }, [includeSubrecipes, applyCategoryFilter]);
 
     useEffect(() => {
-        fetchRecipes(categoryFilter);
+        fetchRecipes(categoryFilterRef.current);
     }, [fetchRecipes]);
 
     const sortedRecipes = [...recipes].sort((a, b) => {
-        const aValue = sortConfig.key === 'source' ? a.source?.name?.toLowerCase() || '' : a[sortConfig.key]?.toString().toLowerCase() || '';
-        const bValue = sortConfig.key === 'source' ? b.source?.name?.toLowerCase() || '' : b[sortConfig.key]?.toString().toLowerCase() || '';
+        const getSortableValue = (recipe: Recipe, key: SortKey): string => {
+            switch (key) {
+                case 'source':
+                    return recipe.source?.name?.toLowerCase() || '';
+                case 'id':
+                case 'rating':
+                    return String(recipe[key] ?? '');
+                default:
+                    return (recipe[key] ?? '').toString().toLowerCase();
+            }
+        };
+
+        const aValue = getSortableValue(a, sortConfig.key);
+        const bValue = getSortableValue(b, sortConfig.key);
 
         if (aValue < bValue) {
             return sortConfig.direction === 'ascending' ? -1 : 1;
@@ -132,15 +159,15 @@ function RecipeList() {
         return 0;
     });
 
-    const requestSort = (key: string) => {
-        let direction = 'ascending';
+    const requestSort = (key: SortKey) => {
+        let direction: SortDirection = 'ascending';
         if (sortConfig.key === key && sortConfig.direction === 'ascending') {
             direction = 'descending';
         }
         setSortConfig({ key, direction });
     };
 
-    const getSortIcon = (key: string) => {
+    const getSortIcon = (key: SortKey) => {
         if (sortConfig.key === key) {
             return sortConfig.direction === 'ascending' ? 'fas fa-sort-up' : 'fas fa-sort-down';
         }
@@ -351,7 +378,7 @@ function RecipeList() {
                         'Content-Type': 'application/json',
                     },
                 }).then(async response => {
-                    const shoppingContent = response.data; // Assuming the backend returns CSV content as plain text
+                    const shoppingContent = response.data as ShoppingListItem[];
 
                    const newWindow = window.open("", "_blank");
                     if (newWindow) {
@@ -379,7 +406,7 @@ function RecipeList() {
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    ${shoppingContent.map((item: { name: any; amount: number; measure: any; }) => `
+                                    ${shoppingContent.map((item: ShoppingListItem) => `
                                         <tr>
                                             <td>${item.name}</td>
                                             <td>${item.amount? parseFloat(item.amount.toFixed(2)).toString() : ''}</td> 
@@ -857,41 +884,14 @@ function RecipeList() {
             return elements;
         };
 
-        const allSections: (Paragraph | Table)[] = [];
+        const allSections: (Paragraph | Table | TableOfContents)[] = [];
 
         // Word native TOC field
         if (recipesToExport.length > 1) {
-            // Build a proper Word TOC complex field using XmlComponent.
-            // Word will render and update this as a native, clickable TOC when the document is opened.
-            class FldChar extends XmlComponent {
-                constructor(type: string) {
-                    super('w:fldChar');
-                    const attrs: Record<string, string> = { 'w:fldCharType': type };
-                    if (type === 'begin') attrs['w:dirty'] = 'true';
-                    this.root.push(new XmlAttributeComponent(attrs));
-                }
-            }
-            class InstrText extends XmlComponent {
-                constructor(text: string) {
-                    super('w:instrText');
-                    this.root.push(new XmlAttributeComponent({ 'xml:space': 'preserve' }));
-                    this.root.push(text as unknown as XmlComponent);
-                }
-            }
-            class FldRun extends XmlComponent {
-                constructor(child: XmlComponent) { super('w:r'); this.root.push(child); }
-            }
-            class TocParagraph extends XmlComponent {
-                constructor() {
-                    super('w:p');
-                    this.root.push(new FldRun(new FldChar('begin')));
-                    this.root.push(new FldRun(new InstrText(' TOC \\o "1-3" \\h \\z \\u ')));
-                    this.root.push(new FldRun(new FldChar('separate')));
-                    this.root.push(new FldRun(new FldChar('end')));
-                }
-            }
-
-            allSections.push(new TocParagraph() as unknown as Paragraph);
+            allSections.push(new TableOfContents('Table of Contents', {
+                headingStyleRange: '1-3',
+                hyperlink: true,
+            }));
             allSections.push(new Paragraph({ children: [new PageBreak()] }));
         }
 
@@ -991,19 +991,20 @@ function RecipeList() {
         setRecipes(applyCategoryFilter(allRecipes, event.target.value));
     };
 
-    // @ts-ignore
     return (
         <div>
-            {isSourceModalOpen && <SourceModal onClose={handleCloseSourceModal}/>}
-            {isTemperatureModalOpen && <TemperaturesModal onClose={handleCloseTemperatureModal}/>}
-            {isConversionsModalOpen && <ConversionsModal onClose={handleCloseConversionsModal}/>}
-            {isRecipeModalOpen && (
-                <RecipeModal
-                    recipe={editingRecipe}
-                    onCancel={handleCloseRecipeModal}
-                    onRecipeSaved={handleRecipeSaved}
-                />
-            )}
+            <Suspense fallback={null}>
+                {isSourceModalOpen && <SourceModal onClose={handleCloseSourceModal}/>}
+                {isTemperatureModalOpen && <TemperaturesModal onClose={handleCloseTemperatureModal}/>}
+                {isConversionsModalOpen && <ConversionsModal onClose={handleCloseConversionsModal}/>}
+                {isRecipeModalOpen && (
+                    <RecipeModal
+                        recipe={editingRecipe}
+                        onCancel={handleCloseRecipeModal}
+                        onRecipeSaved={handleRecipeSaved}
+                    />
+                )}
+            </Suspense>
             <div className="standard-form">
                 <button onClick={handleOpenSourceModal}>
                     <i className="fas fa-book"></i>
@@ -1023,8 +1024,7 @@ function RecipeList() {
                 </label>
                 <input id="csvFileInput" type="file" accept=".csv,.txt"
                        onChange={(e) => {
-                           // @ts-ignore
-                           setCsvFile(e.target.files[0]);
+                           setCsvFile(e.target.files?.[0] ?? null);
                        }}/>
                 {csvFile && <button onClick={handleImport}>
                     <i className="fas fa-upload"></i>

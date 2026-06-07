@@ -1,8 +1,11 @@
 import { useEffect } from 'react';
 import TemperatureForm from './TemperatureForm';
 
-// @ts-ignore
-const TemperatureModal = ({onClose: onClose}) => {
+interface TemperatureModalProps {
+    onClose: () => void;
+}
+
+const TemperatureModal = ({ onClose }: TemperatureModalProps) => {
     useEffect(() => {
         const handleKeyDown = (event: KeyboardEvent) => {
             if (event.key === 'Escape') {

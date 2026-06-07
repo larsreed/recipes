@@ -29,7 +29,7 @@ function ConversionList() {
         }
     };
 
-    const handleInputChange = (index: number, field: keyof Conversion, value: string | number) => {
+    const handleInputChange = (index: number, field: keyof Conversion, value: string | number | boolean) => {
         const updatedConversions = [...conversions];
         updatedConversions[index] = {
             ...updatedConversions[index],
