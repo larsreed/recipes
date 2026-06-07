@@ -94,21 +94,30 @@ function RecipeList() {
     const [categoryFilter, setCategoryFilter] = useState<string>('');
     const searchInputRef = useRef<HTMLInputElement>(null);
 
-    const fetchRecipes = useCallback(() => {
+    const applyCategoryFilter = useCallback((recipeList: Recipe[], selectedCategory: string) => {
+        if (!selectedCategory) {
+            return recipeList;
+        }
+        return recipeList.filter(recipe =>
+            recipe.categories.split(',').map(cat => cat.trim()).includes(selectedCategory)
+        );
+    }, []);
+
+    const fetchRecipes = useCallback((selectedCategory: string) => {
         axios.get(`${config.backendUrl}/api/recipes?includeSubrecipes=${includeSubrecipes}`)
             .then(response => {
                 setAllRecipes(response.data);
-                setRecipes(response.data);
+                setRecipes(applyCategoryFilter(response.data, selectedCategory));
             })
             .catch(error => {
                 console.error('Error fetching recipes:', error);
                 setApiError('Failed to fetch recipes');
             });
-    }, [includeSubrecipes]);
+    }, [includeSubrecipes, applyCategoryFilter]);
 
     useEffect(() => {
-        fetchRecipes();
-    }, [fetchRecipes, includeSubrecipes]);
+        fetchRecipes(categoryFilter);
+    }, [fetchRecipes]);
 
     const sortedRecipes = [...recipes].sort((a, b) => {
         const aValue = sortConfig.key === 'source' ? a.source?.name?.toLowerCase() || '' : a[sortConfig.key]?.toString().toLowerCase() || '';
@@ -187,7 +196,7 @@ function RecipeList() {
     const handleRecipeSaved = () => {
         setEditingRecipe(null);
         setIsRecipeModalOpen(false);
-        fetchRecipes();
+        fetchRecipes(categoryFilter);
     };
 
     const handleOpenSourceModal = () => {
@@ -272,7 +281,7 @@ function RecipeList() {
                 }
             });
             console.log("Recipes imported:", response.data);
-            fetchRecipes();
+            fetchRecipes(categoryFilter);
             setCsvFile(null);
             setApiError(null);
             const fileInput = document.getElementById('csvFileInput') as HTMLInputElement;
@@ -280,7 +289,7 @@ function RecipeList() {
         } catch (error) {
             console.error('Error importing recipes:', error);
             setApiError('Failed to import recipes. Please check the CSV file format and try again.\'');
-            fetchRecipes();
+            fetchRecipes(categoryFilter);
         }
     };
 
@@ -979,11 +988,7 @@ function RecipeList() {
 
     const handleCategoryFilterChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
         setCategoryFilter(event.target.value);
-        if (event.target.value === '') {
-            setRecipes(allRecipes);
-        } else {
-            setRecipes(allRecipes.filter(recipe => recipe.categories.split(',').map(cat => cat.trim()).includes(event.target.value)));
-        }
+        setRecipes(applyCategoryFilter(allRecipes, event.target.value));
     };
 
     // @ts-ignore
