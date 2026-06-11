@@ -480,6 +480,35 @@ function RecipeForm({ recipe, onCancel, onRecipeSaved }: RecipeFormProps) {
                                 <option key={cat} value={cat}>{cat}</option>
                             ))}
                     </select>
+                    <div style={{display: 'flex', gap: '0.5rem', marginTop: '0.5rem'}}>
+                        <input
+                            type="text"
+                            placeholder="Add custom category..."
+                            id="customCategoryInput"
+                            onKeyDown={e => {
+                                if (e.key === 'Enter') {
+                                    e.preventDefault();
+                                    const input = e.currentTarget;
+                                    addCategory(input.value.trim());
+                                    input.value = '';
+                                }
+                            }}
+                        />
+                        <button
+                            type="button"
+                            className="add-item-button"
+                            onClick={() => {
+                                const input = document.getElementById('customCategoryInput') as HTMLInputElement;
+                                if (input) {
+                                    addCategory(input.value.trim());
+                                    input.value = '';
+                                }
+                            }}
+                        >
+                            <i className="fas fa-plus"></i>
+                            Add
+                        </button>
+                    </div>
                     <div className="category-container">
                         {(categories ?? []).map(cat => (
                             <span key={cat} className="category">
