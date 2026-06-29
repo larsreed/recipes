@@ -169,7 +169,7 @@ class RecipeController(
                                 append("\n")
                                 continue
                             }
-                            val columns = (0 until lastCell).map { colIndex ->
+                            val columns = (0..<lastCell).map { colIndex ->
                                 dataFormatter.formatCellValue(row.getCell(colIndex)).trimEnd()
                             }
                             append(columns.joinToString("\t").trimEnd())

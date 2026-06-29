@@ -395,25 +395,10 @@ input[type="checkbox"] {
   transform: scale(1.1);
 }
 
-.source-form,
 .recipe-form {
   display: flex;
   flex-direction: column;
   gap: 1.25rem;
-}
-
-.form-group {
-  display: flex;
-  flex-direction: column;
-  gap: 0.625rem;
-}
-
-.form-line {
-  display: flex;
-  flex-direction: row;
-  gap: 0.75rem;
-  align-items: center;
-  flex-wrap: wrap;
 }
 
 .form-group label,
@@ -621,13 +606,6 @@ ul li {
   background: linear-gradient(135deg, #059669 0%, #047857 100%) !important;
 }
 
-.btn-warning {
-  background: linear-gradient(135deg, var(--warning-color) 0%, #d97706 100%) !important;
-}
-
-.btn-warning:hover {
-  background: linear-gradient(135deg, #d97706 0%, #b45309 100%) !important;
-}
 
 /* Button groups in table headers and cells */
 th button,
@@ -724,15 +702,9 @@ td button:last-child {
   gap: 1rem;
 }
 
-.form-grid-3 {
-  display: grid;
-  grid-template-columns: 1fr 1fr 1fr;
-  gap: 1rem;
-}
 
 @media (max-width: 768px) {
-  .form-grid,
-  .form-grid-3 {
+  .form-grid {
     grid-template-columns: 1fr;
   }
 }
@@ -815,20 +787,6 @@ td button:last-child {
 }
 
 /* Info boxes */
-.info-box {
-  background: #eff6ff;
-  border-left: 4px solid var(--primary-color);
-  padding: 0.75rem 1rem;
-  border-radius: 6px;
-  margin: 0.75rem 0;
-  font-size: 0.875rem;
-  color: var(--text-secondary);
-}
-
-.info-box i {
-  color: var(--primary-color);
-  margin-right: 0.5rem;
-}
 
 /* Referenced by section */
 .referenced-by {
@@ -888,11 +846,6 @@ td button:last-child {
   .standard-form {
     flex-direction: column;
     align-items: flex-start;
-  }
-
-  .form-line {
-    flex-direction: column;
-    width: 100%;
   }
 
   th, td {
