@@ -6,11 +6,16 @@ import net.kalars.recipes.repository.ConversionRepository
 import net.kalars.recipes.repository.TemperatureRepository
 import net.kalars.recipes.service.RecipeService
 import net.kalars.recipes.service.SourceService
+import org.apache.poi.ss.usermodel.DataFormatter
+import org.apache.poi.ss.usermodel.WorkbookFactory
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
 import org.springframework.web.multipart.MultipartFile
+import java.io.ByteArrayInputStream
 import java.io.BufferedReader
 import java.io.InputStreamReader
+import java.nio.charset.Charset
+import java.nio.charset.StandardCharsets
 import java.util.Base64
 import java.util.regex.Pattern
 
@@ -23,6 +28,9 @@ class RecipeController(
     private val conversionRepository: ConversionRepository,
     private val temperatureRepository: TemperatureRepository
 ) {
+
+    private val decimalCommaRegex = Regex("(?<!\\d)(-?\\d+),(\\d+)(?!\\d)")
+    private val importMarkers = setOf("Source", "Recipe", "Ingredient", "Subrecipe", "Attachment", "Conversion", "Temperature")
 
     private fun report(message: String): ResponseEntity<String> {
         System.err.println(message)
@@ -146,30 +154,110 @@ class RecipeController(
         return recipeService.updateRecipe(recipe.id, recipe)
     }
 
+    private fun prepareRecipeImportContent(file: MultipartFile): String {
+        val fileBytes = file.bytes
+        val decodedText = decodeTextContent(fileBytes)
+        val excelConverted = runCatching {
+            val dataFormatter = DataFormatter()
+            WorkbookFactory.create(ByteArrayInputStream(fileBytes)).use { workbook ->
+                buildString {
+                    for (sheet in workbook) {
+                        for (rowIndex in 0..sheet.lastRowNum) {
+                            val row = sheet.getRow(rowIndex)
+                            val lastCell = row?.lastCellNum?.toInt() ?: 0
+                            if (lastCell <= 0) {
+                                append("\n")
+                                continue
+                            }
+                            val columns = (0 until lastCell).map { colIndex ->
+                                dataFormatter.formatCellValue(row.getCell(colIndex)).trimEnd()
+                            }
+                            append(columns.joinToString("\t").trimEnd())
+                            append("\n")
+                        }
+                    }
+                }
+            }
+        }.getOrNull()
+
+        return when {
+            excelConverted != null && containsImportMarker(excelConverted) -> excelConverted
+            containsImportMarker(decodedText) -> decodedText
+            excelConverted != null -> excelConverted
+            else -> decodedText
+        }
+    }
+
+    private fun decodeTextContent(fileBytes: ByteArray): String {
+        val charset: Charset = when {
+            fileBytes.size >= 2 && fileBytes[0] == 0xFF.toByte() && fileBytes[1] == 0xFE.toByte() -> Charsets.UTF_16LE
+            fileBytes.size >= 2 && fileBytes[0] == 0xFE.toByte() && fileBytes[1] == 0xFF.toByte() -> Charsets.UTF_16BE
+            fileBytes.size >= 3 && fileBytes[0] == 0xEF.toByte() && fileBytes[1] == 0xBB.toByte() && fileBytes[2] == 0xBF.toByte() -> StandardCharsets.UTF_8
+            else -> StandardCharsets.UTF_8
+        }
+        return String(fileBytes, charset).replace("\u0000", "")
+    }
+
+    private fun containsImportMarker(content: String): Boolean {
+        return content.lineSequence().any { rawLine ->
+            val line = rawLine.trim()
+            val firstToken = line
+                .removePrefix("#")
+                .trimStart()
+                .split("\t", " ")
+                .firstOrNull()
+                ?.trim('"')
+                ?: ""
+            importMarkers.contains(firstToken)
+        }
+    }
+
+    private fun normalizeImportLine(line: String): String {
+        val trimmed = line.trimEnd()
+        return decimalCommaRegex.replace(trimmed) { "${it.groupValues[1]}.${it.groupValues[2]}" }
+    }
+
+    private fun normalizeCellForMarker(cell: String): String {
+        return cell
+            .replace('\u00A0', ' ')
+            .trim()
+            .trim('"')
+    }
+
+
     @PostMapping("/import")
     fun importRecipes(@RequestParam("file") file: MultipartFile): List<Recipe> {
-        val reader = BufferedReader(InputStreamReader(file.inputStream))
+        val importContent = prepareRecipeImportContent(file)
+        val reader = BufferedReader(InputStreamReader(importContent.byteInputStream(StandardCharsets.UTF_8), StandardCharsets.UTF_8))
         val recipes = mutableListOf<Recipe>()
         val sources = mutableMapOf<String, Long>() // Map to store source names and their IDs
         val subrecipesToAdd = mutableMapOf<String, List<String>>() // Map to store links between main and subrecipes
         var currentRecipe: Recipe? = null
         var lineNo = 0
 
-        reader.lines().forEach { line ->
-            val columns = line.trim().split("\t").toMutableList().apply { while (size < 100) add("") }
+        reader.lines().forEach { rawLine ->
+            val line = normalizeImportLine(rawLine)
+            val rawColumns = line.split("\t").toMutableList()
+            val markerIndex = rawColumns
+                .take(10)
+                .indexOfFirst { importMarkers.contains(normalizeCellForMarker(it)) }
+            val columns = if (markerIndex >= 0) rawColumns.drop(markerIndex).toMutableList() else rawColumns
+            while (columns.size < 100) columns.add("")
+            val nonBlankCount = columns.indexOfLast { it.isNotBlank() } + 1
+            val recordType = normalizeCellForMarker(columns[0])
             lineNo++
             when {
-                line.isBlank() -> {
+                recordType.isBlank() -> {
                     // Skip empty lines
                 }
 
-                line.startsWith("#") -> {
+                recordType.startsWith("#") -> {
                     // Skip comment lines
                 }
 
-                line.startsWith("Source") -> {
+                recordType.equals("Source", ignoreCase = true) -> {
                     // Create or fetch the source
-                    if (columns.size < 3) {
+                    if (nonBlankCount < 3) {
                         report("Invalid Source line ($lineNo): $line")
                         return@forEach
                     }
@@ -181,19 +269,22 @@ class RecipeController(
                     sources[sourceName] = source.id
                 }
 
-                line.startsWith("Recipe") -> {
+                recordType.equals("Recipe", ignoreCase = true) -> {
                     // Save the previous recipe if it exists
                     currentRecipe?.let { recipes.add(recipeService.createRecipe(it)) }
 
                     // Create a new recipe
-                    if (columns.size < 2) {
+                    if (nonBlankCount < 2) {
                         report("Invalid Recipe line ($lineNo): $line")
                         return@forEach
                     }
+                    val people = columns[3].toIntOrNull()
+                        ?: columns[3].replace(',', '.').toFloatOrNull()?.toInt()
+                        ?: 0
                     currentRecipe = Recipe(
                         name = columns[1],
                         subrecipe = columns[2].toBoolean(),
-                        people = columns[3].toInt(),
+                        people = people,
                         rating = columns[4].toIntOrNull(),
                         served = columns[5].replace("\\n", "\n"),
                         instructions = columns[6].replace("\\n", "\n"),
@@ -211,9 +302,9 @@ class RecipeController(
                     currentRecipe?.sourceId = sourceId
                 }
 
-                line.startsWith("Ingredient") -> {
+                recordType.equals("Ingredient", ignoreCase = true) -> {
                     // Add an ingredient to the current recipe
-                    if (columns.size < 2) {
+                    if (nonBlankCount < 2) {
                         report("Invalid Ingredient line ($lineNo): $line")
                         return@forEach
                     }
@@ -233,9 +324,9 @@ class RecipeController(
                     )
                 }
 
-                line.startsWith("Subrecipe") -> {
+                recordType.equals("Subrecipe", ignoreCase = true) -> {
                     // Remember a subrecipe to add later
-                    if (columns.size < 2) {
+                    if (nonBlankCount < 2) {
                         report("Invalid Subrecipe line ($lineNo): $line")
                         return@forEach
                     }
@@ -250,9 +341,9 @@ class RecipeController(
                     ) { oldMapping, subs -> (oldMapping + subs).distinct() }
                 }
 
-                line.startsWith("Attachment") -> {
+                recordType.equals("Attachment", ignoreCase = true) -> {
                     // Add an attachment to the current recipe
-                    if (columns.size < 3) {
+                    if (nonBlankCount < 3) {
                         report("Invalid Attachment line ($lineNo): $line")
                         return@forEach
                     }
@@ -260,8 +351,6 @@ class RecipeController(
                         report("Attachment without Recipe ($lineNo): $line")
                         return@forEach
                     }
-                    val fileName = columns[1].replace("\\n", "\n")
-                    val fileContent = String(Base64.getDecoder().decode(columns[2]))
                     currentRecipe?.attachments?.add(
                         Attachment(
                             fileName = columns[1].replace("\\n", "\n"),
@@ -270,14 +359,18 @@ class RecipeController(
                     )
                 }
 
-                line.startsWith("Conversion") -> {
-                    if (columns.size < 4) {
+                recordType.equals("Conversion", ignoreCase = true) -> {
+                    if (nonBlankCount < 4) {
                         report("Invalid Conversion line ($lineNo): $line")
                         return@forEach
                     }
                     val fromMeasure = columns[1]
                     val toMeasure = columns[2]
-                    val factor = columns[3].toFloat()
+                    val factor = columns[3].toFloatOrNull()
+                    if (factor == null) {
+                        report("Invalid Conversion factor ($lineNo): ${columns[3]}")
+                        return@forEach
+                    }
                     val description = columns.getOrNull(4)?.replace("\\n", "\n")
                     val preferred = columns.getOrNull(5)?.toBoolean() ?: false
 
@@ -299,12 +392,16 @@ class RecipeController(
                         )
                     }
                 }
-                line.startsWith("Temperature") -> {
-                    if (columns.size < 3) {
+                recordType.equals("Temperature", ignoreCase = true) -> {
+                    if (nonBlankCount < 3) {
                         report("Invalid Temperature line ($lineNo): $line")
                         return@forEach
                     }
-                    val temp = columns[1].toFloat()
+                    val temp = columns[1].toFloatOrNull()
+                    if (temp == null) {
+                        report("Invalid Temperature value ($lineNo): ${columns[1]}")
+                        return@forEach
+                    }
                     val meat = columns[2]
                     val description = columns.getOrNull(3)?.replace("\\n", "\n")
 

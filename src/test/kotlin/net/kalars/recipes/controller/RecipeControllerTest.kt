@@ -6,12 +6,14 @@ import net.kalars.recipes.model.Attachment
 import net.kalars.recipes.model.Recipe
 import net.kalars.recipes.model.ShoppingListItem
 import net.kalars.recipes.model.Source
+import org.apache.poi.xssf.usermodel.XSSFWorkbook
 import net.kalars.recipes.repository.ConversionRepository
 import net.kalars.recipes.repository.TemperatureRepository
 import net.kalars.recipes.service.RecipeService
 import net.kalars.recipes.service.SourceService
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.Assertions.assertEquals
 import org.mockito.Mockito
 import org.mockito.Mockito.any
 import org.mockito.Mockito.eq
@@ -19,6 +21,8 @@ import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.test.mock.mockito.MockBean
 import org.springframework.boot.test.web.server.LocalServerPort
 import org.springframework.test.context.ActiveProfiles
+import java.io.ByteArrayOutputStream
+import java.nio.charset.StandardCharsets
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @ActiveProfiles("test")
@@ -223,6 +227,129 @@ class RecipeControllerTest {
             .body("name", org.hamcrest.Matchers.equalTo("Soup"))
 
         Mockito.verify(recipeService).updateRecipe(eq(1L), any(Recipe::class.java) ?: Recipe())
+    }
+
+    @Test
+    fun `should import recipes from excel file and normalize decimal comma`() {
+        var capturedRecipe: Recipe? = null
+        Mockito.doAnswer { invocation ->
+            val created = invocation.getArgument(0) as Recipe
+            capturedRecipe = created
+            created
+        }.`when`(recipeService).createRecipe(any(Recipe::class.java) ?: Recipe())
+
+        val workbook = XSSFWorkbook()
+        val sheet = workbook.createSheet("Recipes")
+
+        val recipeRow = sheet.createRow(0)
+        recipeRow.createCell(0).setCellValue("Recipe")
+        recipeRow.createCell(1).setCellValue("Excel Soup")
+        recipeRow.createCell(2).setCellValue("false")
+        recipeRow.createCell(3).setCellValue("4")
+
+        val ingredientRow = sheet.createRow(1)
+        ingredientRow.createCell(0).setCellValue("Ingredient")
+        ingredientRow.createCell(1).setCellValue("")
+        ingredientRow.createCell(2).setCellValue("1,5")
+        ingredientRow.createCell(3).setCellValue("dl")
+        ingredientRow.createCell(4).setCellValue("")
+        ingredientRow.createCell(5).setCellValue("Milk")
+        ingredientRow.createCell(6).setCellValue("Warm")
+
+        val output = ByteArrayOutputStream()
+        workbook.write(output)
+        workbook.close()
+
+        RestAssured.given()
+            .multiPart("file", "recipes.xlsx", output.toByteArray(), "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+            .post("/api/recipes/import")
+            .then()
+            .statusCode(200)
+            .body("[0].name", org.hamcrest.Matchers.equalTo("Excel Soup"))
+
+        Mockito.verify(recipeService).createRecipe(any(Recipe::class.java) ?: Recipe())
+        val importedRecipe = capturedRecipe ?: throw AssertionError("Recipe was not captured")
+        assertEquals(1, importedRecipe.ingredients.size)
+        assertEquals(1.5f, importedRecipe.ingredients[0].amount)
+        assertEquals("Milk", importedRecipe.ingredients[0].name)
+    }
+
+    @Test
+    fun `should import recipes from excel when marker is in second column`() {
+        var capturedRecipe: Recipe? = null
+        Mockito.doAnswer { invocation ->
+            val created = invocation.getArgument(0) as Recipe
+            capturedRecipe = created
+            created
+        }.`when`(recipeService).createRecipe(any(Recipe::class.java) ?: Recipe())
+
+        val workbook = XSSFWorkbook()
+        val sheet = workbook.createSheet("Recipes")
+
+        val recipeRow = sheet.createRow(0)
+        recipeRow.createCell(0).setCellValue("1")
+        recipeRow.createCell(1).setCellValue("Recipe")
+        recipeRow.createCell(2).setCellValue("Shifted Soup")
+        recipeRow.createCell(3).setCellValue("false")
+        recipeRow.createCell(4).setCellValue("4")
+
+        val ingredientRow = sheet.createRow(1)
+        ingredientRow.createCell(0).setCellValue("2")
+        ingredientRow.createCell(1).setCellValue("Ingredient")
+        ingredientRow.createCell(2).setCellValue("")
+        ingredientRow.createCell(3).setCellValue("2,0")
+        ingredientRow.createCell(4).setCellValue("dl")
+        ingredientRow.createCell(5).setCellValue("")
+        ingredientRow.createCell(6).setCellValue("Cream")
+        ingredientRow.createCell(7).setCellValue("Whip")
+
+        val output = ByteArrayOutputStream()
+        workbook.write(output)
+        workbook.close()
+
+        RestAssured.given()
+            .multiPart("file", "recipes-shifted.xlsx", output.toByteArray(), "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+            .post("/api/recipes/import")
+            .then()
+            .statusCode(200)
+            .body("[0].name", org.hamcrest.Matchers.equalTo("Shifted Soup"))
+
+        Mockito.verify(recipeService).createRecipe(any(Recipe::class.java) ?: Recipe())
+        val importedRecipe = capturedRecipe ?: throw AssertionError("Recipe was not captured")
+        assertEquals(1, importedRecipe.ingredients.size)
+        assertEquals(2.0f, importedRecipe.ingredients[0].amount)
+        assertEquals("Cream", importedRecipe.ingredients[0].name)
+    }
+
+    @Test
+    fun `should import recipes from utf16 tab separated text`() {
+        var capturedRecipe: Recipe? = null
+        Mockito.doAnswer { invocation ->
+            val created = invocation.getArgument(0) as Recipe
+            capturedRecipe = created
+            created
+        }.`when`(recipeService).createRecipe(any(Recipe::class.java) ?: Recipe())
+
+        val lines = listOf(
+            "# Recipe\tName\tIsSubrecipe:bool\tPeople:int",
+            "Recipe\tUnicode Soup\tfalse\t4",
+            "Ingredient\t\t1,5\tdl\t\tMilk\tWarm"
+        ).joinToString("\r\n")
+
+        val utf16Bytes = ("\uFEFF" + lines).toByteArray(StandardCharsets.UTF_16LE)
+
+        RestAssured.given()
+            .multiPart("file", "recipes.txt", utf16Bytes, "text/plain")
+            .post("/api/recipes/import")
+            .then()
+            .statusCode(200)
+            .body("[0].name", org.hamcrest.Matchers.equalTo("Unicode Soup"))
+
+        Mockito.verify(recipeService).createRecipe(any(Recipe::class.java) ?: Recipe())
+        val importedRecipe = capturedRecipe ?: throw AssertionError("Recipe was not captured")
+        assertEquals(1, importedRecipe.ingredients.size)
+        assertEquals(1.5f, importedRecipe.ingredients[0].amount)
+        assertEquals("Milk", importedRecipe.ingredients[0].name)
     }
 
     @Test

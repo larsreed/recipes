@@ -296,7 +296,7 @@ function RecipeList() {
     const handleImport = async (event: React.FormEvent) => {
         event.preventDefault();
         if (!csvFile) {
-            alert('Please select a CSV file to import.');
+            alert('Please select a CSV, text, or Excel file to import.');
             return;
         }
         const formData = new FormData();
@@ -307,15 +307,28 @@ function RecipeList() {
                     'Content-Type': 'multipart/form-data'
                 }
             });
-            console.log("Recipes imported:", response.data);
+            const importedCount = Array.isArray(response.data) ? response.data.length : 0;
+            if (importedCount === 0) {
+                setApiError('Import completed but no recipes were detected. Ensure rows contain markers like Recipe/Ingredient/Source.');
+            } else {
+                console.log(`Import completed: ${importedCount} recipe(s) imported.`);
+            }
             fetchRecipes(categoryFilter);
-            setCsvFile(null);
-            setApiError(null);
-            const fileInput = document.getElementById('csvFileInput') as HTMLInputElement;
-            if (fileInput) fileInput.value = ''; // Clear the file input
-        } catch (error) {
+            if (importedCount > 0) {
+                setCsvFile(null);
+                setApiError(null);
+                const fileInput = document.getElementById('csvFileInput') as HTMLInputElement;
+                if (fileInput) fileInput.value = ''; // Clear the file input
+            }
+        } catch (error: unknown) {
             console.error('Error importing recipes:', error);
-            setApiError('Failed to import recipes. Please check the CSV file format and try again.\'');
+            if (axios.isAxiosError<{ error?: string }>(error) && error.response?.data?.error) {
+                setApiError(error.response.data.error);
+            } else if (axios.isAxiosError(error) && typeof error.response?.data === 'string' && error.response.data.trim()) {
+                setApiError(error.response.data);
+            } else {
+                setApiError('Failed to import recipes. Please check the file format and try again.');
+            }
             fetchRecipes(categoryFilter);
         }
     };
@@ -1022,7 +1035,7 @@ function RecipeList() {
                     <i className="fas fa-file-import"></i>
                     Import recipes:
                 </label>
-                <input id="csvFileInput" type="file" accept=".csv,.txt"
+                <input id="csvFileInput" type="file" accept=".csv,.txt,.xlsx,.xslx,.xls"
                        onChange={(e) => {
                            setCsvFile(e.target.files?.[0] ?? null);
                        }}/>
