@@ -25,6 +25,7 @@ class RecipeService(
         .orElseThrow { RuntimeException("Recipe not found") }
 
     fun createRecipe(recipe: Recipe): Recipe {
+        recipe.name = recipe.name.trim()
         if (recipeRepository.findByName(recipe.name) != null) {
             throw RuntimeException("Recipe name must be unique")
         }
@@ -45,12 +46,12 @@ class RecipeService(
             .orElseThrow { RuntimeException("Recipe not found") }
 
         // Check for duplicate name (excluding self)
-        val duplicate = recipeRepository.findByName(recipe.name)
+        val duplicate = recipeRepository.findByName(recipe.name.trim())
         if (duplicate != null && duplicate.id != id) {
             throw RuntimeException("Recipe name must be unique")
         }
 
-        existingRecipe.name = recipe.name
+        existingRecipe.name = recipe.name.trim()
         existingRecipe.subrecipe = recipe.subrecipe
         existingRecipe.instructions = recipe.instructions
         existingRecipe.closing = recipe.closing

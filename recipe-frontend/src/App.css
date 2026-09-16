@@ -506,6 +506,17 @@ label {
   margin: 0.5rem 0;
 }
 
+.warning {
+  color: #92400e;
+  font-size: 0.875rem;
+  font-weight: 500;
+  padding: 0.75rem 1rem;
+  background-color: #fffbeb;
+  border-left: 4px solid #f59e0b;
+  border-radius: 6px;
+  margin: 0.5rem 0;
+}
+
 .prompt-dialog-content p {
   margin-bottom: 1.5rem;
   font-size: 1.125rem;

@@ -265,7 +265,8 @@ class RecipeControllerTest {
             .post("/api/recipes/import")
             .then()
             .statusCode(200)
-            .body("[0].name", org.hamcrest.Matchers.equalTo("Excel Soup"))
+            .body("recipes[0].name", org.hamcrest.Matchers.equalTo("Excel Soup"))
+            .body("warnings", org.hamcrest.Matchers.empty<Any>())
 
         Mockito.verify(recipeService).createRecipe(any(Recipe::class.java) ?: Recipe())
         val importedRecipe = capturedRecipe ?: throw AssertionError("Recipe was not captured")
@@ -312,7 +313,8 @@ class RecipeControllerTest {
             .post("/api/recipes/import")
             .then()
             .statusCode(200)
-            .body("[0].name", org.hamcrest.Matchers.equalTo("Shifted Soup"))
+            .body("recipes[0].name", org.hamcrest.Matchers.equalTo("Shifted Soup"))
+            .body("warnings", org.hamcrest.Matchers.empty<Any>())
 
         Mockito.verify(recipeService).createRecipe(any(Recipe::class.java) ?: Recipe())
         val importedRecipe = capturedRecipe ?: throw AssertionError("Recipe was not captured")
@@ -343,13 +345,34 @@ class RecipeControllerTest {
             .post("/api/recipes/import")
             .then()
             .statusCode(200)
-            .body("[0].name", org.hamcrest.Matchers.equalTo("Unicode Soup"))
+            .body("recipes[0].name", org.hamcrest.Matchers.equalTo("Unicode Soup"))
+            .body("warnings", org.hamcrest.Matchers.empty<Any>())
 
         Mockito.verify(recipeService).createRecipe(any(Recipe::class.java) ?: Recipe())
         val importedRecipe = capturedRecipe ?: throw AssertionError("Recipe was not captured")
         assertEquals(1, importedRecipe.ingredients.size)
         assertEquals(1.5f, importedRecipe.ingredients[0].amount)
         assertEquals("Milk", importedRecipe.ingredients[0].name)
+    }
+
+    @Test
+    fun `should return warning when imported subrecipe is missing`() {
+        Mockito.doAnswer { invocation ->
+            invocation.getArgument(0) as Recipe
+        }.`when`(recipeService).createRecipe(any(Recipe::class.java) ?: Recipe())
+
+        val content = listOf(
+            "Recipe\tMain Dish\tfalse\t2",
+            "Subrecipe\tMissing Sauce"
+        ).joinToString("\n")
+
+        RestAssured.given()
+            .multiPart("file", "recipes.txt", content.toByteArray(), "text/plain")
+            .post("/api/recipes/import")
+            .then()
+            .statusCode(200)
+            .body("recipes[0].name", org.hamcrest.Matchers.equalTo("Main Dish"))
+            .body("warnings[0]", org.hamcrest.Matchers.equalTo("Warning: In recipe 'Main Dish', the following subrecipes were not found: Missing Sauce"))
     }
 
     @Test

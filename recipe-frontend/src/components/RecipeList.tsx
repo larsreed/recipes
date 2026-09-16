@@ -101,6 +101,7 @@ function RecipeList() {
     const [sortConfig, setSortConfig] = useState<{ key: SortKey; direction: SortDirection }>({ key: 'id', direction: 'ascending' });
     const [csvFile, setCsvFile] = useState<File | null>(null);
     const [apiError, setApiError] = useState<string | null>(null);
+    const [apiWarnings, setApiWarnings] = useState<string[]>([]);
     const [categoryFilter, setCategoryFilter] = useState<string>('');
     const searchInputRef = useRef<HTMLInputElement>(null);
     const categoryFilterRef = useRef<string>('');
@@ -301,13 +302,17 @@ function RecipeList() {
         }
         const formData = new FormData();
         formData.append('file', csvFile);
+        setApiWarnings([]);
         try {
             const response = await axios.post(`${config.backendUrl}/api/recipes/import`, formData, {
                 headers: {
                     'Content-Type': 'multipart/form-data'
                 }
             });
-            const importedCount = Array.isArray(response.data) ? response.data.length : 0;
+            const importedRecipes = Array.isArray(response.data) ? response.data : response.data?.recipes;
+            const importWarnings = Array.isArray(response.data?.warnings) ? response.data.warnings : [];
+            const importedCount = Array.isArray(importedRecipes) ? importedRecipes.length : 0;
+            setApiWarnings(importWarnings);
             if (importedCount === 0) {
                 setApiError('Import completed but no recipes were detected. Ensure rows contain markers like Recipe/Ingredient/Source.');
             } else {
@@ -657,6 +662,17 @@ function RecipeList() {
 
         const noBorder = { style: BorderStyle.NONE, size: 0, color: 'FFFFFF' };
         const cellBorders = { top: noBorder, bottom: { style: BorderStyle.DOTTED, size: 4, color: '16a085' }, left: noBorder, right: noBorder };
+        // Approx. 1em horizontal gap between column contents (120 + 120 twips ~= 12pt).
+        const ingredientCellMargins = { left: 120, right: 120 };
+
+        // Decode HTML entities that marked produces in token .text fields
+        // (e.g. "&amp;" → "&", "&lt;" → "<") so they render correctly in Word.
+        const decodeHtml = (s: string): string => {
+            if (!s) return s;
+            const textarea = document.createElement('textarea');
+            textarea.innerHTML = s;
+            return textarea.value;
+        };
 
         // Convert markdown text to an array of docx Paragraphs.
         // Handles: paragraphs, bold, italic, bold+italic, bullet/ordered lists, headings, line breaks.
@@ -674,16 +690,16 @@ function RecipeList() {
                         if (tok.tokens) {
                             runs.push(...inlineToRuns(tok.tokens, bold, italic));
                         } else {
-                            runs.push(new TextRun({ text: tok.text ?? '', bold, italics: italic }));
+                            runs.push(new TextRun({ text: decodeHtml(tok.text ?? ''), bold, italics: italic }));
                         }
                     } else if (tok.type === 'strong') {
                         runs.push(...inlineToRuns(tok.tokens, true, italic));
                     } else if (tok.type === 'em') {
                         runs.push(...inlineToRuns(tok.tokens, bold, true));
                     } else if (tok.type === 'codespan') {
-                        runs.push(new TextRun({ text: tok.text ?? '', font: 'Courier New', bold, italics: italic }));
+                        runs.push(new TextRun({ text: decodeHtml(tok.text ?? ''), font: 'Courier New', bold, italics: italic }));
                     } else if (tok.type === 'link') {
-                        const linkText = tok.text || tok.href || '';
+                        const linkText = decodeHtml(tok.text || tok.href || '');
                         runs.push(new ExternalHyperlink({
                             link: tok.href,
                             children: [new TextRun({ text: linkText, style: 'Hyperlink', bold, italics: italic })],
@@ -693,7 +709,7 @@ function RecipeList() {
                     } else if (tok.type === 'space') {
                         runs.push(new TextRun({ text: ' ' }));
                     } else if (tok.text) {
-                        runs.push(new TextRun({ text: tok.text, bold, italics: italic }));
+                        runs.push(new TextRun({ text: decodeHtml(tok.text), bold, italics: italic }));
                     }
                 }
                 return runs;
@@ -705,7 +721,7 @@ function RecipeList() {
                     if (tok.type === 'space') continue;
                     if (tok.type === 'paragraph') {
                         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                        const runs: any[] = tok.tokens?.length ? inlineToRuns(tok.tokens) : [new TextRun({ text: tok.text ?? '' })];
+                        const runs: any[] = tok.tokens?.length ? inlineToRuns(tok.tokens) : [new TextRun({ text: decodeHtml(tok.text ?? '') })];
                         result.push(new Paragraph({ children: runs, spacing: { after: 80 } }));
                     } else if (tok.type === 'heading') {
                         const lvl = [HeadingLevel.HEADING_1, HeadingLevel.HEADING_2, HeadingLevel.HEADING_3,
@@ -718,7 +734,7 @@ function RecipeList() {
                             const runs: any[] = [];
                             for (const t of item.tokens) {
                                 if (t.tokens) runs.push(...inlineToRuns(t.tokens));
-                                else runs.push(new TextRun({ text: t.text }));
+                                else runs.push(new TextRun({ text: decodeHtml(t.text) }));
                             }
                             result.push(new Paragraph({
                                 children: runs,
@@ -729,7 +745,7 @@ function RecipeList() {
                         }
                     } else if (tok.type === 'code') {
                         result.push(new Paragraph({
-                            children: [new TextRun({ text: tok.text, font: 'Courier New' })],
+                            children: [new TextRun({ text: decodeHtml(tok.text), font: 'Courier New' })],
                             spacing: { after: 80 },
                         }));
                     } else if (tok.type === 'blockquote') {
@@ -801,13 +817,13 @@ function RecipeList() {
                     for (const t of toks) {
                         if (t.type === 'text' || t.type === 'escape') {
                             if (t.tokens) runs.push(...inlineRuns(t.tokens, bold, italic));
-                            else runs.push(new TextRun({ text: t.text ?? '', bold, italics: italic }));
+                            else runs.push(new TextRun({ text: decodeHtml(t.text ?? ''), bold, italics: italic }));
                         } else if (t.type === 'strong') {
                             runs.push(...inlineRuns(t.tokens, true, italic));
                         } else if (t.type === 'em') {
                             runs.push(...inlineRuns(t.tokens, bold, true));
                         } else if (t.type === 'link') {
-                            const linkText = t.text || t.href || '';
+                            const linkText = decodeHtml(t.text || t.href || '');
                             runs.push(new ExternalHyperlink({
                                 link: t.href,
                                 children: [new TextRun({ text: linkText, style: 'Hyperlink', bold, italics: italic })],
@@ -815,7 +831,7 @@ function RecipeList() {
                         } else if (t.type === 'br') {
                             runs.push(new TextRun({ text: '', break: 1 }));
                         } else if (t.text) {
-                            runs.push(new TextRun({ text: t.text, bold, italics: italic }));
+                            runs.push(new TextRun({ text: decodeHtml(t.text), bold, italics: italic }));
                         }
                     }
                     return runs;
@@ -841,6 +857,7 @@ function RecipeList() {
                         new TableCell({
                             children: [new Paragraph({ children: inlineToRunsPublic(unquoteCsv(ing.preamble || '')), spacing: { after: 0 } })],
                             borders: cellBorders,
+                            margins: ingredientCellMargins,
                         }),
                         new TableCell({
                             children: [new Paragraph({
@@ -851,10 +868,12 @@ function RecipeList() {
                                 spacing: { after: 0 },
                             })],
                             borders: cellBorders,
+                            margins: ingredientCellMargins,
                         }),
                         new TableCell({
                             children: [new Paragraph({ children: inlineToRunsPublic(unquoteCsv(ing.instruction || '')), spacing: { after: 0 } })],
                             borders: cellBorders,
+                            margins: ingredientCellMargins,
                         }),
                     ],
                 });
@@ -866,6 +885,7 @@ function RecipeList() {
                     new TableCell({
                         children: [new Paragraph({ children: [new TextRun({ text: sr.name, italics: true, color: '16a085' })], spacing: { after: 0 } })],
                         borders: cellBorders,
+                        margins: ingredientCellMargins,
                         columnSpan: 3,
                     }),
                 ],
@@ -1090,6 +1110,7 @@ function RecipeList() {
             </div>
             <div>
                 {apiError && <p className="error">{apiError}</p>}
+                {apiWarnings.map((warning, index) => <p className="warning" key={`${warning}-${index}`}>{warning}</p>)}
             </div>
             <div style={{padding: '0.5rem 0', color: 'var(--text-secondary)', fontSize: '0.875rem'}}>
                 <button onClick={handleOpenRecipeModal} title="Add recipe">

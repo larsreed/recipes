@@ -19,6 +19,11 @@ import java.nio.charset.StandardCharsets
 import java.util.Base64
 import java.util.regex.Pattern
 
+data class RecipeImportResponse(
+    val recipes: List<Recipe>,
+    val warnings: List<String>
+)
+
 @RestController
 @RequestMapping("/api/recipes")
 @CrossOrigin(origins = ["\${frontend.url}"])
@@ -226,10 +231,11 @@ class RecipeController(
 
 
     @PostMapping("/import")
-    fun importRecipes(@RequestParam("file") file: MultipartFile): List<Recipe> {
+    fun importRecipes(@RequestParam("file") file: MultipartFile): RecipeImportResponse {
         val importContent = prepareRecipeImportContent(file)
         val reader = BufferedReader(InputStreamReader(importContent.byteInputStream(StandardCharsets.UTF_8), StandardCharsets.UTF_8))
         val recipes = mutableListOf<Recipe>()
+        val warnings = mutableListOf<String>()
         val sources = mutableMapOf<String, Long>() // Map to store source names and their IDs
         val subrecipesToAdd = mutableMapOf<String, List<String>>() // Map to store links between main and subrecipes
         var currentRecipe: Recipe? = null
@@ -282,7 +288,7 @@ class RecipeController(
                         ?: columns[3].replace(',', '.').toFloatOrNull()?.toInt()
                         ?: 0
                     currentRecipe = Recipe(
-                        name = columns[1],
+                        name = columns[1].trim(),
                         subrecipe = columns[2].toBoolean(),
                         people = people,
                         rating = columns[4].toIntOrNull(),
@@ -334,7 +340,7 @@ class RecipeController(
                         report("Subrecipe without Recipe ($lineNo): $line")
                         return@forEach
                     }
-                    val subName = mutableListOf(columns[1])
+                    val subName = mutableListOf(columns[1].trim())
                     subrecipesToAdd.merge(
                         currentRecipe!!.name,
                         subName
@@ -430,14 +436,16 @@ class RecipeController(
                 }
                 if (subrecipes.size != subrecipeNames.size) {
                     val missingNames = subrecipeNames.toSet() - subrecipes.map { it.name }.toSet()
-                    report("Warning: In recipe '${recipe.name}', the following subrecipes were not found: ${missingNames.joinToString(", ")}")
+                    val warning = "Warning: In recipe '${recipe.name}', the following subrecipes were not found: ${missingNames.joinToString(", ")}"
+                    warnings.add(warning)
+                    report(warning)
                 }
                 recipe.subrecipes.addAll(subrecipes)
                 recipeService.saveRecipe(recipe)
             }
         }
 
-        return recipes
+        return RecipeImportResponse(recipes, warnings)
     }
 
     @PostMapping("/export-all")

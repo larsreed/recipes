@@ -355,7 +355,7 @@ function RecipeForm({ recipe, onCancel, onRecipeSaved }: RecipeFormProps) {
         }
         const newRecipe = {
             id: recipe?.id,
-            name,
+            name: name.trim(),
             subrecipe,
             instructions,
             closing,
