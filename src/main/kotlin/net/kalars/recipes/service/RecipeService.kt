@@ -63,6 +63,7 @@ class RecipeService(
         existingRecipe.wineTips = recipe.wineTips
         existingRecipe.matchFor = recipe.matchFor
         existingRecipe.categories = recipe.categories
+        existingRecipe.imageFileName = recipe.imageFileName
 
         existingRecipe.ingredients.clear()
         recipe.ingredients.forEachIndexed { index, ingredientDto ->

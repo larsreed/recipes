@@ -23,6 +23,8 @@ import org.springframework.boot.test.web.server.LocalServerPort
 import org.springframework.test.context.ActiveProfiles
 import java.io.ByteArrayOutputStream
 import java.nio.charset.StandardCharsets
+import java.nio.file.Files
+import java.nio.file.Path
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @ActiveProfiles("test")
@@ -334,7 +336,7 @@ class RecipeControllerTest {
 
         val lines = listOf(
             "# Recipe\tName\tIsSubrecipe:bool\tPeople:int",
-            "Recipe\tUnicode Soup\tfalse\t4",
+            "Recipe\tUnicode Soup\tfalse\t4\t\t\t\t\t\t\t\t\t\t\tunicode.jpg",
             "Ingredient\t\t1,5\tdl\t\tMilk\tWarm"
         ).joinToString("\r\n")
 
@@ -353,6 +355,7 @@ class RecipeControllerTest {
         assertEquals(1, importedRecipe.ingredients.size)
         assertEquals(1.5f, importedRecipe.ingredients[0].amount)
         assertEquals("Milk", importedRecipe.ingredients[0].name)
+        assertEquals("unicode.jpg", importedRecipe.imageFileName)
     }
 
     @Test
@@ -377,7 +380,7 @@ class RecipeControllerTest {
 
     @Test
     fun `should export all recipes as csv`() {
-        val recipes = listOf(Recipe(id = 1, name = "Cake", people = 2, instructions = "Bake"))
+        val recipes = listOf(Recipe(id = 1, name = "Cake", people = 2, instructions = "Bake", imageFileName = "cake.jpg"))
         val sources = listOf(Source(id = 1, name = "Book", authors = "Author", info="Info", title="Title"))
         Mockito.`when`(recipeService.getAllRecipes()).thenReturn(recipes)
         Mockito.`when`(sourceService.getAllSources()).thenReturn(sources)
@@ -391,6 +394,7 @@ class RecipeControllerTest {
             .statusCode(200)
             .header("Content-Type", org.hamcrest.Matchers.containsString("text/csv"))
             .body(org.hamcrest.Matchers.containsString("Cake"))
+            .body(org.hamcrest.Matchers.containsString("cake.jpg"))
     }
 
     @Test
@@ -464,5 +468,28 @@ class RecipeControllerTest {
             .body("[0].name", org.hamcrest.Matchers.equalTo("Salad"))
 
         Mockito.verify(recipeService).getMainRecipes()
+    }
+
+    @Test
+    fun `should list media files for recipe image dropdown`() {
+        val mediaDir = Path.of("data", "media")
+        Files.createDirectories(mediaDir)
+        val imageFile = mediaDir.resolve("controller-test-image.png")
+        val nonImageFile = mediaDir.resolve("controller-test-note.txt")
+
+        try {
+            Files.writeString(imageFile, "img")
+            Files.writeString(nonImageFile, "txt")
+
+            RestAssured.given()
+                .get("/api/recipes/media-files")
+                .then()
+                .statusCode(200)
+                .body("$", org.hamcrest.Matchers.hasItem("controller-test-image.png"))
+                .body("$", org.hamcrest.Matchers.not(org.hamcrest.Matchers.hasItem("controller-test-note.txt")))
+        } finally {
+            Files.deleteIfExists(imageFile)
+            Files.deleteIfExists(nonImageFile)
+        }
     }
 }

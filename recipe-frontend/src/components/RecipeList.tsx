@@ -31,6 +31,7 @@ interface Recipe {
     wineTips?: string;
     matchFor?: string;
     categories: string;
+    imageFileName?: string;
     ingredients: Ingredient[];
     attachments: Attachment[];
     instructions?: string;
@@ -455,10 +456,22 @@ function RecipeList() {
         if (guests && parseInt(guests) > 0) {
             const guestsNumber = parseInt(guests);
             const recipesToExport = singleRecipe ? [singleRecipe] : (selectedRecipes.size > 0 ? recipes.filter(recipe => selectedRecipes.has(recipe.id)) : recipes);
+            const escapeHtml = (value: string): string =>
+                value
+                    .replace(/&/g, '&amp;')
+                    .replace(/</g, '&lt;')
+                    .replace(/>/g, '&gt;')
+                    .replace(/"/g, '&quot;')
+                    .replace(/'/g, '&#39;');
 
             const generateRecipeHtml: (recipe: Recipe, topRecipe: boolean) => string = (recipe: Recipe, topRecipe: boolean) => `
             <div class="recipe" style="${topRecipe ? 'page-break-after: always;' : 'break-inside: avoid;'}">
                 ${recipe.subrecipe ? `<h3>» ${recipe.name}</h3>` : `<h2>${recipe.name}</h2>`}
+                ${recipe.imageFileName ? `
+                    <div class="recipe-media">
+                        <img src="${config.backendUrl}/api/recipes/media/${encodeURIComponent(recipe.imageFileName)}" alt="${escapeHtml(recipe.imageFileName)}" />
+                    </div>
+                ` : ''}
                 <div class="attachments">
                     ${recipe.attachments.map(attachment => `
                         <div class="attachment">
@@ -599,6 +612,21 @@ function RecipeList() {
                     }
                     .ingredient-name {
                         color: chocolate;
+                    }
+                    .recipe-media {
+                        float: right;
+                        width: 35%;
+                        max-width: 220px;
+                        margin: 0 0 12px 16px;
+                        text-align: center;
+                    }
+                    .recipe-media img {
+                        width: 100%;
+                        max-width: 220px;
+                        max-height: 220px;
+                        object-fit: contain;
+                        border: 1px solid #ddd;
+                        border-radius: 6px;
                     }
                     .instructions {
                         margin-top: 20px;

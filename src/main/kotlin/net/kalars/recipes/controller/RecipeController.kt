@@ -8,11 +8,16 @@ import net.kalars.recipes.service.RecipeService
 import net.kalars.recipes.service.SourceService
 import org.apache.poi.ss.usermodel.DataFormatter
 import org.apache.poi.ss.usermodel.WorkbookFactory
+import org.springframework.core.io.FileSystemResource
+import org.springframework.core.io.Resource
+import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
 import org.springframework.web.multipart.MultipartFile
 import java.io.ByteArrayInputStream
 import java.io.BufferedReader
+import java.nio.file.Files
+import java.nio.file.Path
 import java.io.InputStreamReader
 import java.nio.charset.Charset
 import java.nio.charset.StandardCharsets
@@ -36,6 +41,8 @@ class RecipeController(
 
     private val decimalCommaRegex = Regex("(?<!\\d)(-?\\d+),(\\d+)(?!\\d)")
     private val importMarkers = setOf("Source", "Recipe", "Ingredient", "Subrecipe", "Attachment", "Conversion", "Temperature")
+    private val mediaDirectory: Path = Path.of("data", "media").toAbsolutePath().normalize()
+    private val imageExtensions = setOf("jpg", "jpeg", "png", "gif", "webp", "bmp", "svg")
 
     private fun report(message: String): ResponseEntity<String> {
         System.err.println(message)
@@ -132,6 +139,45 @@ class RecipeController(
                 pattern.matcher(ingredient.prefix ?: "").find() ||
                 pattern.matcher(ingredient.instruction ?: "").find()
             }
+        }
+    }
+
+    @GetMapping("/media/{fileName:.+}")
+    fun getMediaFile(@PathVariable fileName: String): ResponseEntity<Resource> {
+        if (fileName.contains("/") || fileName.contains("\\") || fileName.contains("..")) {
+            return ResponseEntity.badRequest().build()
+        }
+
+        val mediaFile = mediaDirectory.resolve(fileName).normalize()
+        if (!mediaFile.startsWith(mediaDirectory) || !Files.exists(mediaFile) || !Files.isRegularFile(mediaFile)) {
+            return ResponseEntity.notFound().build()
+        }
+
+        val contentType = Files.probeContentType(mediaFile)
+            ?.let { MediaType.parseMediaType(it) }
+            ?: MediaType.APPLICATION_OCTET_STREAM
+
+        return ResponseEntity.ok()
+            .contentType(contentType)
+            .body(FileSystemResource(mediaFile))
+    }
+
+    @GetMapping("/media-files")
+    fun listMediaFiles(): List<String> {
+        if (!Files.exists(mediaDirectory) || !Files.isDirectory(mediaDirectory)) {
+            return emptyList()
+        }
+
+        return Files.list(mediaDirectory).use { stream ->
+            stream
+                .filter { Files.isRegularFile(it) }
+                .map { it.fileName.toString() }
+                .filter { fileName ->
+                    val extension = fileName.substringAfterLast('.', "").lowercase()
+                    extension in imageExtensions
+                }
+                .sorted(String.CASE_INSENSITIVE_ORDER)
+                .toList()
         }
     }
 
@@ -299,7 +345,8 @@ class RecipeController(
                         pageRef = columns[10],
                         wineTips = columns[11].replace("\\n", "\n"),
                         matchFor = columns[12].replace("\\n", "\n"),
-                        categories = columns[13]
+                        categories = columns[13],
+                        imageFileName = columns.getOrNull(14)?.trim()?.ifBlank { null }
                     )
                     val sourceId = sources[columns[9]]
                     if (sourceId == null && columns[9].isNotBlank()) {
@@ -464,7 +511,7 @@ class RecipeController(
             append("# Format (\\n for newline, TAB-separated)\n")
             append("# '#' Comment\n")
             append("# 'Source'\tName\tAuthors\tInfo\tTitle?\n")
-            append("# 'Recipe'\tName\tIsSubrecipe:bool\tPeople:int\tRating?:0-6\tServed?\tInstructions?\tClosing?\tNotes?\tSource?\tPageRef?\tWineTips?\tMatchFor?\n")
+            append("# 'Recipe'\tName\tIsSubrecipe:bool\tPeople:int\tRating?:0-6\tServed?\tInstructions?\tClosing?\tNotes?\tSource?\tPageRef?\tWineTips?\tMatchFor?\tCategories?\tImageFileName?\n")
             append("# 'Ingredient'\tPreamble?\tAmount?:float\tMeasure?\tPrefix?\tName\tInstruction?\n")
             append("# 'Subrecipe'\tName\n")
             append("# 'Attachment'\tFileName\tBase64Content\n")
@@ -493,6 +540,7 @@ class RecipeController(
                     }\t${recipe.wineTips?.replace("\n", "\\n") ?: ""
                     }\t${recipe.matchFor?.replace("\n", "\\n") ?: ""
                     }\t${recipe.categories ?: ""
+                    }\t${recipe.imageFileName?.replace("\n", "\\n") ?: ""
                     }\n"
                 )
 

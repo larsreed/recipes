@@ -25,6 +25,7 @@ interface Recipe {
     wineTips?: string;
     matchFor?: string;
     categories?: string;
+    imageFileName?: string;
     ingredients: Ingredient[];
     source?: Source;
     attachments: Attachment[];
@@ -78,10 +79,13 @@ function RecipeForm({ recipe, onCancel, onRecipeSaved }: RecipeFormProps) {
     const [matchFor, setMatchFor] = useState(recipe?.matchFor || null);
     const [categories, setCategories] = useState(recipe?.categories?.split('.').map(tag => tag.trim()).filter(tag => tag) || null);
     const [notes, setNotes] = useState(recipe?.notes || '');
+    const [imageFileName, setImageFileName] = useState(recipe?.imageFileName || '');
     const [ingredients, setIngredients] = useState<Ingredient[]>(
         recipe?.ingredients || [{ preamble: undefined, amount: undefined, prefix: undefined, name: '', instruction: undefined, measure: undefined }]
     );
     const [attachments, setAttachments] = useState<Attachment[]>(recipe?.attachments || []);
+    const [mediaFiles, setMediaFiles] = useState<string[]>([]);
+    const [imagePreviewLoadFailed, setImagePreviewLoadFailed] = useState(false);
 
     const [errors, setErrors] = useState<{ [key: string]: string }>({});
     const [apiError, setApiError] = useState<string | null>(null);
@@ -113,6 +117,18 @@ function RecipeForm({ recipe, onCancel, onRecipeSaved }: RecipeFormProps) {
         fetchRecipes();
     }, []);
 
+    useEffect(() => {
+        const fetchMediaFiles = async () => {
+            try {
+                const response = await axios.get<string[]>(`${config.backendUrl}/api/recipes/media-files`);
+                setMediaFiles(response.data ?? []);
+            } catch (error) {
+                console.error('Error fetching media files:', error);
+            }
+        };
+        fetchMediaFiles();
+    }, []);
+
     function blankRecipe() {
         setName('');
         setSubrecipe(false);
@@ -127,6 +143,7 @@ function RecipeForm({ recipe, onCancel, onRecipeSaved }: RecipeFormProps) {
         setMatchFor(null)
         setCategories(null);
         setNotes('');
+        setImageFileName('');
         setIngredients([]);
     }
 
@@ -145,12 +162,18 @@ function RecipeForm({ recipe, onCancel, onRecipeSaved }: RecipeFormProps) {
             setMatchFor(recipe.matchFor || null);
             setCategories(recipe.categories?.split(',').map(tag => tag.trim()).filter(tag => tag) || null);
             setNotes(recipe.notes || '');
+            setImageFileName(recipe.imageFileName || '');
+            setImagePreviewLoadFailed(false);
             setIngredients(recipe.ingredients || []);
             setSubrecipes(recipe.subrecipes || []);
         } else {
             blankRecipe();
         }
     }, [recipe]);
+
+    useEffect(() => {
+        setImagePreviewLoadFailed(false);
+    }, [imageFileName]);
 
     useEffect(() => {
         if (recipe && recipe.subrecipe) {
@@ -309,6 +332,7 @@ function RecipeForm({ recipe, onCancel, onRecipeSaved }: RecipeFormProps) {
             pageRef,
             rating,
             notes,
+            imageFileName,
             ingredients
         }));
         try {
@@ -336,6 +360,7 @@ function RecipeForm({ recipe, onCancel, onRecipeSaved }: RecipeFormProps) {
             setMatchFor(response.data.matchFor || null);
             setCategories(response.data.categories?.split(',').map((tag: string) => tag.trim()).filter((tag: string) => tag) || null);
             setNotes(response.data.notes || '');
+            setImageFileName(response.data.imageFileName || '');
             setIngredients(response.data.ingredients || []);
             setSubrecipes(response.data.subrecipes || []);
             setAttachments(response.data.attachments || []);
@@ -372,6 +397,7 @@ function RecipeForm({ recipe, onCancel, onRecipeSaved }: RecipeFormProps) {
             pageRef,
             rating,
             notes,
+            imageFileName: imageFileName.trim() || null,
             attachments,
             subrecipes: subrecipes.map(subrecipe => subrecipe.id)
         };
@@ -572,6 +598,43 @@ function RecipeForm({ recipe, onCancel, onRecipeSaved }: RecipeFormProps) {
                                onChange={(e) => handleChange(setPageRef, e.target.value)}
                                placeholder="e.g., p. 42"
                         />
+                    </div>
+                    <div className="form-field" style={{gridColumn: '1 / -1'}}>
+                        <label>Picture file name (from data/media)</label>
+                        <select
+                            value={imageFileName || ''}
+                            onChange={(e) => handleChange(setImageFileName, e.target.value)}
+                        >
+                            <option value="">No linked image</option>
+                            {mediaFiles.map((fileName) => (
+                                <option key={fileName} value={fileName}>{fileName}</option>
+                            ))}
+                        </select>
+                        <input
+                            type="text"
+                            value={imageFileName}
+                            onChange={(e) => handleChange(setImageFileName, e.target.value)}
+                            placeholder="Or type a filename manually, e.g. example.jpg"
+                        />
+                        <small style={{color: 'var(--text-secondary)', fontSize: '0.75rem'}}>
+                            File should exist in backend folder <code>data/media</code>
+                        </small>
+                        {imageFileName.trim() && (
+                            <div style={{marginTop: '0.5rem'}}>
+                                {!imagePreviewLoadFailed ? (
+                                    <img
+                                        src={`${config.backendUrl}/api/recipes/media/${encodeURIComponent(imageFileName.trim())}`}
+                                        alt={imageFileName.trim()}
+                                        className="thumbnail"
+                                        onError={() => setImagePreviewLoadFailed(true)}
+                                    />
+                                ) : (
+                                    <small style={{color: 'var(--text-secondary)'}}>
+                                        Preview not available for <code>{imageFileName.trim()}</code>
+                                    </small>
+                                )}
+                            </div>
+                        )}
                     </div>
                 </div>
             </div>

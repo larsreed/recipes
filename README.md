@@ -92,3 +92,23 @@ Password: password
 The frontend and backend URLs are configured in
 `src/main/resources/application.properties` and
 `recipe-frontend/src/config.tsx`; keep them in sync if you change ports.
+
+## Recipe pictures from `data/media`
+
+You can link one picture file to each recipe by filename.
+
+- Store files in `data\media` (for example `data\media\lasagna.jpg`)
+- In recipe edit mode, fill **Picture file name (from data/media)** with
+  `lasagna.jpg`
+- The recipe form also provides a dropdown populated from existing image files
+  in `data/media`
+- Printable view loads the image from `/api/recipes/media/<fileName>` and
+  constrains size so the recipe card width does not expand
+
+The recipe import/export format now includes the optional
+`ImageFileName` field on `Recipe` lines:
+
+```text
+Recipe	Name	IsSubrecipe	People	...	Categories	ImageFileName
+```
+

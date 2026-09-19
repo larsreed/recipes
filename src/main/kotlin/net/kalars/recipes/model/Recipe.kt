@@ -26,6 +26,7 @@ data class Recipe(
     @Column(columnDefinition = "TEXT")
     var matchFor: String? = null,
     var categories: String? = null,
+    var imageFileName: String? = null,
 
     @ManyToMany
     @JoinTable(
@@ -51,5 +52,5 @@ data class Recipe(
     var source: Source? = null
 
     constructor() : this(0, "", 0, null, null, null, null, null,
-        null, false, null, null, null, mutableListOf(), mutableListOf(), mutableListOf(), null)
+        null, false, null, null, null, null, mutableListOf(), mutableListOf(), mutableListOf(), null)
 }

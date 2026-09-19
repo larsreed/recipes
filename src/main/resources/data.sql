@@ -13,6 +13,7 @@ CREATE TABLE recipe (
     wine_tips TEXT null,
     match_for TEXT NULL,
     categories VARCHAR(255) NULL,
+    image_file_name VARCHAR(255) NULL,
     CONSTRAINT unique_recipe_name UNIQUE (name)
 );
 
