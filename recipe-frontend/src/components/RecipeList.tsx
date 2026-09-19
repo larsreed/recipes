@@ -7,7 +7,7 @@ import config from '../config';
 import {
     Document, Packer, Paragraph, TextRun, HeadingLevel, Table, TableRow, TableCell,
     BorderStyle, WidthType, PageBreak, TableLayoutType, TableOfContents,
-    ExternalHyperlink,
+    ExternalHyperlink, ImageRun, InternalHyperlink,
 } from 'docx';
 import { saveAs } from 'file-saver';
 
@@ -43,6 +43,25 @@ interface Source {
     id: number;
     name: string;
     authors: string;
+    info?: string;
+    title?: string;
+    imageFileName?: string;
+}
+
+interface Conversion {
+    id?: number;
+    fromMeasure: string;
+    toMeasure: string;
+    factor: number;
+    description?: string;
+    preferred?: boolean;
+}
+
+interface Temperature {
+    id?: number;
+    meat: string;
+    temp: number;
+    description?: string;
 }
 
 interface Ingredient {
@@ -677,24 +696,22 @@ function RecipeList() {
         }
     };
 
-    const handleExportWord = () => {
-        const guestsStr = prompt("Guests", "4");
-        if (!guestsStr || parseInt(guestsStr) <= 0) {
-            alert("Please enter a valid number of guests.");
-            return;
+    const buildWordExport = async (
+        recipesToExport: Recipe[],
+        guestsNumber: number,
+        fileName: string,
+        bookAppendices?: {
+            sources: Source[];
+            temperatures: Temperature[];
+            conversions: Conversion[];
         }
-        const guestsNumber = parseInt(guestsStr);
-        const recipesToExport = selectedRecipes.size > 0
-            ? recipes.filter(recipe => selectedRecipes.has(recipe.id))
-            : recipes;
-
+    ) => {
         const noBorder = { style: BorderStyle.NONE, size: 0, color: 'FFFFFF' };
         const cellBorders = { top: noBorder, bottom: { style: BorderStyle.DOTTED, size: 4, color: '16a085' }, left: noBorder, right: noBorder };
-        // Approx. 1em horizontal gap between column contents (120 + 120 twips ~= 12pt).
         const ingredientCellMargins = { left: 120, right: 120 };
+        const bookmarkedRecipeIds = new Set<number>();
+        const recipeBookmarkName = (recipeId: number) => `recipe-${recipeId}`;
 
-        // Decode HTML entities that marked produces in token .text fields
-        // (e.g. "&amp;" → "&", "&lt;" → "<") so they render correctly in Word.
         const decodeHtml = (s: string): string => {
             if (!s) return s;
             const textarea = document.createElement('textarea');
@@ -702,8 +719,6 @@ function RecipeList() {
             return textarea.value;
         };
 
-        // Convert markdown text to an array of docx Paragraphs.
-        // Handles: paragraphs, bold, italic, bold+italic, bullet/ordered lists, headings, line breaks.
         const markdownToDocx = (md: string): Paragraph[] => {
             if (!md) return [];
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -788,8 +803,6 @@ function RecipeList() {
             return result.length > 0 ? result : [new Paragraph({ text: md })];
         };
 
-        // Strip CSV-style surrounding quotes and unescape doubled internal quotes
-        // e.g. "He said ""hello""" → He said "hello"
         const unquoteCsv = (s: string): string => {
             if (!s) return s;
             const t = s.trim();
@@ -807,14 +820,57 @@ function RecipeList() {
             spacing: { after: 60 },
         });
 
-        const buildRecipeSection = (recipe: Recipe, topLevel: boolean, index?: number): (Paragraph | Table)[] => {
-            const elements: (Paragraph | Table)[] = [];
+        const inlineToRunsPublic = (md: string): TextRun[] => {
+            if (!md) return [new TextRun({ text: '' })];
+            const tokens = marked.lexer(md);
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            const inlineRuns = (toks: any[], bold = false, italic = false): (TextRun | ExternalHyperlink)[] => {
+                const runs: (TextRun | ExternalHyperlink)[] = [];
+                for (const t of toks) {
+                    if (t.type === 'text' || t.type === 'escape') {
+                        if (t.tokens) runs.push(...inlineRuns(t.tokens, bold, italic));
+                        else runs.push(new TextRun({ text: decodeHtml(t.text ?? ''), bold, italics: italic }));
+                    } else if (t.type === 'strong') {
+                        runs.push(...inlineRuns(t.tokens, true, italic));
+                    } else if (t.type === 'em') {
+                        runs.push(...inlineRuns(t.tokens, bold, true));
+                    } else if (t.type === 'link') {
+                        const linkText = decodeHtml(t.text || t.href || '');
+                        runs.push(new ExternalHyperlink({
+                            link: t.href,
+                            children: [new TextRun({ text: linkText, style: 'Hyperlink', bold, italics: italic })],
+                        }));
+                    } else if (t.type === 'br') {
+                        runs.push(new TextRun({ text: '', break: 1 }));
+                    } else if (t.text) {
+                        runs.push(new TextRun({ text: decodeHtml(t.text), bold, italics: italic }));
+                    }
+                }
+                return runs;
+            };
+            const allRuns: (TextRun | ExternalHyperlink)[] = [];
+            for (const tok of tokens) {
+                if (tok.type === 'paragraph' || tok.type === 'text') allRuns.push(...inlineRuns(tok.tokens ?? []));
+                else if (tok.type === 'space') allRuns.push(new TextRun({ text: ' ' }));
+            }
+            return allRuns.length > 0 ? allRuns as TextRun[] : [new TextRun({ text: md })];
+        };
 
-            // Heading
+        const buildRecipeSection = (recipe: Recipe, topLevel: boolean): (Paragraph | Table)[] => {
+            const elements: (Paragraph | Table)[] = [];
+            const shouldAddBookmark = !bookmarkedRecipeIds.has(recipe.id);
+            if (shouldAddBookmark) {
+                bookmarkedRecipeIds.add(recipe.id);
+            }
+
             elements.push(new Paragraph({
                 text: topLevel ? recipe.name : `» ${recipe.name}`,
                 heading: topLevel ? HeadingLevel.HEADING_1 : HeadingLevel.HEADING_2,
-                ...(topLevel && index !== undefined ? { bookmark: { id: `recipe-${index}`, name: recipe.name } } : {}),
+                ...(
+                    shouldAddBookmark
+                        ? { bookmark: { id: recipeBookmarkName(recipe.id), name: recipeBookmarkName(recipe.id) } }
+                        : {}
+                ),
                 spacing: { before: topLevel ? 0 : 400, after: 200 },
             }));
 
@@ -825,54 +881,13 @@ function RecipeList() {
             if (recipe.matchFor) elements.push(...markdownToDocx('*Match for*: ' + unquoteCsv(recipe.matchFor)));
             if (recipe.categories) elements.push(metaRun('Categories: ', recipe.categories.replace(/,/g, ' ')));
             if (recipe.notes) elements.push(...markdownToDocx('*Notes*: ' + unquoteCsv(recipe.notes)));
+            if (recipe.instructions) elements.push(...markdownToDocx(unquoteCsv(recipe.instructions)));
 
-            if (recipe.instructions) {
-                elements.push(...markdownToDocx(unquoteCsv(recipe.instructions)));
-            }
-
-            // Ingredients heading — bold text, not a heading style
             elements.push(new Paragraph({
                 children: [new TextRun({ text: 'Ingredients', bold: true, size: 24 })],
                 spacing: { before: 200, after: 100 },
             }));
 
-            const inlineToRunsPublic = (md: string): TextRun[] => {
-                if (!md) return [new TextRun({ text: '' })];
-                const tokens = marked.lexer(md);
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                const inlineRuns = (toks: any[], bold = false, italic = false): (TextRun | ExternalHyperlink)[] => {
-                    const runs: (TextRun | ExternalHyperlink)[] = [];
-                    for (const t of toks) {
-                        if (t.type === 'text' || t.type === 'escape') {
-                            if (t.tokens) runs.push(...inlineRuns(t.tokens, bold, italic));
-                            else runs.push(new TextRun({ text: decodeHtml(t.text ?? ''), bold, italics: italic }));
-                        } else if (t.type === 'strong') {
-                            runs.push(...inlineRuns(t.tokens, true, italic));
-                        } else if (t.type === 'em') {
-                            runs.push(...inlineRuns(t.tokens, bold, true));
-                        } else if (t.type === 'link') {
-                            const linkText = decodeHtml(t.text || t.href || '');
-                            runs.push(new ExternalHyperlink({
-                                link: t.href,
-                                children: [new TextRun({ text: linkText, style: 'Hyperlink', bold, italics: italic })],
-                            }));
-                        } else if (t.type === 'br') {
-                            runs.push(new TextRun({ text: '', break: 1 }));
-                        } else if (t.text) {
-                            runs.push(new TextRun({ text: decodeHtml(t.text), bold, italics: italic }));
-                        }
-                    }
-                    return runs;
-                };
-                const allRuns: (TextRun | ExternalHyperlink)[] = [];
-                for (const tok of tokens) {
-                    if (tok.type === 'paragraph' || tok.type === 'text') allRuns.push(...inlineRuns(tok.tokens ?? []));
-                    else if (tok.type === 'space') allRuns.push(new TextRun({ text: ' ' }));
-                }
-                return allRuns.length > 0 ? allRuns as TextRun[] : [new TextRun({ text: md })];
-            };
-
-            // Ingredients table
             const ingredientRows = recipe.ingredients.map(ing => {
                 const scaledAmount = ing.amount
                     ? (recipe.people > 0
@@ -907,7 +922,6 @@ function RecipeList() {
                 });
             });
 
-            // Subrecipe references in ingredient table
             const subrecipeRefRows = (recipe.subrecipes ?? []).map(sr => new TableRow({
                 children: [
                     new TableCell({
@@ -928,27 +942,62 @@ function RecipeList() {
                 }));
             }
 
-            if (recipe.closing) {
-                elements.push(...markdownToDocx(unquoteCsv(recipe.closing)));
-            }
-
-            // Nested subrecipe full sections
+            if (recipe.closing) elements.push(...markdownToDocx(unquoteCsv(recipe.closing)));
             for (const sr of (recipe.subrecipes ?? [])) {
                 elements.push(...buildRecipeSection(sr, false));
             }
-
-            // Page break after each top-level recipe (except last)
-            if (topLevel) {
-                elements.push(new Paragraph({ children: [new PageBreak()] }));
-            }
+            if (topLevel) elements.push(new Paragraph({ children: [new PageBreak()] }));
 
             return elements;
         };
 
-        const allSections: (Paragraph | Table | TableOfContents)[] = [];
+        const toDocxImageType = (imageFileName?: string): 'jpg' | 'png' | 'gif' | 'bmp' | null => {
+            if (!imageFileName) return null;
+            const extension = imageFileName.split('.').pop()?.toLowerCase();
+            if (!extension) return null;
+            if (extension === 'jpg' || extension === 'jpeg') return 'jpg';
+            if (extension === 'png') return 'png';
+            if (extension === 'gif') return 'gif';
+            if (extension === 'bmp') return 'bmp';
+            return null;
+        };
 
-        // Word native TOC field
-        if (recipesToExport.length > 1) {
+        const fetchSourceImage = async (imageFileName?: string): Promise<{ data: Uint8Array; type: 'jpg' | 'png' | 'gif' | 'bmp' } | null> => {
+            if (!imageFileName) return null;
+            const imageType = toDocxImageType(imageFileName);
+            if (!imageType) return null;
+            try {
+                const response = await axios.get<ArrayBuffer>(
+                    `${config.backendUrl}/api/recipes/media/${encodeURIComponent(imageFileName)}`,
+                    { responseType: 'arraybuffer' }
+                );
+                return { data: new Uint8Array(response.data), type: imageType };
+            } catch {
+                return null;
+            }
+        };
+
+        const allSections: (Paragraph | Table | TableOfContents)[] = [];
+        const isBook = !!bookAppendices;
+
+        if (isBook) {
+            allSections.push(new Paragraph({
+                text: 'Recipe Book',
+                heading: HeadingLevel.HEADING_1,
+                spacing: { before: 2000, after: 300 },
+            }));
+            allSections.push(new Paragraph({
+                children: [new TextRun({ text: `Generated ${new Date().toLocaleDateString()}` })],
+                spacing: { after: 400 },
+            }));
+            allSections.push(new Paragraph({
+                children: [new TextRun({ text: 'All recipes are for 4 people, unless otherwise mentioned', italics: true, color: '555555' })],
+                spacing: { after: 600 },
+            }));
+            allSections.push(new Paragraph({ children: [new PageBreak()] }));
+        }
+
+        if (isBook || recipesToExport.length > 1) {
             allSections.push(new TableOfContents('Table of Contents', {
                 headingStyleRange: '1-3',
                 hyperlink: true,
@@ -956,9 +1005,109 @@ function RecipeList() {
             allSections.push(new Paragraph({ children: [new PageBreak()] }));
         }
 
-        recipesToExport.forEach((recipe, i) => {
-            allSections.push(...buildRecipeSection(recipe, true, i));
+        recipesToExport.forEach((recipe) => {
+            allSections.push(...buildRecipeSection(recipe, true));
         });
+
+        if (bookAppendices) {
+            const sortedSources = [...bookAppendices.sources].sort((a, b) => a.name.localeCompare(b.name, undefined, { sensitivity: 'base' }));
+            const sortedTemperatures = [...bookAppendices.temperatures].sort((a, b) => a.meat.localeCompare(b.meat, undefined, { sensitivity: 'base' }));
+            const sortedConversions = [...bookAppendices.conversions].sort((a, b) => `${a.fromMeasure}-${a.toMeasure}`.localeCompare(`${b.fromMeasure}-${b.toMeasure}`, undefined, { sensitivity: 'base' }));
+
+            allSections.push(new Paragraph({ children: [new PageBreak()] }));
+            allSections.push(new Paragraph({ text: 'Appendix: Sources', heading: HeadingLevel.HEADING_1 }));
+
+            for (let index = 0; index < sortedSources.length; index++) {
+                const source = sortedSources[index];
+                allSections.push(new Paragraph({ text: source.name, heading: HeadingLevel.HEADING_2 }));
+                if (source.authors) allSections.push(metaRun('Authors: ', source.authors));
+                if (source.title) allSections.push(metaRun('Title: ', source.title));
+                if (source.info) allSections.push(...markdownToDocx(source.info));
+                const imageData = await fetchSourceImage(source.imageFileName);
+                if (imageData) {
+                    allSections.push(new Paragraph({
+                        children: [new ImageRun({ data: imageData.data, type: imageData.type, transformation: { width: 180, height: 180 } })],
+                        spacing: { after: 180 },
+                    }));
+                }
+                if (index < sortedSources.length - 1) {
+                    allSections.push(new Paragraph({
+                        border: {
+                            bottom: {
+                                color: 'D9D9D9',
+                                size: 6,
+                                space: 1,
+                                style: BorderStyle.SINGLE,
+                            },
+                        },
+                        spacing: { before: 120, after: 120 },
+                    }));
+                }
+            }
+
+            allSections.push(new Paragraph({ children: [new PageBreak()] }));
+            allSections.push(new Paragraph({ text: 'Appendix: Temperatures', heading: HeadingLevel.HEADING_1 }));
+            sortedTemperatures.forEach((temperature) => {
+                allSections.push(new Paragraph({
+                    children: [
+                        new TextRun({ text: `${temperature.meat}: `, bold: true }),
+                        new TextRun({ text: `${temperature.temp} C` }),
+                        ...(temperature.description ? [new TextRun({ text: ` - ${temperature.description}` })] : []),
+                    ],
+                    spacing: { after: 60 },
+                }));
+            });
+
+            allSections.push(new Paragraph({ children: [new PageBreak()] }));
+            allSections.push(new Paragraph({ text: 'Appendix: Conversions', heading: HeadingLevel.HEADING_1 }));
+            sortedConversions.forEach((conversion) => {
+                allSections.push(new Paragraph({
+                    children: [
+                        new TextRun({ text: `${conversion.fromMeasure} -> ${conversion.toMeasure}: `, bold: true }),
+                        new TextRun({ text: `${conversion.factor}` }),
+                        ...(conversion.description ? [new TextRun({ text: ` (${conversion.description})` })] : []),
+                        ...(conversion.preferred ? [new TextRun({ text: ' [preferred]', italics: true, color: '16a085' })] : []),
+                    ],
+                    spacing: { after: 60 },
+                }));
+            });
+
+            const ingredientIndex = new Map<string, { name: string; recipes: Map<number, Recipe> }>();
+            const collectIngredientReferences = (recipe: Recipe) => {
+                recipe.ingredients.forEach((ingredient) => {
+                    const ingredientName = (ingredient.name || '').trim();
+                    if (!ingredientName) return;
+                    const key = ingredientName.toLowerCase();
+                    if (!ingredientIndex.has(key)) {
+                        ingredientIndex.set(key, { name: ingredientName, recipes: new Map<number, Recipe>() });
+                    }
+                    ingredientIndex.get(key)?.recipes.set(recipe.id, recipe);
+                });
+                (recipe.subrecipes ?? []).forEach(collectIngredientReferences);
+            };
+            recipesToExport.forEach(collectIngredientReferences);
+
+            const sortedIngredientEntries = [...ingredientIndex.values()].sort((a, b) => a.name.localeCompare(b.name, undefined, { sensitivity: 'base' }));
+            allSections.push(new Paragraph({ children: [new PageBreak()] }));
+            allSections.push(new Paragraph({ text: 'Ingredient Cross-reference', heading: HeadingLevel.HEADING_1 }));
+            sortedIngredientEntries.forEach((entry) => {
+                const recipeRefs = [...entry.recipes.values()].sort((a, b) => a.name.localeCompare(b.name, undefined, { sensitivity: 'base' }));
+                const recipeRuns: (TextRun | InternalHyperlink)[] = [new TextRun({ text: `${entry.name}: `, bold: true })];
+                recipeRefs.forEach((recipeRef, idx) => {
+                    if (idx > 0) {
+                        recipeRuns.push(new TextRun({ text: ', ' }));
+                    }
+                    recipeRuns.push(new InternalHyperlink({
+                        anchor: recipeBookmarkName(recipeRef.id),
+                        children: [new TextRun({ text: recipeRef.name, style: 'Hyperlink' })],
+                    }));
+                });
+                allSections.push(new Paragraph({
+                    children: recipeRuns,
+                    spacing: { after: 40 },
+                }));
+            });
+        }
 
         const doc = new Document({
             styles: {
@@ -999,9 +1148,46 @@ function RecipeList() {
             }],
         });
 
-        Packer.toBlob(doc).then(blob => {
-            saveAs(blob, 'recipes.docx');
-        });
+        const blob = await Packer.toBlob(doc);
+        saveAs(blob, fileName);
+    };
+
+    const handleExportWord = async () => {
+        const guestsStr = prompt("Guests", "4");
+        if (!guestsStr || parseInt(guestsStr) <= 0) {
+            alert("Please enter a valid number of guests.");
+            return;
+        }
+        const guestsNumber = parseInt(guestsStr);
+        const recipesToExport = selectedRecipes.size > 0
+            ? recipes.filter(recipe => selectedRecipes.has(recipe.id))
+            : recipes;
+        await buildWordExport(recipesToExport, guestsNumber, 'recipes.docx');
+    };
+
+    const handleCreateBook = async () => {
+        try {
+            const [recipeResponse, sourceResponse, temperatureResponse, conversionResponse] = await Promise.all([
+                axios.get<Recipe[]>(`${config.backendUrl}/api/recipes?includeSubrecipes=false`),
+                axios.get<Source[]>(`${config.backendUrl}/api/sources`),
+                axios.get<Temperature[]>(`${config.backendUrl}/api/temperatures`),
+                axios.get<Conversion[]>(`${config.backendUrl}/api/conversions`),
+            ]);
+
+            await buildWordExport(
+                recipeResponse.data,
+                4,
+                'recipe-book.docx',
+                {
+                    sources: sourceResponse.data,
+                    temperatures: temperatureResponse.data,
+                    conversions: conversionResponse.data,
+                }
+            );
+        } catch (error) {
+            console.error('Error creating recipe book:', error);
+            setApiError('Failed to create book export. Please try again.');
+        }
     };
 
     const handleConfirmExport = () => {
@@ -1153,8 +1339,11 @@ function RecipeList() {
                 <button onClick={() => handleShoppingList()} title="Export shopping list">
                     <i className="fas fa-shopping-cart"></i>
                 </button>
-                <button onClick={() => handleExportWord()} title="Export to Word (.docx)">
+                <button onClick={() => handleExportWord()} title="Export to Word">
                     <i className="fas fa-file-word"></i>
+                </button>
+                <button onClick={() => handleCreateBook()} title="Create full recipe book">
+                    <i className="fas fa-book-open"></i>
                 </button>
                 <button onClick={handleDeleteMany} title="Delete selected recipes" className="btn-danger">
                     <i className="fas fa-trash"></i>
