@@ -8,14 +8,18 @@ interface Source {
     authors: string;
     info: string;
     title: string;
+    imageFileName?: string;
 }
 
 function SourceForm() {
     const [sources, setSources] = useState<Source[]>([]);
-    const [newSource, setNewSource] = useState<Source>({ name: '', authors: '', info: '', title: '' });
+    const [newSource, setNewSource] = useState<Source>({ name: '', authors: '', info: '', title: '', imageFileName: '' });
+    const [mediaFiles, setMediaFiles] = useState<string[]>([]);
+    const [previewLoadFailed, setPreviewLoadFailed] = useState<Record<number, boolean>>({});
 
     useEffect(() => {
         fetchSources();
+        fetchMediaFiles();
     }, []);
 
     const fetchSources = async () => {
@@ -31,14 +35,29 @@ function SourceForm() {
         }
     };
 
+    const fetchMediaFiles = async () => {
+        try {
+            const response = await axios.get<string[]>(`${config.backendUrl}/api/recipes/media-files`);
+            setMediaFiles(response.data ?? []);
+        } catch (error) {
+            console.error('Error fetching media files:', error);
+        }
+    };
+
     const handleInputChange = (index: number, field: keyof Source, value: string) => {
         const updatedSources = [...sources];
         updatedSources[index][field] = value as never;
         setSources(updatedSources);
+        if (field === 'imageFileName') {
+            setPreviewLoadFailed((prev) => ({ ...prev, [index]: false }));
+        }
     };
 
     const handleSave = async (index: number) => {
-        const source = sources[index];
+        const source = {
+            ...sources[index],
+            imageFileName: sources[index].imageFileName?.trim() || null,
+        };
         try {
             if (source.id) {
                 await axios.put(`${config.backendUrl}/api/sources/${source.id}`, source);
@@ -70,11 +89,14 @@ function SourceForm() {
 
     const handleAddNewRow = () => {
         setSources([...sources, { ...newSource }]);
-        setNewSource({ name: '', authors: '', info: '', title: '' });
+        setNewSource({ name: '', authors: '', info: '', title: '', imageFileName: '' });
     };
 
     const handleBlur = async (index: number) => {
-        const source = sources[index];
+        const source = {
+            ...sources[index],
+            imageFileName: sources[index].imageFileName?.trim() || null,
+        };
         try {
             if (source.id) {
                 await axios.put(`${config.backendUrl}/api/sources/${source.id}`, source);
@@ -101,6 +123,7 @@ function SourceForm() {
                         <th>Authors</th>
                         <th>Title</th>
                         <th>Info</th>
+                        <th>Picture</th>
                         <th>Actions</th>
                     </tr>
                 </thead>
@@ -138,6 +161,34 @@ function SourceForm() {
                                     onChange={(e) => handleInputChange(index, 'info', e.target.value)}
                                     onBlur={() => handleBlur(index)}
                                 />
+                            </td>
+                            <td>
+                                <select
+                                    value={source.imageFileName || ''}
+                                    onChange={(e) => handleInputChange(index, 'imageFileName', e.target.value)}
+                                    onBlur={() => handleBlur(index)}
+                                >
+                                    <option value="">No image</option>
+                                    {mediaFiles.map((fileName) => (
+                                        <option key={fileName} value={fileName}>{fileName}</option>
+                                    ))}
+                                </select>
+                                <input
+                                    type="text"
+                                    value={source.imageFileName || ''}
+                                    onChange={(e) => handleInputChange(index, 'imageFileName', e.target.value)}
+                                    onBlur={() => handleBlur(index)}
+                                    placeholder="filename.jpg"
+                                    style={{ marginTop: '0.5rem' }}
+                                />
+                                {(source.imageFileName || '').trim() && !previewLoadFailed[index] && (
+                                    <img
+                                        src={`${config.backendUrl}/api/recipes/media/${encodeURIComponent((source.imageFileName || '').trim())}`}
+                                        alt={(source.imageFileName || '').trim()}
+                                        className="thumbnail"
+                                        onError={() => setPreviewLoadFailed((prev) => ({ ...prev, [index]: true }))}
+                                    />
+                                )}
                             </td>
                             <td>
                                 <button onClick={() => handleSave(index)} title="Save">
@@ -181,6 +232,34 @@ function SourceForm() {
                                 onChange={(e) => setNewSource({ ...newSource, info: e.target.value })}
                                 placeholder="New info"
                             />
+                        </td>
+                        <td>
+                            <select
+                                value={newSource.imageFileName || ''}
+                                onChange={(e) => setNewSource({ ...newSource, imageFileName: e.target.value })}
+                            >
+                                <option value="">No image</option>
+                                {mediaFiles.map((fileName) => (
+                                    <option key={fileName} value={fileName}>{fileName}</option>
+                                ))}
+                            </select>
+                            <input
+                                type="text"
+                                value={newSource.imageFileName || ''}
+                                onChange={(e) => setNewSource({ ...newSource, imageFileName: e.target.value })}
+                                placeholder="filename.jpg"
+                                style={{ marginTop: '0.5rem' }}
+                            />
+                            {(newSource.imageFileName || '').trim() && (
+                                <img
+                                    src={`${config.backendUrl}/api/recipes/media/${encodeURIComponent((newSource.imageFileName || '').trim())}`}
+                                    alt={(newSource.imageFileName || '').trim()}
+                                    className="thumbnail"
+                                    onError={(e) => {
+                                        e.currentTarget.style.display = 'none';
+                                    }}
+                                />
+                            )}
                         </td>
                         <td>
                             <button onClick={handleAddNewRow}>

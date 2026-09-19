@@ -317,7 +317,8 @@ class RecipeController(
                     val authors = columns[2].replace("\\n", "\n")
                     val info = columns[3].replace("\\n", "\n")
                     val title = columns.getOrNull(4)?.replace("\\n", "\n")
-                    val source = sourceService.createOrGetSource(sourceName, authors, info, title)
+                    val imageFileName = columns.getOrNull(5)?.trim()?.ifBlank { null }
+                    val source = sourceService.createOrGetSource(sourceName, authors, info, title, imageFileName)
                     sources[sourceName] = source.id
                 }
 
@@ -510,7 +511,7 @@ class RecipeController(
             append("# Total sources: ${sources.size}\n")
             append("# Format (\\n for newline, TAB-separated)\n")
             append("# '#' Comment\n")
-            append("# 'Source'\tName\tAuthors\tInfo\tTitle?\n")
+            append("# 'Source'\tName\tAuthors\tInfo\tTitle?\tImageFileName?\n")
             append("# 'Recipe'\tName\tIsSubrecipe:bool\tPeople:int\tRating?:0-6\tServed?\tInstructions?\tClosing?\tNotes?\tSource?\tPageRef?\tWineTips?\tMatchFor?\tCategories?\tImageFileName?\n")
             append("# 'Ingredient'\tPreamble?\tAmount?:float\tMeasure?\tPrefix?\tName\tInstruction?\n")
             append("# 'Subrecipe'\tName\n")
@@ -524,7 +525,8 @@ class RecipeController(
                 sources.find { src -> src.id == recipe.sourceId }?.let { source ->
                     append("Source\t${source.name}\t${source.authors.replace("\n", "\\n")}\t${
                         source.info?.replace("\n", "\\n") ?: ""}\t${
-                        source.title?.replace("\n", "\\n") ?: ""}\n")
+                        source.title?.replace("\n", "\\n") ?: ""}\t${
+                        source.imageFileName?.replace("\n", "\\n") ?: ""}\n")
                     sources.remove(source)
                 }
                 append("Recipe\t${recipe.name
@@ -569,7 +571,8 @@ class RecipeController(
             sources.forEach { source ->
                 append("Source\t${source.name}\t${source.authors.replace("\n", "\\n")}\t${
                     source.info?.replace("\n", "\\n") ?: ""}\t${
-                    source.title?.replace("\n", "\\n") ?: ""}\n")
+                    source.title?.replace("\n", "\\n") ?: ""}\t${
+                    source.imageFileName?.replace("\n", "\\n") ?: ""}\n")
             }
             append("\n\n####################\n\n")
             conversionRepository.findAll().forEach { conversion ->

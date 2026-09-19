@@ -12,7 +12,8 @@ data class Source (
     @Column(columnDefinition = "TEXT")
     val info: String?,
     @Column(columnDefinition = "TEXT")
-    val title: String?
+    val title: String?,
+    val imageFileName: String? = null
 ) {
-    constructor() : this(0, "", "", null, null)
+    constructor() : this(0, "", "", null, null, null)
 }

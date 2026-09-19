@@ -105,10 +105,17 @@ You can link one picture file to each recipe by filename.
 - Printable view loads the image from `/api/recipes/media/<fileName>` and
   constrains size so the recipe card width does not expand
 
+You can also link one picture file to each source by filename:
+
+- In **Sources** editor, use the Picture dropdown or type a filename manually
+- Source import/export lines now support an optional trailing
+  `ImageFileName` field
+
 The recipe import/export format now includes the optional
 `ImageFileName` field on `Recipe` lines:
 
 ```text
 Recipe	Name	IsSubrecipe	People	...	Categories	ImageFileName
+Source	Name	Authors	Info	Title	ImageFileName
 ```
 

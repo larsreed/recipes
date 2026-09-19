@@ -47,6 +47,7 @@ CREATE TABLE source (
      authors VARCHAR(255),
      info VARCHAR(255) NULL,
      title VARCHAR(255) NULL,
+      image_file_name VARCHAR(255) NULL,
      CONSTRAINT unique_source_name UNIQUE (name)
 );
 

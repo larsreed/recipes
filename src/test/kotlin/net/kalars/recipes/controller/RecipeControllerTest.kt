@@ -359,6 +359,29 @@ class RecipeControllerTest {
     }
 
     @Test
+    fun `should import source with image filename`() {
+        Mockito.`when`(sourceService.createOrGetSource("Book With Image", "Author", "Info", "Title", "cover.png"))
+            .thenReturn(Source(id = 22, name = "Book With Image", authors = "Author", info = "Info", title = "Title", imageFileName = "cover.png"))
+        Mockito.doAnswer { invocation ->
+            invocation.getArgument(0) as Recipe
+        }.`when`(recipeService).createRecipe(any(Recipe::class.java) ?: Recipe())
+
+        val content = listOf(
+            "Source\tBook With Image\tAuthor\tInfo\tTitle\tcover.png",
+            "Recipe\tSoup With Source\tfalse\t4\t\t\t\t\t\tBook With Image"
+        ).joinToString("\n")
+
+        RestAssured.given()
+            .multiPart("file", "recipes.txt", content.toByteArray(), "text/plain")
+            .post("/api/recipes/import")
+            .then()
+            .statusCode(200)
+            .body("recipes[0].name", org.hamcrest.Matchers.equalTo("Soup With Source"))
+
+        Mockito.verify(sourceService).createOrGetSource("Book With Image", "Author", "Info", "Title", "cover.png")
+    }
+
+    @Test
     fun `should return warning when imported subrecipe is missing`() {
         Mockito.doAnswer { invocation ->
             invocation.getArgument(0) as Recipe
@@ -381,7 +404,7 @@ class RecipeControllerTest {
     @Test
     fun `should export all recipes as csv`() {
         val recipes = listOf(Recipe(id = 1, name = "Cake", people = 2, instructions = "Bake", imageFileName = "cake.jpg"))
-        val sources = listOf(Source(id = 1, name = "Book", authors = "Author", info="Info", title="Title"))
+        val sources = listOf(Source(id = 1, name = "Book", authors = "Author", info="Info", title="Title", imageFileName = "book-cover.jpg"))
         Mockito.`when`(recipeService.getAllRecipes()).thenReturn(recipes)
         Mockito.`when`(sourceService.getAllSources()).thenReturn(sources)
         Mockito.`when`(conversionRepository.findAll()).thenReturn(emptyList())
@@ -394,6 +417,7 @@ class RecipeControllerTest {
             .statusCode(200)
             .header("Content-Type", org.hamcrest.Matchers.containsString("text/csv"))
             .body(org.hamcrest.Matchers.containsString("Cake"))
+            .body(org.hamcrest.Matchers.containsString("book-cover.jpg"))
             .body(org.hamcrest.Matchers.containsString("cake.jpg"))
     }
 
