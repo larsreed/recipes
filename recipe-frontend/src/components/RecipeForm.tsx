@@ -600,7 +600,7 @@ function RecipeForm({ recipe, onCancel, onRecipeSaved }: RecipeFormProps) {
                         />
                     </div>
                     <div className="form-field" style={{gridColumn: '1 / -1'}}>
-                        <label>Picture file name (from data/media)</label>
+                        <label>Picture file name (from media folder)</label>
                         <select
                             value={imageFileName || ''}
                             onChange={(e) => handleChange(setImageFileName, e.target.value)}
@@ -617,7 +617,7 @@ function RecipeForm({ recipe, onCancel, onRecipeSaved }: RecipeFormProps) {
                             placeholder="Or type a filename manually, e.g. example.jpg"
                         />
                         <small style={{color: 'var(--text-secondary)', fontSize: '0.75rem'}}>
-                            File should exist in backend folder <code>data/media</code>
+                            File should exist in configured backend folder
                         </small>
                         {imageFileName.trim() && (
                             <div style={{marginTop: '0.5rem'}}>

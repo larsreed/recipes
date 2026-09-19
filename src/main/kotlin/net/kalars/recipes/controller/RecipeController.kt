@@ -12,6 +12,7 @@ import org.springframework.core.io.FileSystemResource
 import org.springframework.core.io.Resource
 import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.web.bind.annotation.*
 import org.springframework.web.multipart.MultipartFile
 import java.io.ByteArrayInputStream
@@ -36,13 +37,30 @@ class RecipeController(
     private val recipeService: RecipeService,
     private val sourceService: SourceService,
     private val conversionRepository: ConversionRepository,
-    private val temperatureRepository: TemperatureRepository
+    private val temperatureRepository: TemperatureRepository,
+    @Value("\${media.paths:./data/media}") mediaPathsProperty: String
 ) {
 
     private val decimalCommaRegex = Regex("(?<!\\d)(-?\\d+),(\\d+)(?!\\d)")
     private val importMarkers = setOf("Source", "Recipe", "Ingredient", "Subrecipe", "Attachment", "Conversion", "Temperature")
-    private val mediaDirectory: Path = Path.of("data", "media").toAbsolutePath().normalize()
+    private val mediaDirectories: List<Path> = mediaPathsProperty
+        .split(',')
+        .map { it.trim() }
+        .filter { it.isNotEmpty() }
+        .map { Path.of(it).toAbsolutePath().normalize() }
+        .distinct()
     private val imageExtensions = setOf("jpg", "jpeg", "png", "gif", "webp", "bmp", "svg")
+
+    private fun resolveMediaFile(fileName: String): Path? {
+        return mediaDirectories.firstNotNullOfOrNull { mediaDirectory ->
+            val mediaFile = mediaDirectory.resolve(fileName).normalize()
+            if (mediaFile.startsWith(mediaDirectory) && Files.exists(mediaFile) && Files.isRegularFile(mediaFile)) {
+                mediaFile
+            } else {
+                null
+            }
+        }
+    }
 
     private fun report(message: String): ResponseEntity<String> {
         System.err.println(message)
@@ -148,8 +166,7 @@ class RecipeController(
             return ResponseEntity.badRequest().build()
         }
 
-        val mediaFile = mediaDirectory.resolve(fileName).normalize()
-        if (!mediaFile.startsWith(mediaDirectory) || !Files.exists(mediaFile) || !Files.isRegularFile(mediaFile)) {
+        val mediaFile = resolveMediaFile(fileName) ?: run {
             return ResponseEntity.notFound().build()
         }
 
@@ -164,21 +181,25 @@ class RecipeController(
 
     @GetMapping("/media-files")
     fun listMediaFiles(): List<String> {
-        if (!Files.exists(mediaDirectory) || !Files.isDirectory(mediaDirectory)) {
-            return emptyList()
+        val files = linkedSetOf<String>()
+
+        mediaDirectories.forEach { mediaDirectory ->
+            if (!Files.exists(mediaDirectory) || !Files.isDirectory(mediaDirectory)) {
+                return@forEach
+            }
+            Files.list(mediaDirectory).use { stream ->
+                stream
+                    .filter { Files.isRegularFile(it) }
+                    .map { it.fileName.toString() }
+                    .filter { fileName ->
+                        val extension = fileName.substringAfterLast('.', "").lowercase()
+                        extension in imageExtensions
+                    }
+                    .forEach { files.add(it) }
+            }
         }
 
-        return Files.list(mediaDirectory).use { stream ->
-            stream
-                .filter { Files.isRegularFile(it) }
-                .map { it.fileName.toString() }
-                .filter { fileName ->
-                    val extension = fileName.substringAfterLast('.', "").lowercase()
-                    extension in imageExtensions
-                }
-                .sorted(String.CASE_INSENSITIVE_ORDER)
-                .toList()
-        }
+        return files.sortedWith(String.CASE_INSENSITIVE_ORDER)
     }
 
     @PostMapping("/import-ingredients")

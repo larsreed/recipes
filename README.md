@@ -97,11 +97,24 @@ The frontend and backend URLs are configured in
 
 You can link one picture file to each recipe by filename.
 
+Media file lookup is configurable with `media.paths` in
+`src/main/resources/application.properties`.
+
+- Use a comma-separated list of local folders
+- First folder has priority if duplicate file names exist
+- Default is `./data/media`
+
+Example:
+
+```ini
+media.paths=./data/media,D:/PhotoLibraries/Recipes,E:/Shared/CookbookImages
+```
+
 - Store files in `data\media` (for example `data\media\lasagna.jpg`)
-- In recipe edit mode, fill **Picture file name (from data/media)** with
+- In recipe edit mode, fill **Picture file name (from media folders)** with
   `lasagna.jpg`
 - The recipe form also provides a dropdown populated from existing image files
-  in `data/media`
+  in the media folders
 - Printable view loads the image from `/api/recipes/media/<fileName>` and
   constrains size so the recipe card width does not expand
 

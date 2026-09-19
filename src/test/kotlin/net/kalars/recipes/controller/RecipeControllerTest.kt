@@ -497,12 +497,16 @@ class RecipeControllerTest {
     @Test
     fun `should list media files for recipe image dropdown`() {
         val mediaDir = Path.of("data", "media")
+        val secondaryMediaDir = Path.of("data", "media-library")
         Files.createDirectories(mediaDir)
+        Files.createDirectories(secondaryMediaDir)
         val imageFile = mediaDir.resolve("controller-test-image.png")
+        val secondaryImageFile = secondaryMediaDir.resolve("controller-test-secondary.webp")
         val nonImageFile = mediaDir.resolve("controller-test-note.txt")
 
         try {
             Files.writeString(imageFile, "img")
+            Files.writeString(secondaryImageFile, "img2")
             Files.writeString(nonImageFile, "txt")
 
             RestAssured.given()
@@ -510,10 +514,31 @@ class RecipeControllerTest {
                 .then()
                 .statusCode(200)
                 .body("$", org.hamcrest.Matchers.hasItem("controller-test-image.png"))
+                .body("$", org.hamcrest.Matchers.hasItem("controller-test-secondary.webp"))
                 .body("$", org.hamcrest.Matchers.not(org.hamcrest.Matchers.hasItem("controller-test-note.txt")))
         } finally {
             Files.deleteIfExists(imageFile)
+            Files.deleteIfExists(secondaryImageFile)
             Files.deleteIfExists(nonImageFile)
+        }
+    }
+
+    @Test
+    fun `should serve media file from secondary configured media directory`() {
+        val secondaryMediaDir = Path.of("data", "media-library")
+        Files.createDirectories(secondaryMediaDir)
+        val secondaryImageFile = secondaryMediaDir.resolve("controller-test-secondary.jpg")
+
+        try {
+            Files.writeString(secondaryImageFile, "secondary-media")
+
+            RestAssured.given()
+                .get("/api/recipes/media/controller-test-secondary.jpg")
+                .then()
+                .statusCode(200)
+                .body(org.hamcrest.Matchers.equalTo("secondary-media"))
+        } finally {
+            Files.deleteIfExists(secondaryImageFile)
         }
     }
 }
