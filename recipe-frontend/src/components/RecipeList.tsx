@@ -7,7 +7,7 @@ import config from '../config';
 import {
     Document, Packer, Paragraph, TextRun, HeadingLevel, Table, TableRow, TableCell,
     BorderStyle, WidthType, PageBreak, TableLayoutType, TableOfContents,
-    ExternalHyperlink, ImageRun, InternalHyperlink,
+    ExternalHyperlink, ImageRun, InternalHyperlink, Bookmark, PageReference,
 } from 'docx';
 import { saveAs } from 'file-saver';
 
@@ -752,6 +752,27 @@ function RecipeList() {
         const ingredientCellMargins = { left: 120, right: 120 };
         const bookmarkedRecipeIds = new Set<number>();
         const recipeBookmarkName = (recipeId: number) => `recipe-${recipeId}`;
+        const sourceBookmarkName = (sourceId: number) => `source-${sourceId}`;
+        const sourceBookmarkById = new Map<number, string>();
+        const recipesBySourceId = new Map<number, Map<number, Recipe>>();
+
+        if (bookAppendices) {
+            bookAppendices.sources.forEach((source) => {
+                sourceBookmarkById.set(source.id, sourceBookmarkName(source.id));
+            });
+
+            const collectRecipesBySource = (recipe: Recipe) => {
+                const sourceId = recipe.source?.id;
+                if (sourceId) {
+                    if (!recipesBySourceId.has(sourceId)) {
+                        recipesBySourceId.set(sourceId, new Map<number, Recipe>());
+                    }
+                    recipesBySourceId.get(sourceId)?.set(recipe.id, recipe);
+                }
+                (recipe.subrecipes ?? []).forEach(collectRecipesBySource);
+            };
+            recipesToExport.forEach(collectRecipesBySource);
+        }
 
         const decodeHtml = (s: string): string => {
             if (!s) return s;
@@ -904,19 +925,39 @@ function RecipeList() {
                 bookmarkedRecipeIds.add(recipe.id);
             }
 
+            const headingText = topLevel ? recipe.name : `» ${recipe.name}`;
+            const headingChild = shouldAddBookmark
+                ? new Bookmark({
+                    id: recipeBookmarkName(recipe.id),
+                    children: [new TextRun(headingText)],
+                })
+                : new TextRun(headingText);
+
             elements.push(new Paragraph({
-                text: topLevel ? recipe.name : `» ${recipe.name}`,
+                children: [headingChild],
                 heading: topLevel ? HeadingLevel.HEADING_1 : HeadingLevel.HEADING_2,
-                ...(
-                    shouldAddBookmark
-                        ? { bookmark: { id: recipeBookmarkName(recipe.id), name: recipeBookmarkName(recipe.id) } }
-                        : {}
-                ),
                 spacing: { before: topLevel ? 0 : 400, after: 200 },
             }));
 
             if (recipe.served) elements.push(metaRun('Served: ', unquoteCsv(recipe.served)));
-            if (recipe.source) elements.push(metaRun('Source: ', recipe.source.name + (recipe.pageRef ? ` p.${recipe.pageRef}` : '')));
+            if (recipe.source) {
+                const sourceBookmark = sourceBookmarkById.get(recipe.source.id);
+                if (sourceBookmark) {
+                    elements.push(new Paragraph({
+                        children: [
+                            new TextRun({ text: 'Source: ', italics: true, color: '555555' }),
+                            new InternalHyperlink({
+                                anchor: sourceBookmark,
+                                children: [new TextRun({ text: recipe.source.name, style: 'Hyperlink' })],
+                            }),
+                            ...(recipe.pageRef ? [new TextRun({ text: ` p.${recipe.pageRef}` })] : []),
+                        ],
+                        spacing: { after: 60 },
+                    }));
+                } else {
+                    elements.push(metaRun('Source: ', recipe.source.name + (recipe.pageRef ? ` p.${recipe.pageRef}` : '')));
+                }
+            }
             if (recipe.rating) elements.push(metaRun('Rating: ', String(recipe.rating)));
             if (recipe.wineTips) elements.push(...markdownToDocx('*Wine tips*: ' + unquoteCsv(recipe.wineTips)));
             if (recipe.matchFor) elements.push(...markdownToDocx('*Match for*: ' + unquoteCsv(recipe.matchFor)));
@@ -1023,7 +1064,7 @@ function RecipeList() {
 
         if (isBook) {
             allSections.push(new Paragraph({
-                text: 'Recipe Book',
+                text: 'My Recipes',
                 heading: HeadingLevel.HEADING_1,
                 spacing: { before: 2000, after: 300 },
             }));
@@ -1060,7 +1101,13 @@ function RecipeList() {
 
             for (let index = 0; index < sortedSources.length; index++) {
                 const source = sortedSources[index];
-                allSections.push(new Paragraph({ text: source.name, heading: HeadingLevel.HEADING_2 }));
+                allSections.push(new Paragraph({
+                    heading: HeadingLevel.HEADING_2,
+                    children: [new Bookmark({
+                        id: sourceBookmarkName(source.id),
+                        children: [new TextRun(source.name)],
+                    })],
+                }));
                 if (source.authors) allSections.push(metaRun('Authors: ', source.authors));
                 if (source.title) allSections.push(metaRun('Title: ', source.title));
                 if (source.info) allSections.push(...markdownToDocx(source.info));
@@ -1071,6 +1118,23 @@ function RecipeList() {
                         spacing: { after: 180 },
                     }));
                 }
+
+                const sourceRecipes = [...(recipesBySourceId.get(source.id)?.values() ?? [])]
+                    .sort((a, b) => a.name.localeCompare(b.name, undefined, { sensitivity: 'base' }));
+                if (sourceRecipes.length > 0) {
+                    const sourceRecipeRuns: (TextRun | InternalHyperlink)[] = [new TextRun({ text: 'Recipes: ', italics: true, color: '555555' })];
+                    sourceRecipes.forEach((recipeRef, recipeIndex) => {
+                        if (recipeIndex > 0) {
+                            sourceRecipeRuns.push(new TextRun({ text: ', ' }));
+                        }
+                        sourceRecipeRuns.push(new InternalHyperlink({
+                            anchor: recipeBookmarkName(recipeRef.id),
+                            children: [new TextRun({ text: recipeRef.name, style: 'Hyperlink' })],
+                        }));
+                    });
+                    allSections.push(new Paragraph({ children: sourceRecipeRuns, spacing: { after: 100 } }));
+                }
+
                 if (index < sortedSources.length - 1) {
                     allSections.push(new Paragraph({
                         border: {
@@ -1133,15 +1197,19 @@ function RecipeList() {
             allSections.push(new Paragraph({ text: 'Ingredient Cross-reference', heading: HeadingLevel.HEADING_1 }));
             sortedIngredientEntries.forEach((entry) => {
                 const recipeRefs = [...entry.recipes.values()].sort((a, b) => a.name.localeCompare(b.name, undefined, { sensitivity: 'base' }));
-                const recipeRuns: (TextRun | InternalHyperlink)[] = [new TextRun({ text: `${entry.name}: `, bold: true })];
+                const recipeRuns: (TextRun | InternalHyperlink | PageReference)[] = [new TextRun({ text: `${entry.name}: `, bold: true })];
                 recipeRefs.forEach((recipeRef, idx) => {
                     if (idx > 0) {
                         recipeRuns.push(new TextRun({ text: ', ' }));
                     }
+                    const bookmarkId = recipeBookmarkName(recipeRef.id);
                     recipeRuns.push(new InternalHyperlink({
-                        anchor: recipeBookmarkName(recipeRef.id),
+                        anchor: bookmarkId,
                         children: [new TextRun({ text: recipeRef.name, style: 'Hyperlink' })],
                     }));
+                    recipeRuns.push(new TextRun({ text: ' (p. ' }));
+                    recipeRuns.push(new PageReference(bookmarkId));
+                    recipeRuns.push(new TextRun({ text: ')' }));
                 });
                 allSections.push(new Paragraph({
                     children: recipeRuns,
