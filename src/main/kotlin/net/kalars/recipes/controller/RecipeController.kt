@@ -67,6 +67,22 @@ class RecipeController(
         return ResponseEntity.badRequest().body(message)
     }
 
+    private fun createRecipeDuringImport(recipe: Recipe, lineNo: Int): Recipe {
+        return try {
+            recipeService.createRecipe(recipe)
+        } catch (e: RuntimeException) {
+            val isDuplicateName = e.message?.contains("unique", ignoreCase = true) == true
+                || e.message?.contains("name must be unique", ignoreCase = true) == true
+            if (isDuplicateName) {
+                throw IllegalArgumentException(
+                    "Import failed at line $lineNo: recipe name '${recipe.name}' already exists. " +
+                        "Rename it in the import file or delete/rename the existing recipe first."
+                )
+            }
+            throw e
+        }
+    }
+
     @GetMapping
     fun getRecipes(@RequestParam includeSubrecipes: Boolean): List<Recipe> {
         return if (includeSubrecipes) {
@@ -298,17 +314,19 @@ class RecipeController(
 
 
     @PostMapping("/import")
-    fun importRecipes(@RequestParam("file") file: MultipartFile): RecipeImportResponse {
-        val importContent = prepareRecipeImportContent(file)
-        val reader = BufferedReader(InputStreamReader(importContent.byteInputStream(StandardCharsets.UTF_8), StandardCharsets.UTF_8))
-        val recipes = mutableListOf<Recipe>()
-        val warnings = mutableListOf<String>()
-        val sources = mutableMapOf<String, Long>() // Map to store source names and their IDs
-        val subrecipesToAdd = mutableMapOf<String, List<String>>() // Map to store links between main and subrecipes
-        var currentRecipe: Recipe? = null
-        var lineNo = 0
+    fun importRecipes(@RequestParam("file") file: MultipartFile): ResponseEntity<Any> {
+        try {
+            val importContent = prepareRecipeImportContent(file)
+            val reader = BufferedReader(InputStreamReader(importContent.byteInputStream(StandardCharsets.UTF_8), StandardCharsets.UTF_8))
+            val recipes = mutableListOf<Recipe>()
+            val warnings = mutableListOf<String>()
+            val sources = mutableMapOf<String, Long>() // Map to store source names and their IDs
+            val subrecipesToAdd = mutableMapOf<String, List<String>>() // Map to store links between main and subrecipes
+            var currentRecipe: Recipe? = null
+            var currentRecipeStartLine = 0
+            var lineNo = 0
 
-        reader.lines().forEach { rawLine ->
+            reader.lines().forEach { rawLine ->
             val line = normalizeImportLine(rawLine)
             val rawColumns = line.split("\t").toMutableList()
             val markerIndex = rawColumns
@@ -345,7 +363,7 @@ class RecipeController(
 
                 recordType.equals("Recipe", ignoreCase = true) -> {
                     // Save the previous recipe if it exists
-                    currentRecipe?.let { recipes.add(recipeService.createRecipe(it)) }
+                    currentRecipe?.let { recipes.add(createRecipeDuringImport(it, currentRecipeStartLine)) }
 
                     // Create a new recipe
                     if (nonBlankCount < 2) {
@@ -370,6 +388,7 @@ class RecipeController(
                         categories = columns[13],
                         imageFileName = columns.getOrNull(14)?.trim()?.ifBlank { null }
                     )
+                    currentRecipeStartLine = lineNo
                     val sourceId = sources[columns[9]]
                     if (sourceId == null && columns[9].isNotBlank()) {
                         report("Warning: Recipe '${columns[1]}' references a non-existing source '${columns[9]}'.")
@@ -491,13 +510,13 @@ class RecipeController(
                     }
                 }
             }
-        }
+            }
 
-        // Save the last recipe
-        currentRecipe?.let { recipes.add(recipeService.createRecipe(it)) }
+            // Save the last recipe
+            currentRecipe?.let { recipes.add(createRecipeDuringImport(it, currentRecipeStartLine)) }
 
-        // Add subrecipes to the main recipes
-        recipes.forEach { recipe ->
+            // Add subrecipes to the main recipes
+            recipes.forEach { recipe ->
             val subrecipeNames = subrecipesToAdd[recipe.name]
             if (subrecipeNames != null) {
                 val subrecipes = subrecipeNames.mapNotNull { name ->
@@ -512,9 +531,12 @@ class RecipeController(
                 recipe.subrecipes.addAll(subrecipes)
                 recipeService.saveRecipe(recipe)
             }
-        }
+            }
 
-        return RecipeImportResponse(recipes, warnings)
+            return ResponseEntity.ok(RecipeImportResponse(recipes, warnings))
+        } catch (e: IllegalArgumentException) {
+            return ResponseEntity.badRequest().body(e.message ?: "Import failed")
+        }
     }
 
     @PostMapping("/export-all")

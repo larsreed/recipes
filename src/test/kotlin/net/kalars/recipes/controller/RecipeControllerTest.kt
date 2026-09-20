@@ -402,6 +402,25 @@ class RecipeControllerTest {
     }
 
     @Test
+    fun `should return understandable error when imported recipe name is duplicate`() {
+        Mockito.`when`(recipeService.createRecipe(any(Recipe::class.java) ?: Recipe()))
+            .thenReturn(Recipe(id = 1, name = "Duplicate Soup", people = 2))
+            .thenThrow(RuntimeException("Recipe name must be unique"))
+
+        val content = listOf(
+            "Recipe\tDuplicate Soup\tfalse\t2",
+            "Recipe\tDuplicate Soup\tfalse\t2"
+        ).joinToString("\n")
+
+        RestAssured.given()
+            .multiPart("file", "recipes.txt", content.toByteArray(), "text/plain")
+            .post("/api/recipes/import")
+            .then()
+            .statusCode(400)
+            .body(org.hamcrest.Matchers.containsString("recipe name 'Duplicate Soup' already exists"))
+    }
+
+    @Test
     fun `should export all recipes as csv`() {
         val recipes = listOf(Recipe(id = 1, name = "Cake", people = 2, instructions = "Bake", imageFileName = "cake.jpg"))
         val sources = listOf(Source(id = 1, name = "Book", authors = "Author", info="Info", title="Title", imageFileName = "book-cover.jpg"))
