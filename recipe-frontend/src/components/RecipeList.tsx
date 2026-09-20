@@ -113,6 +113,8 @@ function RecipeList() {
     const [isRecipeModalOpen, setIsRecipeModalOpen] = useState(false);
     const [isSearchPanelOpen, setIsSearchPanelOpen] = useState(false);
     const [isDialogOpen, setIsDialogOpen] = useState(false);
+    const [isImportPromptOpen, setIsImportPromptOpen] = useState(false);
+    const [pendingImportFile, setPendingImportFile] = useState<File | null>(null);
     const [htmlContent, setHtmlContent] = useState('');
     const [searchQuery, setSearchQuery] = useState('');
     const [isSearchActive, setIsSearchActive] = useState(false);
@@ -314,14 +316,29 @@ function RecipeList() {
         setIsSearchActive(false);
     };
 
-    const handleImport = async (event: React.FormEvent) => {
-        event.preventDefault();
-        if (!csvFile) {
-            alert('Please select a CSV, text, or Excel file to import.');
-            return;
+    const executeImport = async (fileToImport: File, shouldDeleteBeforeImport: boolean) => {
+        if (shouldDeleteBeforeImport) {
+            try {
+                const existingRecipeResponse = await axios.get<Recipe[]>(`${config.backendUrl}/api/recipes?includeSubrecipes=true`);
+                const allRecipeIds = [...new Set(existingRecipeResponse.data.map((recipe) => recipe.id))];
+                if (allRecipeIds.length > 0) {
+                    await axios.post(`${config.backendUrl}/api/recipes/delete-many`, allRecipeIds, {
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                    });
+                    setSelectedRecipes(new Set());
+                    setSelectAll(false);
+                }
+            } catch (error) {
+                console.error('Error deleting recipes before import:', error);
+                setApiError('Failed to delete existing recipes before import. Import was cancelled.');
+                return;
+            }
         }
+
         const formData = new FormData();
-        formData.append('file', csvFile);
+        formData.append('file', fileToImport);
         setApiWarnings([]);
         try {
             const response = await axios.post(`${config.backendUrl}/api/recipes/import`, formData, {
@@ -356,6 +373,30 @@ function RecipeList() {
             }
             fetchRecipes(categoryFilter);
         }
+    };
+
+    const handleImport = (event: React.FormEvent) => {
+        event.preventDefault();
+        if (!csvFile) {
+            alert('Please select a CSV, text, or Excel file to import.');
+            return;
+        }
+        setPendingImportFile(csvFile);
+        setIsImportPromptOpen(true);
+    };
+
+    const handleImportPromptDelete = async () => {
+        if (!pendingImportFile) return;
+        setIsImportPromptOpen(false);
+        await executeImport(pendingImportFile, true);
+        setPendingImportFile(null);
+    };
+
+    const handleImportPromptKeep = async () => {
+        if (!pendingImportFile) return;
+        setIsImportPromptOpen(false);
+        await executeImport(pendingImportFile, false);
+        setPendingImportFile(null);
     };
 
     const exportHtmlContent = (htmlContent: string, fileName: string) => {
@@ -1428,6 +1469,13 @@ function RecipeList() {
                     message="Do you want to export the recipes to a file?"
                     onConfirm={handleConfirmExport}
                     onCancel={handleCancelExport}
+                />
+            )}
+            {isImportPromptOpen && (
+                <PromptDialog
+                    message={"Delete all existing recipes before import?\n\nYes = delete first.\nNo = keep existing and import on top."}
+                    onConfirm={handleImportPromptDelete}
+                    onCancel={handleImportPromptKeep}
                 />
             )}
         </div>
