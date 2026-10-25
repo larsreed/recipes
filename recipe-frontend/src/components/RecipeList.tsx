@@ -542,12 +542,8 @@ function RecipeList() {
                         </div>
                     `).join('')}
                 </div>
-                ${recipe.served ? `<p><em>Served</em>: ${recipe.served.replace(/\n/g, '<br />')}</p>` : ''}
                 ${recipe.source ? `<p><em>Source</em>: ${recipe.source.name}${recipe.pageRef ? ` p.${recipe.pageRef}` : ''}</p>` : ''}
-                ${recipe.rating ? `<p><em>Rating</em>: ${recipe.rating}</p>` : ''}
                 ${recipe.wineTips ? `<div>${marked('*Wine tips*: ' + recipe.wineTips)}</div>` : ''}
-                ${recipe.matchFor ? `<div>${marked('*Match for*: ' + recipe.matchFor)}</div>` : ''}
-                ${recipe.categories ? `<p><em>Categories</em>: ${recipe.categories.replace(/,/g, ' ')}</p>` : ''}
                 ${recipe.notes ? `<div>${marked("*Notes*: " + recipe.notes)}</div>` : ''}
                 ${recipe.instructions ? `<div class="instructions">${marked(recipe.instructions)}</div>` : ''}
                 ${recipe.subrecipe ? `<h4>Ingredients</h4>` : `<h3>Ingredients</h3>`}
