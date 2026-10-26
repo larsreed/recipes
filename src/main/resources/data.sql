@@ -12,7 +12,9 @@ CREATE TABLE recipe (
     notes TEXT NULL,
     wine_tips TEXT null,
     match_for TEXT NULL,
-    categories VARCHAR(255) NULL
+    categories VARCHAR(255) NULL,
+    image_file_name VARCHAR(255) NULL,
+    CONSTRAINT unique_recipe_name UNIQUE (name)
 );
 
 CREATE TABLE ingredient (
@@ -45,6 +47,7 @@ CREATE TABLE source (
      authors VARCHAR(255),
      info VARCHAR(255) NULL,
      title VARCHAR(255) NULL,
+      image_file_name VARCHAR(255) NULL,
      CONSTRAINT unique_source_name UNIQUE (name)
 );
 
@@ -64,7 +67,8 @@ CREATE TABLE conversion (
     factor FLOAT NOT NULL,
     from_measure VARCHAR(10) NOT NULL,
     to_measure VARCHAR(10) NOT NULL,
-    description TEXT NULL
+    description TEXT NULL,
+    preferred BOOLEAN DEFAULT FALSE
 );
 
 CREATE TABLE temperatures (

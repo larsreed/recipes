@@ -9,8 +9,11 @@ data class Source (
     val id: Long = 0,
     val name: String,
     val authors: String,
+    @Column(columnDefinition = "TEXT")
     val info: String?,
-    val title: String?
+    @Column(columnDefinition = "TEXT")
+    val title: String?,
+    val imageFileName: String? = null
 ) {
-    constructor() : this(0, "", "", null, null)
+    constructor() : this(0, "", "", null, null, null)
 }

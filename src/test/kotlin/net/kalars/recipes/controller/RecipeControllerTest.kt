@@ -6,12 +6,14 @@ import net.kalars.recipes.model.Attachment
 import net.kalars.recipes.model.Recipe
 import net.kalars.recipes.model.ShoppingListItem
 import net.kalars.recipes.model.Source
+import org.apache.poi.xssf.usermodel.XSSFWorkbook
 import net.kalars.recipes.repository.ConversionRepository
 import net.kalars.recipes.repository.TemperatureRepository
 import net.kalars.recipes.service.RecipeService
 import net.kalars.recipes.service.SourceService
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.Assertions.assertEquals
 import org.mockito.Mockito
 import org.mockito.Mockito.any
 import org.mockito.Mockito.eq
@@ -19,6 +21,10 @@ import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.test.mock.mockito.MockBean
 import org.springframework.boot.test.web.server.LocalServerPort
 import org.springframework.test.context.ActiveProfiles
+import java.io.ByteArrayOutputStream
+import java.nio.charset.StandardCharsets
+import java.nio.file.Files
+import java.nio.file.Path
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @ActiveProfiles("test")
@@ -226,9 +232,198 @@ class RecipeControllerTest {
     }
 
     @Test
+    fun `should import recipes from excel file and normalize decimal comma`() {
+        var capturedRecipe: Recipe? = null
+        Mockito.doAnswer { invocation ->
+            val created = invocation.getArgument(0) as Recipe
+            capturedRecipe = created
+            created
+        }.`when`(recipeService).createRecipe(any(Recipe::class.java) ?: Recipe())
+
+        val workbook = XSSFWorkbook()
+        val sheet = workbook.createSheet("Recipes")
+
+        val recipeRow = sheet.createRow(0)
+        recipeRow.createCell(0).setCellValue("Recipe")
+        recipeRow.createCell(1).setCellValue("Excel Soup")
+        recipeRow.createCell(2).setCellValue("false")
+        recipeRow.createCell(3).setCellValue("4")
+
+        val ingredientRow = sheet.createRow(1)
+        ingredientRow.createCell(0).setCellValue("Ingredient")
+        ingredientRow.createCell(1).setCellValue("")
+        ingredientRow.createCell(2).setCellValue("1,5")
+        ingredientRow.createCell(3).setCellValue("dl")
+        ingredientRow.createCell(4).setCellValue("")
+        ingredientRow.createCell(5).setCellValue("Milk")
+        ingredientRow.createCell(6).setCellValue("Warm")
+
+        val output = ByteArrayOutputStream()
+        workbook.write(output)
+        workbook.close()
+
+        RestAssured.given()
+            .multiPart("file", "recipes.xlsx", output.toByteArray(), "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+            .post("/api/recipes/import")
+            .then()
+            .statusCode(200)
+            .body("recipes[0].name", org.hamcrest.Matchers.equalTo("Excel Soup"))
+            .body("warnings", org.hamcrest.Matchers.empty<Any>())
+
+        Mockito.verify(recipeService).createRecipe(any(Recipe::class.java) ?: Recipe())
+        val importedRecipe = capturedRecipe ?: throw AssertionError("Recipe was not captured")
+        assertEquals(1, importedRecipe.ingredients.size)
+        assertEquals(1.5f, importedRecipe.ingredients[0].amount)
+        assertEquals("Milk", importedRecipe.ingredients[0].name)
+    }
+
+    @Test
+    fun `should import recipes from excel when marker is in second column`() {
+        var capturedRecipe: Recipe? = null
+        Mockito.doAnswer { invocation ->
+            val created = invocation.getArgument(0) as Recipe
+            capturedRecipe = created
+            created
+        }.`when`(recipeService).createRecipe(any(Recipe::class.java) ?: Recipe())
+
+        val workbook = XSSFWorkbook()
+        val sheet = workbook.createSheet("Recipes")
+
+        val recipeRow = sheet.createRow(0)
+        recipeRow.createCell(0).setCellValue("1")
+        recipeRow.createCell(1).setCellValue("Recipe")
+        recipeRow.createCell(2).setCellValue("Shifted Soup")
+        recipeRow.createCell(3).setCellValue("false")
+        recipeRow.createCell(4).setCellValue("4")
+
+        val ingredientRow = sheet.createRow(1)
+        ingredientRow.createCell(0).setCellValue("2")
+        ingredientRow.createCell(1).setCellValue("Ingredient")
+        ingredientRow.createCell(2).setCellValue("")
+        ingredientRow.createCell(3).setCellValue("2,0")
+        ingredientRow.createCell(4).setCellValue("dl")
+        ingredientRow.createCell(5).setCellValue("")
+        ingredientRow.createCell(6).setCellValue("Cream")
+        ingredientRow.createCell(7).setCellValue("Whip")
+
+        val output = ByteArrayOutputStream()
+        workbook.write(output)
+        workbook.close()
+
+        RestAssured.given()
+            .multiPart("file", "recipes-shifted.xlsx", output.toByteArray(), "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+            .post("/api/recipes/import")
+            .then()
+            .statusCode(200)
+            .body("recipes[0].name", org.hamcrest.Matchers.equalTo("Shifted Soup"))
+            .body("warnings", org.hamcrest.Matchers.empty<Any>())
+
+        Mockito.verify(recipeService).createRecipe(any(Recipe::class.java) ?: Recipe())
+        val importedRecipe = capturedRecipe ?: throw AssertionError("Recipe was not captured")
+        assertEquals(1, importedRecipe.ingredients.size)
+        assertEquals(2.0f, importedRecipe.ingredients[0].amount)
+        assertEquals("Cream", importedRecipe.ingredients[0].name)
+    }
+
+    @Test
+    fun `should import recipes from utf16 tab separated text`() {
+        var capturedRecipe: Recipe? = null
+        Mockito.doAnswer { invocation ->
+            val created = invocation.getArgument(0) as Recipe
+            capturedRecipe = created
+            created
+        }.`when`(recipeService).createRecipe(any(Recipe::class.java) ?: Recipe())
+
+        val lines = listOf(
+            "# Recipe\tName\tIsSubrecipe:bool\tPeople:int",
+            "Recipe\tUnicode Soup\tfalse\t4\t\t\t\t\t\t\t\t\t\t\tunicode.jpg",
+            "Ingredient\t\t1,5\tdl\t\tMilk\tWarm"
+        ).joinToString("\r\n")
+
+        val utf16Bytes = ("\uFEFF" + lines).toByteArray(StandardCharsets.UTF_16LE)
+
+        RestAssured.given()
+            .multiPart("file", "recipes.txt", utf16Bytes, "text/plain")
+            .post("/api/recipes/import")
+            .then()
+            .statusCode(200)
+            .body("recipes[0].name", org.hamcrest.Matchers.equalTo("Unicode Soup"))
+            .body("warnings", org.hamcrest.Matchers.empty<Any>())
+
+        Mockito.verify(recipeService).createRecipe(any(Recipe::class.java) ?: Recipe())
+        val importedRecipe = capturedRecipe ?: throw AssertionError("Recipe was not captured")
+        assertEquals(1, importedRecipe.ingredients.size)
+        assertEquals(1.5f, importedRecipe.ingredients[0].amount)
+        assertEquals("Milk", importedRecipe.ingredients[0].name)
+        assertEquals("unicode.jpg", importedRecipe.imageFileName)
+    }
+
+    @Test
+    fun `should import source with image filename`() {
+        Mockito.`when`(sourceService.createOrGetSource("Book With Image", "Author", "Info", "Title", "cover.png"))
+            .thenReturn(Source(id = 22, name = "Book With Image", authors = "Author", info = "Info", title = "Title", imageFileName = "cover.png"))
+        Mockito.doAnswer { invocation ->
+            invocation.getArgument(0) as Recipe
+        }.`when`(recipeService).createRecipe(any(Recipe::class.java) ?: Recipe())
+
+        val content = listOf(
+            "Source\tBook With Image\tAuthor\tInfo\tTitle\tcover.png",
+            "Recipe\tSoup With Source\tfalse\t4\t\t\t\t\t\tBook With Image"
+        ).joinToString("\n")
+
+        RestAssured.given()
+            .multiPart("file", "recipes.txt", content.toByteArray(), "text/plain")
+            .post("/api/recipes/import")
+            .then()
+            .statusCode(200)
+            .body("recipes[0].name", org.hamcrest.Matchers.equalTo("Soup With Source"))
+
+        Mockito.verify(sourceService).createOrGetSource("Book With Image", "Author", "Info", "Title", "cover.png")
+    }
+
+    @Test
+    fun `should return warning when imported subrecipe is missing`() {
+        Mockito.doAnswer { invocation ->
+            invocation.getArgument(0) as Recipe
+        }.`when`(recipeService).createRecipe(any(Recipe::class.java) ?: Recipe())
+
+        val content = listOf(
+            "Recipe\tMain Dish\tfalse\t2",
+            "Subrecipe\tMissing Sauce"
+        ).joinToString("\n")
+
+        RestAssured.given()
+            .multiPart("file", "recipes.txt", content.toByteArray(), "text/plain")
+            .post("/api/recipes/import")
+            .then()
+            .statusCode(200)
+            .body("recipes[0].name", org.hamcrest.Matchers.equalTo("Main Dish"))
+            .body("warnings[0]", org.hamcrest.Matchers.equalTo("Warning: In recipe 'Main Dish', the following subrecipes were not found: Missing Sauce"))
+    }
+
+    @Test
+    fun `should return understandable error when imported recipe name is duplicate`() {
+        Mockito.`when`(recipeService.createRecipe(any(Recipe::class.java) ?: Recipe()))
+            .thenReturn(Recipe(id = 1, name = "Duplicate Soup", people = 2))
+            .thenThrow(RuntimeException("Recipe name must be unique"))
+
+        val content = listOf(
+            "Recipe\tDuplicate Soup\tfalse\t2",
+            "Recipe\tDuplicate Soup\tfalse\t2"
+        ).joinToString("\n")
+
+        RestAssured.given()
+            .multiPart("file", "recipes.txt", content.toByteArray(), "text/plain")
+            .post("/api/recipes/import")
+            .then()
+            .statusCode(400)
+            .body(org.hamcrest.Matchers.containsString("recipe name 'Duplicate Soup' already exists"))
+    }
+
+    @Test
     fun `should export all recipes as csv`() {
-        val recipes = listOf(Recipe(id = 1, name = "Cake", people = 2, instructions = "Bake"))
-        val sources = listOf(Source(id = 1, name = "Book", authors = "Author", info="Info", title="Title"))
+        val recipes = listOf(Recipe(id = 1, name = "Cake", people = 2, instructions = "Bake", imageFileName = "cake.jpg"))
+        val sources = listOf(Source(id = 1, name = "Book", authors = "Author", info="Info", title="Title", imageFileName = "book-cover.jpg"))
         Mockito.`when`(recipeService.getAllRecipes()).thenReturn(recipes)
         Mockito.`when`(sourceService.getAllSources()).thenReturn(sources)
         Mockito.`when`(conversionRepository.findAll()).thenReturn(emptyList())
@@ -241,6 +436,8 @@ class RecipeControllerTest {
             .statusCode(200)
             .header("Content-Type", org.hamcrest.Matchers.containsString("text/csv"))
             .body(org.hamcrest.Matchers.containsString("Cake"))
+            .body(org.hamcrest.Matchers.containsString("book-cover.jpg"))
+            .body(org.hamcrest.Matchers.containsString("cake.jpg"))
     }
 
     @Test
@@ -314,5 +511,53 @@ class RecipeControllerTest {
             .body("[0].name", org.hamcrest.Matchers.equalTo("Salad"))
 
         Mockito.verify(recipeService).getMainRecipes()
+    }
+
+    @Test
+    fun `should list media files for recipe image dropdown`() {
+        val mediaDir = Path.of("data", "media")
+        val secondaryMediaDir = Path.of("data", "media-library")
+        Files.createDirectories(mediaDir)
+        Files.createDirectories(secondaryMediaDir)
+        val imageFile = mediaDir.resolve("controller-test-image.png")
+        val secondaryImageFile = secondaryMediaDir.resolve("controller-test-secondary.webp")
+        val nonImageFile = mediaDir.resolve("controller-test-note.txt")
+
+        try {
+            Files.writeString(imageFile, "img")
+            Files.writeString(secondaryImageFile, "img2")
+            Files.writeString(nonImageFile, "txt")
+
+            RestAssured.given()
+                .get("/api/recipes/media-files")
+                .then()
+                .statusCode(200)
+                .body("$", org.hamcrest.Matchers.hasItem("controller-test-image.png"))
+                .body("$", org.hamcrest.Matchers.hasItem("controller-test-secondary.webp"))
+                .body("$", org.hamcrest.Matchers.not(org.hamcrest.Matchers.hasItem("controller-test-note.txt")))
+        } finally {
+            Files.deleteIfExists(imageFile)
+            Files.deleteIfExists(secondaryImageFile)
+            Files.deleteIfExists(nonImageFile)
+        }
+    }
+
+    @Test
+    fun `should serve media file from secondary configured media directory`() {
+        val secondaryMediaDir = Path.of("data", "media-library")
+        Files.createDirectories(secondaryMediaDir)
+        val secondaryImageFile = secondaryMediaDir.resolve("controller-test-secondary.jpg")
+
+        try {
+            Files.writeString(secondaryImageFile, "secondary-media")
+
+            RestAssured.given()
+                .get("/api/recipes/media/controller-test-secondary.jpg")
+                .then()
+                .statusCode(200)
+                .body(org.hamcrest.Matchers.equalTo("secondary-media"))
+        } finally {
+            Files.deleteIfExists(secondaryImageFile)
+        }
     }
 }

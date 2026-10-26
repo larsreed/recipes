@@ -1,32 +1,63 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import axios from 'axios';
 import config from '../config';
 
+interface Source {
+    id?: number;
+    name: string;
+    authors: string;
+    info: string;
+    title: string;
+    imageFileName?: string;
+}
+
 function SourceForm() {
-    const [sources, setSources] = useState([]);
-    const [newSource, setNewSource] = useState({ name: '', authors: '', info: '', title: '' });
+    const [sources, setSources] = useState<Source[]>([]);
+    const [newSource, setNewSource] = useState<Source>({ name: '', authors: '', info: '', title: '', imageFileName: '' });
+    const [mediaFiles, setMediaFiles] = useState<string[]>([]);
+    const [previewLoadFailed, setPreviewLoadFailed] = useState<Record<number, boolean>>({});
 
     useEffect(() => {
         fetchSources();
+        fetchMediaFiles();
     }, []);
 
     const fetchSources = async () => {
         try {
             const response = await axios.get(`${config.backendUrl}/api/sources`);
-            setSources(response.data);
+            // Sort sources by name (case-insensitive)
+            const sortedSources = response.data.sort((a: Source, b: Source) =>
+                a.name.localeCompare(b.name, undefined, { sensitivity: 'base' })
+            );
+            setSources(sortedSources);
         } catch (error) {
             console.error('Error fetching sources:', error);
         }
     };
 
-    const handleInputChange = (index, field, value) => {
-        const updatedSources = [...sources];
-        updatedSources[index][field] = value;
-        setSources(updatedSources);
+    const fetchMediaFiles = async () => {
+        try {
+            const response = await axios.get<string[]>(`${config.backendUrl}/api/recipes/media-files`);
+            setMediaFiles(response.data ?? []);
+        } catch (error) {
+            console.error('Error fetching media files:', error);
+        }
     };
 
-    const handleSave = async (index) => {
-        const source = sources[index];
+    const handleInputChange = (index: number, field: keyof Source, value: string) => {
+        const updatedSources = [...sources];
+        updatedSources[index][field] = value as never;
+        setSources(updatedSources);
+        if (field === 'imageFileName') {
+            setPreviewLoadFailed((prev) => ({ ...prev, [index]: false }));
+        }
+    };
+
+    const handleSave = async (index: number) => {
+        const source = {
+            ...sources[index],
+            imageFileName: sources[index].imageFileName?.trim() || null,
+        };
         try {
             if (source.id) {
                 await axios.put(`${config.backendUrl}/api/sources/${source.id}`, source);
@@ -34,13 +65,17 @@ function SourceForm() {
                 const response = await axios.post(`${config.backendUrl}/api/sources`, source);
                 sources[index] = response.data; // Update with the saved source (including ID)
             }
-            setSources([...sources]);
+            // Sort sources by name after saving
+            const sortedSources = [...sources].sort((a, b) =>
+                a.name.localeCompare(b.name, undefined, { sensitivity: 'base' })
+            );
+            setSources(sortedSources);
         } catch (error) {
             console.error('Error saving source:', error);
         }
     };
 
-    const handleDelete = async (index) => {
+    const handleDelete = async (index: number) => {
         const source = sources[index];
         if (source.id && window.confirm('Are you sure you want to delete this source?')) {
             try {
@@ -54,11 +89,14 @@ function SourceForm() {
 
     const handleAddNewRow = () => {
         setSources([...sources, { ...newSource }]);
-        setNewSource({ name: '', authors: '', info: '', title: '' });
+        setNewSource({ name: '', authors: '', info: '', title: '', imageFileName: '' });
     };
 
-    const handleBlur = async (index) => {
-        const source = sources[index];
+    const handleBlur = async (index: number) => {
+        const source = {
+            ...sources[index],
+            imageFileName: sources[index].imageFileName?.trim() || null,
+        };
         try {
             if (source.id) {
                 await axios.put(`${config.backendUrl}/api/sources/${source.id}`, source);
@@ -66,7 +104,11 @@ function SourceForm() {
                 const response = await axios.post(`${config.backendUrl}/api/sources`, source);
                 sources[index] = response.data; // Update with the saved source (including ID)
             }
-            setSources([...sources]);
+            // Sort sources by name after saving
+            const sortedSources = [...sources].sort((a, b) =>
+                a.name.localeCompare(b.name, undefined, { sensitivity: 'base' })
+            );
+            setSources(sortedSources);
         } catch (error) {
             console.error('Error saving source:', error);
         }
@@ -77,18 +119,17 @@ function SourceForm() {
             <table>
                 <thead>
                     <tr>
-                        <th>ID</th>
                         <th>Name</th>
                         <th>Authors</th>
                         <th>Title</th>
                         <th>Info</th>
+                        <th>Picture</th>
                         <th>Actions</th>
                     </tr>
                 </thead>
                 <tbody>
                     {sources.map((source, index) => (
                         <tr key={index}>
-                            <td>{source.id || ''}</td>
                             <td>
                                 <input
                                     type="text"
@@ -122,17 +163,44 @@ function SourceForm() {
                                 />
                             </td>
                             <td>
+                                <select
+                                    value={source.imageFileName || ''}
+                                    onChange={(e) => handleInputChange(index, 'imageFileName', e.target.value)}
+                                    onBlur={() => handleBlur(index)}
+                                >
+                                    <option value="">No image</option>
+                                    {mediaFiles.map((fileName) => (
+                                        <option key={fileName} value={fileName}>{fileName}</option>
+                                    ))}
+                                </select>
+                                <input
+                                    type="text"
+                                    value={source.imageFileName || ''}
+                                    onChange={(e) => handleInputChange(index, 'imageFileName', e.target.value)}
+                                    onBlur={() => handleBlur(index)}
+                                    placeholder="filename.jpg"
+                                    style={{ marginTop: '0.5rem' }}
+                                />
+                                {(source.imageFileName || '').trim() && !previewLoadFailed[index] && (
+                                    <img
+                                        src={`${config.backendUrl}/api/recipes/media/${encodeURIComponent((source.imageFileName || '').trim())}`}
+                                        alt={(source.imageFileName || '').trim()}
+                                        className="thumbnail"
+                                        onError={() => setPreviewLoadFailed((prev) => ({ ...prev, [index]: true }))}
+                                    />
+                                )}
+                            </td>
+                            <td>
                                 <button onClick={() => handleSave(index)} title="Save">
                                     <i className="fas fa-save"></i>
                                 </button>
-                                <button onClick={() => handleDelete(index)} title="Delete">
+                                <button onClick={() => handleDelete(index)} title="Delete" className="btn-danger">
                                     <i className="fas fa-remove"></i>
                                 </button>
                             </td>
                         </tr>
                     ))}
                     <tr>
-                        <td></td>
                         <td>
                             <input
                                 type="text"
@@ -164,6 +232,34 @@ function SourceForm() {
                                 onChange={(e) => setNewSource({ ...newSource, info: e.target.value })}
                                 placeholder="New info"
                             />
+                        </td>
+                        <td>
+                            <select
+                                value={newSource.imageFileName || ''}
+                                onChange={(e) => setNewSource({ ...newSource, imageFileName: e.target.value })}
+                            >
+                                <option value="">No image</option>
+                                {mediaFiles.map((fileName) => (
+                                    <option key={fileName} value={fileName}>{fileName}</option>
+                                ))}
+                            </select>
+                            <input
+                                type="text"
+                                value={newSource.imageFileName || ''}
+                                onChange={(e) => setNewSource({ ...newSource, imageFileName: e.target.value })}
+                                placeholder="filename.jpg"
+                                style={{ marginTop: '0.5rem' }}
+                            />
+                            {(newSource.imageFileName || '').trim() && (
+                                <img
+                                    src={`${config.backendUrl}/api/recipes/media/${encodeURIComponent((newSource.imageFileName || '').trim())}`}
+                                    alt={(newSource.imageFileName || '').trim()}
+                                    className="thumbnail"
+                                    onError={(e) => {
+                                        e.currentTarget.style.display = 'none';
+                                    }}
+                                />
+                            )}
                         </td>
                         <td>
                             <button onClick={handleAddNewRow}>

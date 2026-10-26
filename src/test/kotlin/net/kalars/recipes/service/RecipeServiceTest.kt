@@ -3,6 +3,7 @@ package net.kalars.recipes.service
 import net.kalars.recipes.model.*
 import net.kalars.recipes.repository.RecipeRepository
 import net.kalars.recipes.repository.SourceRepository
+import net.kalars.recipes.repository.ConversionRepository
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -13,13 +14,15 @@ class RecipeServiceTest {
 
     private lateinit var recipeRepository: RecipeRepository
     private lateinit var sourceRepository: SourceRepository
+    private lateinit var conversionRepository: ConversionRepository
     private lateinit var recipeService: RecipeService
 
     @BeforeEach
     fun setUp() {
         recipeRepository = Mockito.mock(RecipeRepository::class.java)
         sourceRepository = Mockito.mock(SourceRepository::class.java)
-        recipeService = RecipeService(recipeRepository, sourceRepository)
+        conversionRepository = Mockito.mock(ConversionRepository::class.java)
+        recipeService = RecipeService(recipeRepository, sourceRepository, conversionRepository)
     }
 
     @Test

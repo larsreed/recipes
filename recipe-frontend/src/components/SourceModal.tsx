@@ -1,8 +1,11 @@
 import { useEffect } from 'react';
 import SourceForm from './SourceForm';
 
-// @ts-ignore
-const SourceModal = ({ onClose }) => {
+interface SourceModalProps {
+    onClose: () => void;
+}
+
+const SourceModal = ({ onClose }: SourceModalProps) => {
     useEffect(() => {
         const handleKeyDown = (event: KeyboardEvent) => {
             if (event.key === 'Escape') {

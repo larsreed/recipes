@@ -37,3 +37,4 @@ bin/
 gradle/wrapper/gradle-wrapper.jar
 /data/recipesdb.trace.db
 /.idea/modules/fullstack1.main.iml
+/.idea/copilotDiffState.xml

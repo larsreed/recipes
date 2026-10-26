@@ -12,7 +12,8 @@ data class Conversion(
     var factor: Float,
     var fromMeasure: String,
     var toMeasure: String,
-    var description: String? = ""
+    var description: String? = "",
+    var preferred: Boolean = false
 ) {
-    constructor() : this(0, 0.0f, fromMeasure = "", toMeasure = "", description = "")
+    constructor() : this(0, 0.0f, fromMeasure = "", toMeasure = "", description = "", preferred = false)
 }

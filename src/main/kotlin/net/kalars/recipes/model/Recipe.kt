@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize
 import jakarta.persistence.*
 
 @Entity
+@Table(name = "recipe", uniqueConstraints = [UniqueConstraint(columnNames = ["name"])])
 data class Recipe(
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     val id: Long = 0,
@@ -11,15 +12,21 @@ data class Recipe(
     var people: Int,
     @Column(columnDefinition = "TEXT")
     var instructions: String? = null,
+    @Column(columnDefinition = "TEXT")
     var closing: String? = null,
+    @Column(columnDefinition = "TEXT")
     var served: String? = null,
     var pageRef: String? = null,
     var rating: Int? = null,
+    @Column(columnDefinition = "TEXT")
     var notes: String? = null,
     var subrecipe: Boolean = false,
+    @Column(columnDefinition = "TEXT")
     var wineTips: String? = null,
+    @Column(columnDefinition = "TEXT")
     var matchFor: String? = null,
     var categories: String? = null,
+    var imageFileName: String? = null,
 
     @ManyToMany
     @JoinTable(
@@ -45,5 +52,5 @@ data class Recipe(
     var source: Source? = null
 
     constructor() : this(0, "", 0, null, null, null, null, null,
-        null, false, null, null, null, mutableListOf(), mutableListOf(), mutableListOf(), null)
+        null, false, null, null, null, null, mutableListOf(), mutableListOf(), mutableListOf(), null)
 }

@@ -30,20 +30,22 @@ class SourceServiceTest {
 
     @Test
     fun `createOrGetSource returns existing source if found`() {
-        val source = Source(id = 1, name = "Book", authors = "Author", info = "Info", title = "Title")
+        val source = Source(id = 1, name = "Book", authors = "Author", info = "Info", title = "Title", imageFileName = "book.jpg")
         Mockito.`when`(sourceRepository.findByName("Book")).thenReturn(Optional.of(source))
-        val result = sourceService.createOrGetSource("Book", "Author", "Info", "Title")
+        Mockito.`when`(sourceRepository.save(Mockito.any(Source::class.java))).thenReturn(source)
+        val result = sourceService.createOrGetSource("Book", "Author", "Info", "Title", "book.jpg")
         assertEquals(source, result)
     }
 
     @Test
     fun `createOrGetSource creates and returns new source if not found`() {
         Mockito.`when`(sourceRepository.findByName("NewBook")).thenReturn(Optional.empty())
-        val newSource = Source(name = "NewBook", authors = "NewAuthor", info = "NewInfo", title = "NewTitle")
+        val newSource = Source(name = "NewBook", authors = "NewAuthor", info = "NewInfo", title = "NewTitle", imageFileName = "newbook.jpg")
         Mockito.`when`(sourceRepository.save(Mockito.any(Source::class.java))).thenReturn(newSource)
-        val result = sourceService.createOrGetSource("NewBook", "NewAuthor", "NewInfo", "NewTitle")
+        val result = sourceService.createOrGetSource("NewBook", "NewAuthor", "NewInfo", "NewTitle", "newbook.jpg")
         assertEquals("NewBook", result.name)
         assertEquals("NewAuthor", result.authors)
+        assertEquals("newbook.jpg", result.imageFileName)
     }
 
     @Test
@@ -78,14 +80,15 @@ class SourceServiceTest {
 
     @Test
     fun `updateSource updates and returns source`() {
-        val existing = Source(id = 1, name = "Old", authors = "A", info = "Old Info", title = "Old Title")
-        val updated = Source(id = 1, name = "New", authors = "B",  info = "New Info", title = "New Title")
+        val existing = Source(id = 1, name = "Old", authors = "A", info = "Old Info", title = "Old Title", imageFileName = "old.jpg")
+        val updated = Source(id = 1, name = "New", authors = "B",  info = "New Info", title = "New Title", imageFileName = "new.jpg")
         Mockito.`when`(sourceRepository.existsByNameAndIdNot("New", 1L)).thenReturn(false)
         Mockito.`when`(sourceRepository.findById(1L)).thenReturn(Optional.of(existing))
         Mockito.`when`(sourceRepository.save(Mockito.any(Source::class.java))).thenReturn(updated)
         val result = sourceService.updateSource(1L, updated)
         assertEquals("New", result.name)
         assertEquals("B", result.authors)
+        assertEquals("new.jpg", result.imageFileName)
     }
 
     @Test

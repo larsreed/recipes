@@ -1,17 +1,20 @@
 package net.kalars.recipes.service
 
+import net.kalars.recipes.model.Conversion
 import net.kalars.recipes.model.Ingredient
 import net.kalars.recipes.model.Recipe
 import net.kalars.recipes.model.ShoppingListItem
 import net.kalars.recipes.model.Source
 import net.kalars.recipes.repository.RecipeRepository
 import net.kalars.recipes.repository.SourceRepository
+import net.kalars.recipes.repository.ConversionRepository
 import org.springframework.stereotype.Service
 
 @Service
 class RecipeService(
     private val recipeRepository: RecipeRepository,
-    private val sourceRepository: SourceRepository
+    private val sourceRepository: SourceRepository,
+    private val conversionRepository: ConversionRepository
 ) {
 
     fun getAllRecipes(): List<Recipe> = recipeRepository.findAll()
@@ -22,6 +25,10 @@ class RecipeService(
         .orElseThrow { RuntimeException("Recipe not found") }
 
     fun createRecipe(recipe: Recipe): Recipe {
+        recipe.name = recipe.name.trim()
+        if (recipeRepository.findByName(recipe.name) != null) {
+            throw RuntimeException("Recipe name must be unique")
+        }
         if (recipe.sourceId != null && recipe.sourceId != 0L) {
             val source: Source = sourceRepository.findById(recipe.sourceId!!)
                 .orElseThrow { RuntimeException("Source not found") }
@@ -38,7 +45,13 @@ class RecipeService(
         val existingRecipe = recipeRepository.findById(id)
             .orElseThrow { RuntimeException("Recipe not found") }
 
-        existingRecipe.name = recipe.name
+        // Check for duplicate name (excluding self)
+        val duplicate = recipeRepository.findByName(recipe.name.trim())
+        if (duplicate != null && duplicate.id != id) {
+            throw RuntimeException("Recipe name must be unique")
+        }
+
+        existingRecipe.name = recipe.name.trim()
         existingRecipe.subrecipe = recipe.subrecipe
         existingRecipe.instructions = recipe.instructions
         existingRecipe.closing = recipe.closing
@@ -50,6 +63,7 @@ class RecipeService(
         existingRecipe.wineTips = recipe.wineTips
         existingRecipe.matchFor = recipe.matchFor
         existingRecipe.categories = recipe.categories
+        existingRecipe.imageFileName = recipe.imageFileName
 
         existingRecipe.ingredients.clear()
         recipe.ingredients.forEachIndexed { index, ingredientDto ->
@@ -72,7 +86,7 @@ class RecipeService(
         existingRecipe.source = if (recipe.sourceId == null || recipe.sourceId == 0L)
             null else {
                 sourceRepository.findById(recipe.sourceId!!)
-                    .orElseThrow { RuntimeException("Source ${recipe.sourceId} not found") }
+                    .orElseThrow { RuntimeException("Source \\${recipe.sourceId} not found") }
         }
 
         // Update subrecipes and preserve order
@@ -113,32 +127,51 @@ class RecipeService(
 
     fun generateShoppingList(recipeIds: List<Long>, guests: Int): List<ShoppingListItem> {
         val ingredients = mutableListOf<ShoppingListItem>()
+        val preferredConversions = conversionRepository.findAll().filter { it.preferred }
 
         recipeIds.forEach { recipeId ->
             val recipe = recipeRepository.findById(recipeId).orElseThrow {
                 IllegalArgumentException("Recipe not found: $recipeId")
             }
-            collectIngredients(recipe, ingredients, guests)
+            collectIngredients(recipe, ingredients, guests, preferredConversions)
         }
-
-        return ingredients
-            .sortedBy { it.name }
+        return ingredients.sortedBy { it.name }
     }
 
-    private fun collectIngredients(recipe: Recipe, ingredients: MutableList<ShoppingListItem>, guests: Int) {
+    private fun collectIngredients(
+        recipe: Recipe,
+        ingredients: MutableList<ShoppingListItem>,
+        guests: Int,
+        preferredConversions: List<Conversion>
+    ) {
         val people = if (recipe.people>0) recipe.people else guests // if 0, then fixed amount
         recipe.ingredients.forEach { ingredient ->
+            val conversion = preferredConversions.find { it.fromMeasure == ingredient.measure }
+            val actual = if (conversion != null) {
+                Ingredient(
+                    name = ingredient.name,
+                    amount = (ingredient.amount ?: 0f) * conversion.factor,
+                    measure = conversion.toMeasure
+                )
+            } else {
+                ingredient
+            }
             val existingItem = ingredients.find {
-                (it.name == ingredient.name) && (it.measure == ingredient.measure)
+                (it.name == actual.name) && (it.measure == actual.measure)
             }
             if (existingItem != null) {
-                existingItem.amount = (existingItem.amount ?: 0f) + (ingredient.amount ?: 0f) * (guests / people)
+                existingItem.amount = (existingItem.amount ?: 0f) + (actual.amount ?: 0f) * (guests / people)
             } else {
-                ingredients.add(ShoppingListItem(ingredient.name, ((ingredient.amount ?: 0f) * guests) / people,
-                    ingredient.measure))
+                ingredients.add(ShoppingListItem(actual.name, ((actual.amount ?: 0f) * guests) / people,
+                    actual.measure))
             }
         }
-        recipe.subrecipes.forEach { subrecipe -> collectIngredients(subrecipe, ingredients, guests) }
+        recipe.subrecipes.forEach { subrecipe -> collectIngredients(
+            subrecipe,
+            ingredients,
+            guests,
+            preferredConversions
+        ) }
     }
 
 }

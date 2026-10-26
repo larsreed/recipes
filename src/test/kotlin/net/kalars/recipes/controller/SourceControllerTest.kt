@@ -32,8 +32,8 @@ class SourceControllerTest {
     @Test
     fun `should fetch all sources`() {
         val sources = listOf(
-            Source(id = 1, name = "Book A", authors = "Author 1", info = "Info A", title = "Title A"),
-            Source(id = 2, name = "Book B", authors = "Author 2", info = "Info B", title = "Title B")
+            Source(id = 1, name = "Book A", authors = "Author 1", info = "Info A", title = "Title A", imageFileName = "book-a.jpg"),
+            Source(id = 2, name = "Book B", authors = "Author 2", info = "Info B", title = "Title B", imageFileName = "book-b.jpg")
         )
         Mockito.`when`(sourceRepository.findAll()).thenReturn(sources)
 
@@ -44,6 +44,7 @@ class SourceControllerTest {
             .statusCode(200)
             .body("[0].name", org.hamcrest.Matchers.equalTo("Book A"))
             .body("[0].authors", org.hamcrest.Matchers.equalTo("Author 1"))
+            .body("[0].imageFileName", org.hamcrest.Matchers.equalTo("book-a.jpg"))
             .body("[1].name", org.hamcrest.Matchers.equalTo("Book B"))
             .body("[1].authors", org.hamcrest.Matchers.equalTo("Author 2"))
 
@@ -52,12 +53,13 @@ class SourceControllerTest {
 
     @Test
     fun `should add a source`() {
-        val source = Source(id = 1, name = "Book A", authors = "Author 1", info = "Info A", title = "Title A")
+        val source = Source(id = 1, name = "Book A", authors = "Author 1", info = "Info A", title = "Title A", imageFileName = "book-a.jpg")
         val sourceJson = """
             {
                 "name": "Book A",
                 "authors": "Author 1",
-                "info": "Info A"
+                "info": "Info A",
+                "imageFileName": "book-a.jpg"
             }
         """.trimIndent()
 
@@ -71,20 +73,22 @@ class SourceControllerTest {
             .statusCode(201)
             .body("name", org.hamcrest.Matchers.equalTo("Book A"))
             .body("authors", org.hamcrest.Matchers.equalTo("Author 1"))
+            .body("imageFileName", org.hamcrest.Matchers.equalTo("book-a.jpg"))
 
         Mockito.verify(sourceRepository).save(Mockito.any(Source::class.java))
     }
 
     @Test
     fun `should update a source`() {
-        val existingSource = Source(id = 1, name = "Book A", authors = "Author 1", info = "Info A", title = "Title A")
-        val updatedSource = Source(id = 1, name = "Book B", authors = "Author 2", info = "Info B", title = "Title B")
+        val existingSource = Source(id = 1, name = "Book A", authors = "Author 1", info = "Info A", title = "Title A", imageFileName = "book-a.jpg")
+        val updatedSource = Source(id = 1, name = "Book B", authors = "Author 2", info = "Info B", title = "Title B", imageFileName = "book-b.jpg")
         val updatedSourceJson = """
             {
                 "name": "Book B",
                 "authors": "Author 2",
                 "info": "Info B",
-                "title": "Title B"
+                "title": "Title B",
+                "imageFileName": "book-b.jpg"
             }
         """.trimIndent()
 
@@ -99,6 +103,7 @@ class SourceControllerTest {
             .statusCode(200)
             .body("name", org.hamcrest.Matchers.equalTo("Book B"))
             .body("authors", org.hamcrest.Matchers.equalTo("Author 2"))
+            .body("imageFileName", org.hamcrest.Matchers.equalTo("book-b.jpg"))
 
         Mockito.verify(sourceRepository).findById(1L)
         Mockito.verify(sourceRepository).save(Mockito.any(Source::class.java))
