@@ -1250,8 +1250,48 @@ function RecipeList() {
 
             const sortedIngredientEntries = [...ingredientIndex.values()].sort((a, b) => a.name.localeCompare(b.name, undefined, { sensitivity: 'base' }));
             allSections.push(new Paragraph({ children: [new PageBreak()] }));
-            allSections.push(new Paragraph({ text: 'Ingredient Cross-reference', heading: HeadingLevel.HEADING_1 }));
+            allSections.push(new Paragraph({ text: 'Appendix: Ingredient Cross-reference', heading: HeadingLevel.HEADING_1 }));
             sortedIngredientEntries.forEach((entry) => {
+                const recipeRefs = [...entry.recipes.values()].sort((a, b) => a.name.localeCompare(b.name, undefined, { sensitivity: 'base' }));
+                const recipeRuns: (TextRun | InternalHyperlink | PageReference)[] = [new TextRun({ text: `${entry.name}: `, bold: true })];
+                recipeRefs.forEach((recipeRef, idx) => {
+                    if (idx > 0) {
+                        recipeRuns.push(new TextRun({ text: ', ' }));
+                    }
+                    const bookmarkId = recipeBookmarkName(recipeRef.id);
+                    recipeRuns.push(new InternalHyperlink({
+                        anchor: bookmarkId,
+                        children: [new TextRun({ text: recipeRef.name, style: 'Hyperlink' })],
+                    }));
+                    recipeRuns.push(new TextRun({ text: ' (p. ' }));
+                    recipeRuns.push(new PageReference(bookmarkId));
+                    recipeRuns.push(new TextRun({ text: ')' }));
+                });
+                allSections.push(new Paragraph({
+                    children: recipeRuns,
+                    spacing: { after: 40 },
+                }));
+            });
+
+            const categoryIndex = new Map<string, { name: string; recipes: Map<number, Recipe> }>();
+            const collectCategoryReferences = (recipe: Recipe) => {
+                (recipe.categories || '').split(',').forEach((raw) => {
+                    const categoryName = raw.trim();
+                    if (!categoryName) return;
+                    const key = categoryName.toLowerCase();
+                    if (!categoryIndex.has(key)) {
+                        categoryIndex.set(key, { name: categoryName, recipes: new Map<number, Recipe>() });
+                    }
+                    categoryIndex.get(key)?.recipes.set(recipe.id, recipe);
+                });
+                (recipe.subrecipes ?? []).forEach(collectCategoryReferences);
+            };
+            recipesToExport.forEach(collectCategoryReferences);
+
+            const sortedCategoryEntries = [...categoryIndex.values()].sort((a, b) => a.name.localeCompare(b.name, undefined, { sensitivity: 'base' }));
+            allSections.push(new Paragraph({ children: [new PageBreak()] }));
+            allSections.push(new Paragraph({ text: 'Appendix: Category Cross-reference', heading: HeadingLevel.HEADING_1 }));
+            sortedCategoryEntries.forEach((entry) => {
                 const recipeRefs = [...entry.recipes.values()].sort((a, b) => a.name.localeCompare(b.name, undefined, { sensitivity: 'base' }));
                 const recipeRuns: (TextRun | InternalHyperlink | PageReference)[] = [new TextRun({ text: `${entry.name}: `, bold: true })];
                 recipeRefs.forEach((recipeRef, idx) => {
