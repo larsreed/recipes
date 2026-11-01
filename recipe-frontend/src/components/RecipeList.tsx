@@ -914,7 +914,7 @@ function RecipeList() {
             return allRuns.length > 0 ? allRuns as TextRun[] : [new TextRun({ text: md })];
         };
 
-        const buildRecipeSection = (recipe: Recipe, topLevel: boolean): (Paragraph | Table)[] => {
+        const buildRecipeSection = async (recipe: Recipe, topLevel: boolean): Promise<(Paragraph | Table)[]> => {
             const elements: (Paragraph | Table)[] = [];
             const shouldAddBookmark = !bookmarkedRecipeIds.has(recipe.id);
             if (shouldAddBookmark) {
@@ -934,6 +934,19 @@ function RecipeList() {
                 heading: topLevel ? HeadingLevel.HEADING_1 : HeadingLevel.HEADING_2,
                 spacing: { before: topLevel ? 0 : 400, after: 200 },
             }));
+
+            const recipeImage = await fetchMediaImage(recipe.imageFileName);
+            if (recipeImage) {
+                const sized = scaleToFit({ width: recipeImage.width, height: recipeImage.height }, 360, 360);
+                elements.push(new Paragraph({
+                    children: [new ImageRun({
+                        data: recipeImage.data,
+                        type: recipeImage.type,
+                        transformation: { width: sized.width, height: sized.height },
+                    })],
+                    spacing: { after: 180 },
+                }));
+            }
 
             if (recipe.served) elements.push(metaRun('Served: ', unquoteCsv(recipe.served)));
             if (recipe.source) {
@@ -1022,7 +1035,7 @@ function RecipeList() {
 
             if (recipe.closing) elements.push(...markdownToDocx(unquoteCsv(recipe.closing)));
             for (const sr of (recipe.subrecipes ?? [])) {
-                elements.push(...buildRecipeSection(sr, false));
+                elements.push(...(await buildRecipeSection(sr, false)));
             }
             if (topLevel) elements.push(new Paragraph({ children: [new PageBreak()] }));
 
@@ -1040,7 +1053,53 @@ function RecipeList() {
             return null;
         };
 
-        const fetchSourceImage = async (imageFileName?: string): Promise<{ data: Uint8Array; type: 'jpg' | 'png' | 'gif' | 'bmp' } | null> => {
+        const scaleToFit = (natural: { width: number; height: number }, maxWidth: number, maxHeight: number) => {
+            if (!natural.width || !natural.height) return { width: maxWidth, height: maxHeight };
+            const ratio = Math.min(maxWidth / natural.width, maxHeight / natural.height, 1);
+            return { width: Math.max(1, Math.round(natural.width * ratio)), height: Math.max(1, Math.round(natural.height * ratio)) };
+        };
+
+        // Re-encode via canvas so EXIF-rotated JPEGs end up baked at their displayed orientation.
+        // Word ignores EXIF orientation; the browser applies it when loading into an Image element.
+        const normalizeImage = async (
+            data: Uint8Array,
+            inputType: 'jpg' | 'png' | 'gif' | 'bmp'
+        ): Promise<{ data: Uint8Array; type: 'jpg' | 'png' | 'gif' | 'bmp'; width: number; height: number }> => {
+            const inputMime = inputType === 'jpg' ? 'image/jpeg' : `image/${inputType}`;
+            const blob = new Blob([data], { type: inputMime });
+            const url = URL.createObjectURL(blob);
+            try {
+                const img = await new Promise<HTMLImageElement>((resolve, reject) => {
+                    const el = new Image();
+                    el.onload = () => resolve(el);
+                    el.onerror = () => reject(new Error('Failed to decode image'));
+                    el.src = url;
+                });
+                const width = img.naturalWidth;
+                const height = img.naturalHeight;
+                const canvas = document.createElement('canvas');
+                canvas.width = width;
+                canvas.height = height;
+                const ctx = canvas.getContext('2d');
+                if (!ctx) throw new Error('Canvas 2D context unavailable');
+                ctx.drawImage(img, 0, 0, width, height);
+                const outputType: 'jpg' | 'png' = inputType === 'jpg' ? 'jpg' : 'png';
+                const outputMime = outputType === 'jpg' ? 'image/jpeg' : 'image/png';
+                const outputBlob = await new Promise<Blob>((resolve, reject) => {
+                    canvas.toBlob(
+                        (b) => (b ? resolve(b) : reject(new Error('Canvas toBlob failed'))),
+                        outputMime,
+                        outputType === 'jpg' ? 0.92 : undefined
+                    );
+                });
+                const buf = await outputBlob.arrayBuffer();
+                return { data: new Uint8Array(buf), type: outputType, width, height };
+            } finally {
+                URL.revokeObjectURL(url);
+            }
+        };
+
+        const fetchMediaImage = async (imageFileName?: string): Promise<{ data: Uint8Array; type: 'jpg' | 'png' | 'gif' | 'bmp'; width: number; height: number } | null> => {
             if (!imageFileName) return null;
             const imageType = toDocxImageType(imageFileName);
             if (!imageType) return null;
@@ -1049,7 +1108,7 @@ function RecipeList() {
                     `${config.backendUrl}/api/recipes/media/${encodeURIComponent(imageFileName)}`,
                     { responseType: 'arraybuffer' }
                 );
-                return { data: new Uint8Array(response.data), type: imageType };
+                return await normalizeImage(new Uint8Array(response.data), imageType);
             } catch {
                 return null;
             }
@@ -1083,9 +1142,9 @@ function RecipeList() {
             allSections.push(new Paragraph({ children: [new PageBreak()] }));
         }
 
-        recipesToExport.forEach((recipe) => {
-            allSections.push(...buildRecipeSection(recipe, true));
-        });
+        for (const recipe of recipesToExport) {
+            allSections.push(...(await buildRecipeSection(recipe, true)));
+        }
 
         if (bookAppendices) {
             const sortedSources = [...bookAppendices.sources].sort((a, b) => a.name.localeCompare(b.name, undefined, { sensitivity: 'base' }));
@@ -1107,10 +1166,11 @@ function RecipeList() {
                 if (source.authors) allSections.push(metaRun('Authors: ', source.authors));
                 if (source.title) allSections.push(metaRun('Title: ', source.title));
                 if (source.info) allSections.push(...markdownToDocx(source.info));
-                const imageData = await fetchSourceImage(source.imageFileName);
+                const imageData = await fetchMediaImage(source.imageFileName);
                 if (imageData) {
+                    const sized = scaleToFit({ width: imageData.width, height: imageData.height }, 180, 180);
                     allSections.push(new Paragraph({
-                        children: [new ImageRun({ data: imageData.data, type: imageData.type, transformation: { width: 180, height: 180 } })],
+                        children: [new ImageRun({ data: imageData.data, type: imageData.type, transformation: { width: sized.width, height: sized.height } })],
                         spacing: { after: 180 },
                     }));
                 }
